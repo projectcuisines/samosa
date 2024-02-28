@@ -1,0 +1,28 @@
+# SAMOSA Global Output File
+#
+# Use this header for notes about experiment set up
+# Compile all cases into a list by sample number
+#
+# Model name: 
+# Name of primary contact: 
+# Notes:
+#
+# Columns of data
+# Sample = Sample number (1-64, see Table 1 and Table 4 in the protocol)
+# Inst = instellation (W/m^2, defined by the sample number)
+# Pres = surface pressure (bar, defined by the sample number)
+# Tglob = global, annual mean surface temperature (K)
+# Tmax = global, annual maximum surface temperature (K)
+# Tmin = global, annual minimum surface temperature (K)
+# OLR = global, annual mean outgoing longwave radiative flux (W/m^2)
+# ASR = global, annual mean absorbed shortwave radiative flux (W/m^2)
+# Fsdn = global, annual mean total downward shortwave radiative flux (W/m^2)
+# Fnet = global, annual mean net longwave radiative flux (W/m^2)
+# Qstrat = global, annual mean stratospheric specific humidity (kg/kg, at the topmost layer)
+# Qfrac = global, annual mean water column mass fraction (i.e., fraction relative to total column mass)
+# Ocnfrac = global, annual mean open ocean fraction (i.e., fraction not covered by sea ice)
+# Cldliq = global, annual mean cloud liquid mass mixing ratio (kg/kg)
+# Cldice = global, annual mean cloud ice mass mixing ratio (kg/kg)
+# Cldfrac - global, annual mean open total cloud fraction
+
+# Sample Inst Pres Tglob Tmax Tmin OLR ASR Fsdn Fnet Qstrat Qfrac Ocnfrac Cldliq Cldice Cldfrac
