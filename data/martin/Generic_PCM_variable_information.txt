@@ -1,0 +1,34 @@
+altitude : in km
+longitude : in degree East
+latitude : in degree North
+soildepth : in meters
+atmospheric_temperature : in K
+u_wind_speed : zonal wind (in m/s)
+v_wind_speed : meridional wind (in m/s)
+w_wind_speed : vertical wind speed defined positively upwards (in m/s)
+shortwave_atmospheric_heating_rate : in K/s
+longwave_atmospheric_heating_rate : in K/s
+specific_humidity : in kg/kg
+relative_humidity : between 0 and 1
+atmospheric_mass : mass of atmospheric grid cell (in kg/m^2)
+surface_temperature : in K
+incoming_stellar_radiation : in W/m^2
+outgoing_longwave_radiation : in W/m^2
+absorbed_shortwave_radiation : in W/m^2
+clear-sky_outgoing_longwave_radiation : in W/m^2
+clear-sky_absorbed_shortwave_radiation : in W/m^2
+surface_shortwave_flux : in W/m^2
+surface_net_longwave_flux : in W/m^2
+open_ocean_fraction : between 0 and 1
+sea_ice_fraction : between 0 and 1
+water_vapor_column : in kg/m^2
+ice_cloud_column : in kg/m^2
+liquid_cloud_column : in kg/m^2
+ice_cloud_fraction : between 0 and 1
+liquid_cloud_fraction : between 0 and 1
+ice_cloud_mass_mixing_ratio : in kg/kg
+liquid_cloud_mass_mixing_ratio : in kg/kg
+ice_cloud_effective_particle_radius : in meters
+liquid_cloud_effective_particle_radius : in meters
+atmospheric_pressure : in Pascal
+surface_area : grid area (in m^2)

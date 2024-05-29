@@ -1,0 +1,35 @@
+# SAMOSA Global Output File
+#
+# Use this header for notes about experiment set up
+# Compile all cases into a list by sample number
+#
+# Model name: Generic PCM
+# Name of primary contact: Martin Turbet (but next runs will be uploaded by Siddharth Bhatnagar)
+# Notes: this is a first test run for Case 4
+#
+# Columns of data
+#
+# INPUTS:
+# Sample = Sample number (1-64, see Table 1 and Table 4 in the protocol)
+# Inst = instellation (W/m^2, defined by the sample number)
+# Pres = surface pressure (bar, defined by the sample number)
+#
+# OUTPUTS:
+# Tglob = global, annual mean surface temperature (K)
+# Tmax = global, annual maximum surface temperature (K)
+# Tmin = global, annual minimum surface temperature (K)
+# OLR = global, annual mean outgoing longwave radiative flux (W/m^2)
+# ASR = global, annual mean absorbed shortwave radiative flux (W/m^2)
+# Fsdn = global, annual mean total downward shortwave radiative flux (W/m^2)
+# Fnet = global, annual mean net longwave radiative flux (W/m^2)
+# Ocnfrac = global, annual mean open ocean fraction (i.e., fraction not covered by sea ice)
+# Icethick = global, annual mean ice thickness (km)
+# Qstrat = global, annual mean stratospheric specific humidity (kg/kg, at 1 hPa or model top, whichever is lower)
+# Qmass = global, annual mean vertically integrated water vapor column mass (kg/m^2)
+# Cldliq = global, annual mean cloud verticially integrated liquid column mass (kg/m^2)
+# Cldice = global, annual mean cloud vertically integrated ice column mass (kg/m^2)
+# Cldfrac = global, annual mean open total cloud fraction
+
+# Sample Inst Pres Tglob Tmax Tmin OLR ASR Fsdn Fnet Qstrat Qmass Ocnfrac Icethick Cldliq Cldice Cldfrac
+
+4 1200 2.34 283.07 320.16 238.19 259.87 256.50 107.84 -15.30 1.51e-07 46.77 0.72 X 0.0379 0.0134 0.240
