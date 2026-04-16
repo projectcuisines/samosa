@@ -19,7 +19,7 @@ from scipy.interpolate import CubicSpline
 # Read ExoPlaSim data
 f1 = netCDF4.Dataset( '/models/data/samosa/exoplasim/full_t21_synchronous__3000teff_15day/t21_synchronous_2.34pn2_flux1200_400.0co2_3000teff_15day.nc' )
 
-Ts_plasim4 = np.average( f1.variables[ 'ts' ], axis=0 )
+Ts_plasim4 = np.abs( np.average( f1.variables[ 'rls' ], axis=0 ) )
 lat_plasim = np.array( f1.variables[ 'lat' ] )
 lon_plasim = np.array( f1.variables[ 'lon' ] )
 
@@ -41,7 +41,7 @@ for i in range( 0, lon_plasim.size ):
 # Read ExoCAM data
 f2 = netCDF4.Dataset( '/models/data/samosa/exocam/samosa4.cam.h0.avg.nc' )
 
-Ts_exocam4 = np.average( f2.variables[ 'TS' ], axis=0 )
+Ts_exocam4 = np.average( f2.variables[ 'FLNS' ], axis=0 )
 lat_exocam = np.array( f2.variables[ 'lat' ] )
 lon_exocam = np.array( f2.variables[ 'lon' ] )
 
@@ -61,8 +61,7 @@ for i in range( 0, lon_exocam.size ):
 # Read Generic PCM data
 f3 = netCDF4.Dataset( '/home/jacob/research/samosa/data/martin/SAMOSA_output_file_Generic_PCM_case-4_static_ocean_TESTCASE.nc' )
 
-#Ts_pcm4 = np.average( f3.variables[ 'surface_temperature' ], axis=0 )
-Ts_pcm4 = np.array( f3.variables[ 'surface_temperature' ] )
+Ts_pcm4 = np.abs( np.array( f3.variables[ 'surface_net_longwave_flux' ] ) )
 lat_pcm = np.array( f3.variables[ 'latitude' ] )
 lon_pcm = np.array( f3.variables[ 'longitude' ] )
 
@@ -82,8 +81,8 @@ for i in range( 0, lon_pcm.size ):
 # Set Up Figure
 
 cm = mpl.colormaps.get_cmap('cool')
-contourmax  = 300.0
-contourmin  = 200.0
+contourmax  = 100.0
+contourmin  = 0.0
 
 fig, axd = plt.subplot_mosaic([['upper left', 'upper right'],
                                ['lower left', 'lower right']],
@@ -136,16 +135,16 @@ cb3 = fig.colorbar( im3, ax=axd[ 'upper right' ], extend='both', ticks=np.arange
 cb4 = fig.colorbar( im4, ax=axd[ 'lower right' ], extend='both', ticks=np.arange( contourmin, contourmax + 50, 50 ) )
 
 cb1.ax.get_yaxis().labelpad = 15
-cb1.set_label( 'Temperature (K)', rotation=270 )
+cb1.set_label( 'Net LW at Surface (W m$^{-2}$)', rotation=270 )
 cb2.ax.get_yaxis().labelpad = 15
-cb2.set_label( 'Temperature (K)', rotation=270 )
+cb2.set_label( 'Net LW at Surface (W m$^{-2}$)', rotation=270 )
 cb3.ax.get_yaxis().labelpad = 15
-cb3.set_label( 'Temperature (K)', rotation=270 )
+cb3.set_label( 'Net LW at Surface (W m$^{-2}$)', rotation=270 )
 cb4.ax.get_yaxis().labelpad = 15
-cb4.set_label( 'Temperature (K)', rotation=270 )
+cb4.set_label( 'Net LW at Surface (W m$^{-2}$)', rotation=270 )
 
 fig.subplots_adjust( hspace = 0.50 )
 
-fig.savefig( "fig_compare_temp.png", bbox_inches='tight' )
-fig.savefig( "fig_compare_temp.eps", bbox_inches='tight' )
+fig.savefig( "fig_compare_netLWsurf.png", bbox_inches='tight' )
+fig.savefig( "fig_compare_netLWsurf.eps", bbox_inches='tight' )
 #plt.show()
