@@ -71,7 +71,7 @@ OK = OrdinaryKriging(
     exact_values=True,
 )
 
-z1, _ = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ))
+z1, z1_var = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ))
 xv, yv = np.meshgrid( pn2, flux )
 
 #--------------------------------------------------------------------
@@ -87,7 +87,7 @@ OK = OrdinaryKriging(
     exact_values=True,
 )
 
-R3_z1, _ = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ))
+R3_z1, R3_var = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ))
 
 #--------------------------------------------------------------------
 # ExoPlaSim Kriging
@@ -102,7 +102,7 @@ OK = OrdinaryKriging(
     exact_values=True,
 )
 
-PlaSim_z1, _ = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
+PlaSim_z1, PlaSim_var = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
 
 #--------------------------------------------------------------------
 # PlaHab Kriging
@@ -117,7 +117,7 @@ OK = OrdinaryKriging(
     exact_values=True,
 )
 
-PlaHab_z1, _ = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
+PlaHab_z1, PlaHab_var = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
 
 #--------------------------------------------------------------------
 # LFRic Kriging
@@ -132,7 +132,7 @@ OK = OrdinaryKriging(
     exact_values=True,
 )
 
-lfric_z1, _ = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
+lfric_z1, lfric_var = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
 
 #--------------------------------------------------------------------
 # Generic PCM Kriging
@@ -147,7 +147,7 @@ OK = OrdinaryKriging(
     exact_values=True,
 )
 
-pcm_z1, _ = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
+pcm_z1, pcm_var = OK.execute("grid", norm_pres( pn2 ), norm_flux( flux ) )
 
 # Shared axis limits
 xlim = [ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ]
@@ -155,6 +155,7 @@ ylim = [ min( pn2 )*0.9, max( pn2 )*1.1 ]
 cbar_ticks = np.arange( 200, contourmax, 50 )
 contour_levels = np.linspace( contourmin, contourmax, cinterval )
 marker_edge = 'k'
+sigma_threshold = 45.0  # K; hatch regions where kriging std dev exceeds this
 
 def setup_panel( ax, title ):
     ax.set_title( title, fontsize=14 )
@@ -170,6 +171,7 @@ def setup_panel( ax, title ):
 # Panel 1
 
 cf1 = axd[ 'P1' ].contourf( yv*fluxscale, xv, z1, cmap=cm, levels=contour_levels, extend='both' )
+axd[ 'P1' ].contourf( yv*fluxscale, xv, np.sqrt(z1_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P1' ].scatter( exocam_flux1*fluxscale, exocam_pres1, c=exocam_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P1' ], f'ExoCAM (n={len(exocam_stable)})' )
 
@@ -177,6 +179,7 @@ setup_panel( axd[ 'P1' ], f'ExoCAM (n={len(exocam_stable)})' )
 # Panel 2
 
 cf2 = axd[ 'P2' ].contourf( yv*fluxscale, xv, R3_z1, cmap=cm, levels=contour_levels, extend='both' )
+axd[ 'P2' ].contourf( yv*fluxscale, xv, np.sqrt(R3_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P2' ].scatter( rocke3d_flux1*fluxscale, rocke3d_pres1, c=rocke3d_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P2' ], f'ROCKE-3D (n={len(rocke3d_stable)})' )
 
@@ -184,6 +187,7 @@ setup_panel( axd[ 'P2' ], f'ROCKE-3D (n={len(rocke3d_stable)})' )
 # Panel 3
 
 cf3 = axd[ 'P3' ].contourf( yv*fluxscale, xv, pcm_z1, cmap=cm, levels=contour_levels, extend='both' )
+axd[ 'P3' ].contourf( yv*fluxscale, xv, np.sqrt(pcm_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P3' ].scatter( pcm_flux1*fluxscale, pcm_pres1, c=pcm, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P3' ], f'Generic PCM (n={len(pcm)})' )
 
@@ -191,6 +195,7 @@ setup_panel( axd[ 'P3' ], f'Generic PCM (n={len(pcm)})' )
 # Panel 4
 
 cf4 = axd[ 'P4' ].contourf( yv*fluxscale, xv, PlaSim_z1, cmap=cm, levels=contour_levels, extend='both' )
+axd[ 'P4' ].contourf( yv*fluxscale, xv, np.sqrt(PlaSim_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P4' ].scatter( flux1*fluxscale, pres1, c=plasim, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P4' ], f'ExoPlaSim (n={len(plasim)})' )
 
@@ -198,6 +203,7 @@ setup_panel( axd[ 'P4' ], f'ExoPlaSim (n={len(plasim)})' )
 # Panel 5
 
 cf5 = axd[ 'P5' ].contourf( yv*fluxscale, xv, PlaHab_z1, cmap=cm, levels=contour_levels, extend='both' )
+axd[ 'P5' ].contourf( yv*fluxscale, xv, np.sqrt(PlaHab_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P5' ].scatter( plahab_flux1*fluxscale, plahab_pres1, c=plahab_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P5' ], f'PlaHab (n={len(plahab_stable)})' )
 
@@ -205,6 +211,7 @@ setup_panel( axd[ 'P5' ], f'PlaHab (n={len(plahab_stable)})' )
 # Panel 6
 
 cf6 = axd[ 'P6' ].contourf( yv*fluxscale, xv, lfric_z1, cmap=cm, levels=contour_levels, extend='both' )
+axd[ 'P6' ].contourf( yv*fluxscale, xv, np.sqrt(lfric_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P6' ].scatter( lfric_flux1*fluxscale, lfric_pres1, c=lfric, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P6' ], f'LFric (n={len(lfric)})' )
 
