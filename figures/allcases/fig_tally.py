@@ -102,11 +102,11 @@ axd[ 'P3' ].scatter( flux_all[ ~rocke3d_mask ], pres_all[ ~rocke3d_mask ], color
 setup_panel( axd[ 'P3' ], f'ROCKE-3D (n={rocke3d_mask.sum()})' )
 
 #--------------------------------------------------------------------
-# Panel 4 — Generic PCM (without OHT)
+# Panel 4 — Generic PCM
 
 axd[ 'P4' ].scatter( flux_all[  pcm_mask ], pres_all[  pcm_mask ], color=color_stable,  marker='o', s=50 )
 axd[ 'P4' ].scatter( flux_all[ ~pcm_mask ], pres_all[ ~pcm_mask ], color=color_unavail, marker='x', s=50 )
-setup_panel( axd[ 'P4' ], f'Generic PCM without OHT (n={pcm_mask.sum()})' )
+setup_panel( axd[ 'P4' ], f'Generic PCM (n={pcm_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 5 — LFRic
