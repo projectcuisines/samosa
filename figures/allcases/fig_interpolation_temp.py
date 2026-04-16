@@ -66,7 +66,7 @@ OK = OrdinaryKriging(
     norm_flux( exocam_flux1 ),
     exocam_stable,
     variogram_model="linear",
-    verbose=True,
+    verbose=False,
     enable_plotting=False,
     exact_values=True,
 )
@@ -82,7 +82,7 @@ OK = OrdinaryKriging(
     norm_flux( rocke3d_flux1 ),
     rocke3d_stable,
     variogram_model="linear",
-    verbose=True,
+    verbose=False,
     enable_plotting=False,
     exact_values=True,
 )
@@ -97,7 +97,7 @@ OK = OrdinaryKriging(
     norm_flux( flux1 ),
     plasim,
     variogram_model="linear",
-    verbose=True,
+    verbose=False,
     enable_plotting=False,
     exact_values=True,
 )
@@ -112,7 +112,7 @@ OK = OrdinaryKriging(
     norm_flux( plahab_flux1 ),
     plahab_stable,
     variogram_model="linear",
-    verbose=True,
+    verbose=False,
     enable_plotting=False,
     exact_values=True,
 )
@@ -127,7 +127,7 @@ OK = OrdinaryKriging(
     norm_flux( lfric_flux1 ),
     lfric,
     variogram_model="linear",
-    verbose=True,
+    verbose=False,
     enable_plotting=False,
     exact_values=True,
 )
@@ -142,7 +142,7 @@ OK = OrdinaryKriging(
     norm_flux( pcm_flux1 ),
     pcm,
     variogram_model="linear",
-    verbose=True,
+    verbose=False,
     enable_plotting=False,
     exact_values=True,
 )
