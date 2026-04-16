@@ -12,7 +12,7 @@ contourmax      = 1.e3
 cinterval       = 40
 sigma_threshold = 3.5       # log-units; hatch where kriging σ exceeds this
 cbar_label      = 'Average Water Vapor Column (kg m$^{-2}$)'
-cbar_ticks      = [ 1e-4, 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3 ]
+cbar_ticks      = [ 1e-3, 1e-2, 1e-1, 1e0, 1e1, 1e2, 1e3 ]
 # ─────────────────────────────────────────────────────────────────────────────
 
 _s        = 0.1     # unit conversion: raw model output → kg m⁻²
