@@ -1,265 +1,131 @@
-#
-# Comparison for SAMOSA Case 4: Full parameter space overview
-#
-import netCDF4
-
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 from scipy.stats import qmc
 
 #--------------------------------------------------------------------
-# Sparse sample input
+# Sparse sample grid
 
 flux = np.arange( 400, 2700, 100 )
-pn2  = [ 0.10, 0.13, 0.16, 0.21, 0.26, 0.34, 0.43, 0.55, 0.70, 0.89, 1.13, 1.44, 1.83, 2.34, 2.98, 3.79, 4.83, 6.16, 7.85, 10.0 ]
+pn2  = np.array( [ 0.10, 0.13, 0.16, 0.21, 0.26, 0.34, 0.43, 0.55, 0.70, 0.89, 1.13, 1.44, 1.83, 2.34, 2.98, 3.79, 4.83, 6.16, 7.85, 10.0 ] )
 
-seed1 = 5936744
-seed2 = 397676
-
+seed1   = 5936744
+seed2   = 397676
 seq2sol = 1800
-#seq2pres = 0.34
 
-grid = np.zeros( [ len( flux )*len( pn2 ), 2 ] )
-for i in range( 0, len( flux ) ):
-	for j in range( 0, len( pn2 ) ):
-		grid[ j+i*len(pn2), 0 ] = flux[i]
-		grid[ j+i*len(pn2), 1] = pn2[j]
+grid = np.array( [ [flux[i], pn2[j]] for i in range( len(flux) ) for j in range( len(pn2) ) ] )
 
 sampler1 = qmc.Sobol( d=2, scramble=True, seed=seed1 )
-lbound1  = [ 0, 0 ]
-ubound1  = [ len( flux ), len( pn2 ) ]
 sample1a = sampler1.random_base2( m=3 )
-sample1  = np.floor( qmc.scale( sample1a, lbound1, ubound1 ) ).astype( int )
-disc1    = qmc.discrepancy( sample1a )
-#print( disc1 )
-flux1 = np.zeros( len( sample1 ) )
-pres1 = np.zeros( len( sample1  ) )
-for i in range( 0, len( sample1 ) ):
-	flux1[i] = flux[ sample1[i,0] ]
-	pres1[i] = pn2[ sample1[i,1] ]
-#print( flux1 )
-#print( pres1 )
+sample1  = np.floor( qmc.scale( sample1a, [0, 0], [len(flux), len(pn2)] ) ).astype( int )
+flux1    = flux[ sample1[:,0] ]
+pres1    = pn2[  sample1[:,1] ]
 
 sampler2 = qmc.Sobol( d=2, scramble=True, seed=seed2 )
-#lbound2  = [ 0, next(i for i, _ in enumerate( pn2 ) if np.isclose(_, seq2pres, 0.01)) ]
-lbound2  = [ 0, 0 ]
-ubound2  = [ np.where( flux==seq2sol )[0][0], len( pn2 ) ]
 sample2a = sampler2.random_base2( m=3 )
-sample2  = np.floor( qmc.scale( sample2a, lbound2, ubound2 ) ).astype( int )
-disc2    = qmc.discrepancy( sample2a )
-#print( disc2 )
-flux2 = np.zeros( len( sample2 ) )
-pres2 = np.zeros( len( sample2  ) )
-for i in range( 0, len( sample2 ) ):
-	flux2[i] = flux[ sample2[i,0] ]
-	pres2[i] = pn2[ sample2[i,1] ]
-#print( flux2 )
-#print( pres2 )
+sample2  = np.floor( qmc.scale( sample2a, [0, 0], [np.where( flux == seq2sol )[0][0], len(pn2)] ) ).astype( int )
+flux2    = flux[ sample2[:,0] ]
+pres2    = pn2[  sample2[:,1] ]
+
+flux_all = np.concatenate( [flux1, flux2] )
+pres_all = np.concatenate( [pres1, pres2] )
+
+# Stable (completed) mask for each model — True = stable, False = runaway/unavailable
+exocam_mask  = np.array( [True,  False, False, True,  False, False, False, True,
+                           True,  True,  True,  True,  False, True,  True,  True ] )
+rocke3d_mask = np.array( [True,  False, False, True,  True,  False, True,  True,
+                           True,  True,  True,  True,  True,  True,  True,  True ] )
+pcm_mask     = np.array( [True,  False, False, True,  False, False, False, True,
+                           True,  True,  False, False, False, True,  True,  False] )
+plahab_mask  = np.array( [True,  False, False, True,  True,  False, True,  True,
+                           True,  True,  True,  True,  True,  True,  True,  True ] )
+lfric_mask   = np.array( [True,  False, False, True,  False, False, False, False,
+                           True,  False, False, True,  False, True,  True,  False] )
+
+color_stable  = '#183629'
+color_unavail = '#183629'
+color_grid    = '#aaaaaa'
+
+fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3' ],
+                                  [ 'P4', 'P5', 'P6' ]],
+                                figsize=(18, 9) )
+
+xlim = [ max( flux ) + 50, min( flux ) - 50 ]
+ylim = [ min( pn2 ) * 0.9, max( pn2 ) * 1.1 ]
+
+def setup_panel( ax, title ):
+    ax.set_title( title, fontsize=14 )
+    ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
+    ax.set_ylabel( 'Surface pressure (bar)', fontsize=12 )
+    ax.tick_params( axis='x', labelsize=11 )
+    ax.tick_params( axis='y', labelsize=11 )
+    ax.set_yscale( 'log' )
+    ax.set_xlim( xlim )
+    ax.set_ylim( ylim )
 
 #--------------------------------------------------------------------
-# Set Up Figure
+# Panel 1 — ExoPlaSim (all 16 stable; labels identify QMC point numbers)
 
-#cm = mpl.colormaps.get_cmap('cool')
-#contourmax  = 300.0
-#contourmin  = 200.0
+axd[ 'P1' ].scatter( grid[:,0], grid[:,1], s=4, color=color_grid, zorder=0 )
+axd[ 'P1' ].scatter( flux_all, pres_all, color=color_stable, marker='o', s=50 )
 
-#fig, axd = plt.subplot_mosaic([['P1', 'P2', 'P3' ],
-#                               ['P4', 'P5', 'P6' ]],
-#                              figsize=(20.5, 12.5))
-fig, axd = plt.subplot_mosaic([['P1', 'P2', 'P3' ],
-                               ['P4', 'P5', 'P6' ]],
-                              figsize=(15.375, 9.375))
+axd[ 'P1' ].text( flux1[0]+80, pres1[0],       1,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux1[1]+80, pres1[1],       2,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux1[2]+80, pres1[2],       3,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux1[3]+80, pres1[3],       4,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux1[4]+80, pres1[4],       5,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux1[5]+80, pres1[5],       6,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux1[6]+80, pres1[6],       7,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux1[7]+80, pres1[7],       8,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[0]+80,  pres2[0],      9,  fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[1]+140, pres2[1],      10, fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[2]+140, pres2[2]*1.03, 11, fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[3]+140, pres2[3],      12, fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[4]+140, pres2[4],      13, fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[5]+140, pres2[5],      14, fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[6]+140, pres2[6],      15, fontsize=10, color=color_stable )
+axd[ 'P1' ].text( flux2[7]+140, pres2[7]*0.81, 16, fontsize=10, color=color_stable )
 
-color1 = '#183629'
-color2 = '#208eb7'
-color3 = '#3ea275'
-color0 = '#aaaaaa'
-
-#--------------------------------------------------------------------
-# Panel 1
-
-axd[ 'P1' ].scatter( grid[:,0], grid[:,1], s=4, color=color0 )
-axd[ 'P1' ].scatter( flux1, pres1, color=color1 )
-axd[ 'P1' ].scatter( flux2, pres2, color=color1 )
-axd[ 'P1' ].tick_params( axis='x', labelsize=12 )
-axd[ 'P1' ].tick_params( axis='y', labelsize=12 )
-axd[ 'P1' ].set( title='ExoPlaSim' )
-axd[ 'P1' ].set_xlabel( 'Instellation (W m$^2$)', fontsize = 12 )
-axd[ 'P1' ].set_ylabel( 'Surface pressure (atm)', fontsize = 12 )
-axd[ 'P1' ].set_yscale('log')
-axd[ 'P1' ].set_xlim( [ max( flux ) + 50, min( flux ) - 50 ] )
-axd[ 'P1' ].set_ylim( [ min( pn2 )*0.9,  max( pn2 )*1.1 ] )
-
-axd[ 'P1' ].text( flux1[0]+80, pres1[0], 1, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux1[1]+80, pres1[1], 2, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux1[2]+80, pres1[2], 3, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux1[3]+80, pres1[3], 4, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux1[4]+80, pres1[4], 5, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux1[5]+80, pres1[5], 6, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux1[6]+80, pres1[6], 7, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux1[7]+80, pres1[7], 8, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[0]+80,  pres2[0], 9, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[1]+140, pres2[1], 10, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[2]+140, pres2[2]*1.03, 11, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[3]+140, pres2[3], 12, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[4]+140, pres2[4], 13, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[5]+140, pres2[5], 14, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[6]+140, pres2[6], 15, fontsize=10, color=color1 )
-axd[ 'P1' ].text( flux2[7]+140, pres2[7]*0.81, 16, fontsize=10, color=color1 )
+setup_panel( axd[ 'P1' ], f'ExoPlaSim (n=16)' )
 
 #--------------------------------------------------------------------
-# Panel 2
+# Panel 2 — ExoCAM
 
-#axd[ 'P2' ].scatter( flux1, pres1, color=color1 )
-axd[ 'P2' ].tick_params( axis='x', labelsize=12 )
-axd[ 'P2' ].tick_params( axis='y', labelsize=12 )
-axd[ 'P2' ].set( title='ExoCAM' )
-axd[ 'P2' ].set_xlabel( 'Instellation (W m$^2$)', fontsize = 12 )
-axd[ 'P2' ].set_ylabel( 'Surface pressure (atm)', fontsize = 12 )
-axd[ 'P2' ].set_yscale('log')
-axd[ 'P2' ].set_xlim( [ max( flux ) + 50, min( flux ) - 50 ] )
-axd[ 'P2' ].set_ylim( [ min( pn2 )*0.9,  max( pn2 )*1.1 ] )
-
-axd[ 'P2' ].scatter( flux1[0], pres1[0], color=color1 )
-axd[ 'P2' ].scatter( flux1[1], pres1[1], color=color1, marker='x' )
-axd[ 'P2' ].scatter( flux1[2], pres1[2], color=color1, marker='x' )
-axd[ 'P2' ].scatter( flux1[3], pres1[3], color=color1 )
-axd[ 'P2' ].scatter( flux1[4], pres1[4], color=color1, marker='x' )
-axd[ 'P2' ].scatter( flux1[5], pres1[5], color=color1, marker='x' )
-axd[ 'P2' ].scatter( flux1[6], pres1[6], color=color1, marker='x' )
-axd[ 'P2' ].scatter( flux1[7], pres1[7], color=color1 )
-axd[ 'P2' ].scatter( flux2[0], pres2[0], color=color1 )
-axd[ 'P2' ].scatter( flux2[1], pres2[1], color=color1 )
-axd[ 'P2' ].scatter( flux2[2], pres2[2], color=color1 )
-axd[ 'P2' ].scatter( flux2[3], pres2[3], color=color1 )
-axd[ 'P2' ].scatter( flux2[4], pres2[4], color=color1, marker='x' )
-axd[ 'P2' ].scatter( flux2[5], pres2[5], color=color1 )
-axd[ 'P2' ].scatter( flux2[6], pres2[6], color=color1 )
-axd[ 'P2' ].scatter( flux2[7], pres2[7], color=color1 )
+axd[ 'P2' ].scatter( flux_all[  exocam_mask ], pres_all[  exocam_mask ], color=color_stable,  marker='o', s=50 )
+axd[ 'P2' ].scatter( flux_all[ ~exocam_mask ], pres_all[ ~exocam_mask ], color=color_unavail, marker='x', s=50 )
+setup_panel( axd[ 'P2' ], f'ExoCAM (n={exocam_mask.sum()})' )
 
 #--------------------------------------------------------------------
-# Panel 3
+# Panel 3 — ROCKE-3D
 
-axd[ 'P3' ].tick_params( axis='x', labelsize=12 )
-axd[ 'P3' ].tick_params( axis='y', labelsize=12 )
-axd[ 'P3' ].set( title='Generic PCM (without OHT)' )
-axd[ 'P3' ].set_xlabel( 'Instellation (W m$^2$)', fontsize = 12 )
-axd[ 'P3' ].set_ylabel( 'Surface pressure (atm)', fontsize = 12 )
-axd[ 'P3' ].set_yscale('log')
-axd[ 'P3' ].set_xlim( [ max( flux ) + 50, min( flux ) - 50 ] )
-axd[ 'P3' ].set_ylim( [ min( pn2 )*0.9,  max( pn2 )*1.1 ] )
-
-axd[ 'P3' ].scatter( flux1[0], pres1[0], color=color1 )
-axd[ 'P3' ].scatter( flux1[1], pres1[1], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux1[2], pres1[2], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux1[3], pres1[3], color=color1 )
-axd[ 'P3' ].scatter( flux1[4], pres1[4], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux1[5], pres1[5], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux1[6], pres1[6], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux1[7], pres1[7], color=color1 )
-axd[ 'P3' ].scatter( flux2[0], pres2[0], color=color1 )
-axd[ 'P3' ].scatter( flux2[1], pres2[1], color=color1 )
-axd[ 'P3' ].scatter( flux2[2], pres2[2], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux2[3], pres2[3], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux2[4], pres2[4], color=color1, marker='x' )
-axd[ 'P3' ].scatter( flux2[5], pres2[5], color=color1 )
-axd[ 'P3' ].scatter( flux2[6], pres2[6], color=color1 )
-axd[ 'P3' ].scatter( flux2[7], pres2[7], color=color1, marker='x' )
+axd[ 'P3' ].scatter( flux_all[  rocke3d_mask ], pres_all[  rocke3d_mask ], color=color_stable,  marker='o', s=50 )
+axd[ 'P3' ].scatter( flux_all[ ~rocke3d_mask ], pres_all[ ~rocke3d_mask ], color=color_unavail, marker='x', s=50 )
+setup_panel( axd[ 'P3' ], f'ROCKE-3D (n={rocke3d_mask.sum()})' )
 
 #--------------------------------------------------------------------
-# Panel 4
+# Panel 4 — Generic PCM (without OHT)
 
-axd[ 'P4' ].tick_params( axis='x', labelsize=12 )
-axd[ 'P4' ].tick_params( axis='y', labelsize=12 )
-axd[ 'P4' ].set( title='ROCKE-3D' )
-axd[ 'P4' ].set_xlabel( 'Instellation (W m$^2$)', fontsize = 12 )
-axd[ 'P4' ].set_ylabel( 'Surface pressure (atm)', fontsize = 12 )
-axd[ 'P4' ].set_yscale('log')
-axd[ 'P4' ].set_xlim( [ max( flux ) + 50, min( flux ) - 50 ] )
-axd[ 'P4' ].set_ylim( [ min( pn2 )*0.9,  max( pn2 )*1.1 ] )
-
-axd[ 'P4' ].scatter( flux1[0], pres1[0], color=color1 )
-axd[ 'P4' ].scatter( flux1[1], pres1[1], color=color1, marker='x' )
-axd[ 'P4' ].scatter( flux1[2], pres1[2], color=color1, marker='x' )
-axd[ 'P4' ].scatter( flux1[3], pres1[3], color=color1 )
-axd[ 'P4' ].scatter( flux1[4], pres1[4], color=color1 )
-axd[ 'P4' ].scatter( flux1[5], pres1[5], color=color1, marker='x' )
-axd[ 'P4' ].scatter( flux1[6], pres1[6], color=color1 )
-axd[ 'P4' ].scatter( flux1[7], pres1[7], color=color1 )
-axd[ 'P4' ].scatter( flux2[0], pres2[0], color=color1 )
-axd[ 'P4' ].scatter( flux2[1], pres2[1], color=color1 )
-axd[ 'P4' ].scatter( flux2[2], pres2[2], color=color1 )
-axd[ 'P4' ].scatter( flux2[3], pres2[3], color=color1, marker='+' )
-axd[ 'P4' ].scatter( flux2[4], pres2[4], color=color1 )
-axd[ 'P4' ].scatter( flux2[5], pres2[5], color=color1 )
-axd[ 'P4' ].scatter( flux2[6], pres2[6], color=color1 )
-axd[ 'P4' ].scatter( flux2[7], pres2[7], color=color1 )
+axd[ 'P4' ].scatter( flux_all[  pcm_mask ], pres_all[  pcm_mask ], color=color_stable,  marker='o', s=50 )
+axd[ 'P4' ].scatter( flux_all[ ~pcm_mask ], pres_all[ ~pcm_mask ], color=color_unavail, marker='x', s=50 )
+setup_panel( axd[ 'P4' ], f'Generic PCM without OHT (n={pcm_mask.sum()})' )
 
 #--------------------------------------------------------------------
-# Panel 5
+# Panel 5 — LFRic
 
-axd[ 'P5' ].tick_params( axis='x', labelsize=12 )
-axd[ 'P5' ].tick_params( axis='y', labelsize=12 )
-axd[ 'P5' ].set( title='PlaHab' )
-axd[ 'P5' ].set_xlabel( 'Instellation (W m$^2$)', fontsize = 12 )
-axd[ 'P5' ].set_ylabel( 'Surface pressure (atm)', fontsize = 12 )
-axd[ 'P5' ].set_yscale('log')
-axd[ 'P5' ].set_xlim( [ max( flux ) + 50, min( flux ) - 50 ] )
-axd[ 'P5' ].set_ylim( [ min( pn2 )*0.9,  max( pn2 )*1.1 ] )
-
-axd[ 'P5' ].scatter( flux1[0], pres1[0], color=color1 )
-axd[ 'P5' ].scatter( flux1[1], pres1[1], color=color1, marker='x' )
-axd[ 'P5' ].scatter( flux1[2], pres1[2], color=color1, marker='x' )
-axd[ 'P5' ].scatter( flux1[3], pres1[3], color=color1 )
-axd[ 'P5' ].scatter( flux1[4], pres1[4], color=color1 )
-axd[ 'P5' ].scatter( flux1[5], pres1[5], color=color1, marker='x' )
-axd[ 'P5' ].scatter( flux1[6], pres1[6], color=color1 )
-axd[ 'P5' ].scatter( flux1[7], pres1[7], color=color1 )
-axd[ 'P5' ].scatter( flux2[0], pres2[0], color=color1 )
-axd[ 'P5' ].scatter( flux2[1], pres2[1], color=color1 )
-axd[ 'P5' ].scatter( flux2[2], pres2[2], color=color1 )
-axd[ 'P5' ].scatter( flux2[3], pres2[3], color=color1 )
-axd[ 'P5' ].scatter( flux2[4], pres2[4], color=color1 )
-axd[ 'P5' ].scatter( flux2[5], pres2[5], color=color1 )
-axd[ 'P5' ].scatter( flux2[6], pres2[6], color=color1 )
-axd[ 'P5' ].scatter( flux2[7], pres2[7], color=color1 )
+axd[ 'P5' ].scatter( flux_all[  lfric_mask ], pres_all[  lfric_mask ], color=color_stable,  marker='o', s=50 )
+axd[ 'P5' ].scatter( flux_all[ ~lfric_mask ], pres_all[ ~lfric_mask ], color=color_unavail, marker='x', s=50 )
+setup_panel( axd[ 'P5' ], f'LFRic (n={lfric_mask.sum()})' )
 
 #--------------------------------------------------------------------
-# Panel 6
+# Panel 6 — PlaHab
 
-axd[ 'P6' ].tick_params( axis='x', labelsize=12 )
-axd[ 'P6' ].tick_params( axis='y', labelsize=12 )
-axd[ 'P6' ].set( title='LFRic' )
-axd[ 'P6' ].set_xlabel( 'Instellation (W m$^2$)', fontsize = 12 )
-axd[ 'P6' ].set_ylabel( 'Surface pressure (atm)', fontsize = 12 )
-axd[ 'P6' ].set_yscale('log')
-axd[ 'P6' ].set_xlim( [ max( flux ) + 50, min( flux ) - 50 ] )
-axd[ 'P6' ].set_ylim( [ min( pn2 )*0.9,  max( pn2 )*1.1 ] )
-
-axd[ 'P6' ].scatter( flux1[0], pres1[0], color=color1 )
-axd[ 'P6' ].scatter( flux1[1], pres1[1], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux1[2], pres1[2], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux1[3], pres1[3], color=color1 )
-axd[ 'P6' ].scatter( flux1[4], pres1[4], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux1[5], pres1[5], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux1[6], pres1[6], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux1[7], pres1[7], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux2[0], pres2[0], color=color1 )
-axd[ 'P6' ].scatter( flux2[1], pres2[1], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux2[2], pres2[2], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux2[3], pres2[3], color=color1 )
-axd[ 'P6' ].scatter( flux2[4], pres2[4], color=color1, marker='x' )
-axd[ 'P6' ].scatter( flux2[5], pres2[5], color=color1 )
-axd[ 'P6' ].scatter( flux2[6], pres2[6], color=color1 )
-axd[ 'P6' ].scatter( flux2[7], pres2[7], color=color1, marker='x' )
-
+axd[ 'P6' ].scatter( flux_all[  plahab_mask ], pres_all[  plahab_mask ], color=color_stable,  marker='o', s=50 )
+axd[ 'P6' ].scatter( flux_all[ ~plahab_mask ], pres_all[ ~plahab_mask ], color=color_unavail, marker='x', s=50 )
+setup_panel( axd[ 'P6' ], f'PlaHab (n={plahab_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Finalize
 
-fig.subplots_adjust( hspace = 0.4 )
-fig.subplots_adjust( wspace = 0.4 )
+fig.subplots_adjust( wspace=0.3, hspace=0.4 )
 
 fig.savefig( "fig_tally.png", bbox_inches='tight' )
 fig.savefig( "fig_tally.eps", bbox_inches='tight' )

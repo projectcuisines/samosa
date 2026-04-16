@@ -158,50 +158,50 @@ def setup_panel( ax, title ):
 #--------------------------------------------------------------------
 # Panel 1
 
-cf1 = axd[ 'P1' ].contourf( yv*fluxscale, xv, np.exp(z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
-axd[ 'P1' ].contourf( yv*fluxscale, xv, np.sqrt(z1_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P1' ].scatter( exocam_flux1*fluxscale, exocam_pres1, c=exocam_stable, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P1' ], f'ExoCAM (n={len(exocam_stable)})' )
+cf1 = axd[ 'P1' ].contourf( yv*fluxscale, xv, np.exp(PlaSim_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
+axd[ 'P1' ].contourf( yv*fluxscale, xv, np.sqrt(PlaSim_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P1' ].scatter( flux1*fluxscale, pres1, c=plasim, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P1' ], f'ExoPlaSim (n={len(plasim)})' )
 
 #--------------------------------------------------------------------
 # Panel 2
 
-cf2 = axd[ 'P2' ].contourf( yv*fluxscale, xv, np.exp(R3_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
-axd[ 'P2' ].contourf( yv*fluxscale, xv, np.sqrt(R3_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P2' ].scatter( rocke3d_flux1*fluxscale, rocke3d_pres1, c=rocke3d_stable, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P2' ], f'ROCKE-3D (n={len(rocke3d_stable)})' )
+cf2 = axd[ 'P2' ].contourf( yv*fluxscale, xv, np.exp(z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
+axd[ 'P2' ].contourf( yv*fluxscale, xv, np.sqrt(z1_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P2' ].scatter( exocam_flux1*fluxscale, exocam_pres1, c=exocam_stable, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P2' ], f'ExoCAM (n={len(exocam_stable)})' )
 
 #--------------------------------------------------------------------
 # Panel 3
 
-cf3 = axd[ 'P3' ].contourf( yv*fluxscale, xv, np.exp(pcm_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
-axd[ 'P3' ].contourf( yv*fluxscale, xv, np.sqrt(pcm_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P3' ].scatter( pcm_flux1*fluxscale, pcm_pres1, c=pcm, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P3' ], f'Generic PCM (n={len(pcm)})' )
+cf3 = axd[ 'P3' ].contourf( yv*fluxscale, xv, np.exp(R3_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
+axd[ 'P3' ].contourf( yv*fluxscale, xv, np.sqrt(R3_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P3' ].scatter( rocke3d_flux1*fluxscale, rocke3d_pres1, c=rocke3d_stable, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P3' ], f'ROCKE-3D (n={len(rocke3d_stable)})' )
 
 #--------------------------------------------------------------------
 # Panel 4
 
-cf4 = axd[ 'P4' ].contourf( yv*fluxscale, xv, np.exp(PlaSim_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
-axd[ 'P4' ].contourf( yv*fluxscale, xv, np.sqrt(PlaSim_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P4' ].scatter( flux1*fluxscale, pres1, c=plasim, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P4' ], f'ExoPlaSim (n={len(plasim)})' )
+cf4 = axd[ 'P4' ].contourf( yv*fluxscale, xv, np.exp(pcm_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
+axd[ 'P4' ].contourf( yv*fluxscale, xv, np.sqrt(pcm_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P4' ].scatter( pcm_flux1*fluxscale, pcm_pres1, c=pcm, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P4' ], f'Generic PCM (n={len(pcm)})' )
 
 #--------------------------------------------------------------------
-# Panel 5 — PlaHab (no water vapor data)
+# Panel 5
 
-axd[ 'P5' ].set_axis_off()
-axd[ 'P5' ].set_title( 'PlaHab', fontsize=14 )
-axd[ 'P5' ].text( 0.5, 0.5, 'No data\n(2D model)', ha='center', va='center',
-                  transform=axd[ 'P5' ].transAxes, fontsize=13, style='italic', color='gray' )
+cf5 = axd[ 'P5' ].contourf( yv*fluxscale, xv, np.exp(lfric_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
+axd[ 'P5' ].contourf( yv*fluxscale, xv, np.sqrt(lfric_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P5' ].scatter( lfric_flux1*fluxscale, lfric_pres1, c=lfric, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P5' ], f'LFRic (n={len(lfric)})' )
 
 #--------------------------------------------------------------------
-# Panel 6
+# Panel 6 — PlaHab (no water vapor data)
 
-cf6 = axd[ 'P6' ].contourf( yv*fluxscale, xv, np.exp(lfric_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
-axd[ 'P6' ].contourf( yv*fluxscale, xv, np.sqrt(lfric_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P6' ].scatter( lfric_flux1*fluxscale, lfric_pres1, c=lfric, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P6' ], f'LFRic (n={len(lfric)})' )
+axd[ 'P6' ].set_axis_off()
+axd[ 'P6' ].set_title( 'PlaHab', fontsize=14 )
+axd[ 'P6' ].text( 0.5, 0.5, 'No data\n(2D model)', ha='center', va='center',
+                  transform=axd[ 'P6' ].transAxes, fontsize=13, style='italic', color='gray' )
 
 #--------------------------------------------------------------------
 # Finalize
