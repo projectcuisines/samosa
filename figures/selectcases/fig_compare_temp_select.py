@@ -127,7 +127,14 @@ panels = [
     [(lon_plahab,   lat_plahab,  Ts_plahab1),  (lon_plahab,   lat_plahab,  Ts_plahab4),  (lon_plahab,   lat_plahab,  Ts_plahab16) ],
 ]
 
+TITLE_FS  = 11   # column headers
+LABEL_FS  = 9    # row case labels
+MEAN_FS   = 8    # per-panel ⟨Ts⟩ xlabel
+NA_FS     = 10   # N/A placeholder text
+CB_FS     = 9    # colorbar tick and axis label
+
 fig = plt.figure(layout='constrained', figsize=(15, 5))
+fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.03, hspace=0.08)
 ax_array = fig.subplots(3, 6, squeeze=False)
 
 im = None
@@ -139,7 +146,7 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
             ax.set_xlim(-180, 180)
             ax.set_ylim(-90, 90)
             ax.text(0.5, 0.5, 'N/A', transform=ax.transAxes,
-                    ha='center', va='center', fontsize=12, color='#555555')
+                    ha='center', va='center', fontsize=NA_FS, color='#555555')
         else:
             lon, lat, data = panel[:3]
             ssp_lon = panel[3] if len(panel) > 3 else 0.0
@@ -150,18 +157,24 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
                        colors='white', linewidths=0.8)
             ax.plot(ssp_lon, 0, marker='*', color='white', markersize=6,
                     markeredgecolor='gray', markeredgewidth=0.5)
+            weights = np.cos(np.radians(lat))
+            ts_mean = np.average(np.mean(data, axis=1), weights=weights)
+            ax.set_xlabel(f'⟨Ts⟩ = {ts_mean:.1f} K', fontsize=MEAN_FS)
         ax.set_aspect('equal')
         ax.set_xticks([])
         ax.set_yticks([])
         if row == 0:
-            ax.set_title(title, fontsize=13)
+            ax.set_title(title, fontsize=TITLE_FS)
         if col == 0:
             ax.text(-0.12, 0.5, case_labels[row], transform=ax.transAxes,
-                    ha='right', va='center', fontsize=10, linespacing=1.5)
+                    ha='right', va='center', fontsize=LABEL_FS, linespacing=1.5)
 
-fig.colorbar(im, ax=ax_array, extend='both',
-             ticks=np.arange(200, contourmax + 1, 50),
-             shrink=0.8, pad=0.01, label='Surface Temperature (K)')
+cb = fig.colorbar(im, ax=ax_array, extend='both',
+                  ticks=np.arange(200, contourmax + 1, 50),
+                  orientation='horizontal', shrink=0.6, pad=0.04,
+                  label='Surface Temperature (K)')
+cb.ax.tick_params(labelsize=CB_FS)
+cb.set_label('Surface Temperature (K)', fontsize=CB_FS)
 
 fig.savefig('fig_compare_temp_select.png', bbox_inches='tight')
 fig.savefig('fig_compare_temp_select.eps', bbox_inches='tight')
