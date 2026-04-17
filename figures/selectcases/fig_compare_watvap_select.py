@@ -16,14 +16,23 @@ def roll_to_180(data, lon):
     return data_out, lon_out
 
 
-def read_nc(path, var, lat_var='lat', lon_var='lon', avg_axis=None, offset=0.0):
+def read_nc(path, var, lat_var='lat', lon_var='lon', avg_axis=None, offset=0.0, scale=1.0):
     """Read a variable from NetCDF, optionally time-averaging along avg_axis."""
     with netCDF4.Dataset(path) as ds:
         raw  = ds.variables[var]
-        data = (np.average(raw, axis=avg_axis) if avg_axis is not None else np.array(raw)) + offset
+        data = (np.average(raw, axis=avg_axis) if avg_axis is not None else np.array(raw))
+        data = data * scale + offset
         lat  = np.array(ds.variables[lat_var])
         lon  = np.array(ds.variables[lon_var])
     return data, lat, lon
+
+
+def _fmt_wv(x):
+    s = f'{x:.2g}'
+    if 'e' in s:
+        coeff, exp_str = s.split('e')
+        return f'${coeff}\\times10^{{{int(exp_str)}}}$ kg/m²'
+    return f'{s} kg/m²'
 
 
 # ---- ExoCAM --------------------------------------------------------
@@ -70,7 +79,7 @@ wv_lfric4,          _,        _ = read_nc(f'{_d}/lfric_samosa_case04.nc', 'tot_c
 wv_lfric1, lon_lfric_s = roll_to_180(wv_lfric1, lon_lfric)
 wv_lfric4,           _ = roll_to_180(wv_lfric4, lon_lfric)
 
-# ---- Generic PCM (no OHT) -----------------------------------------
+# ---- Generic PCM ---------------------------------------------------
 _d = '/models/data/samosa/genericpcm/OHT_off'
 wv_pcm1,  lat_pcm, lon_pcm = read_nc(
     f'{_d}/case-1/SAMOSA_output_file_Generic_PCM_case-1_OHT_off.nc',
@@ -136,7 +145,7 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
                     markeredgecolor='gray', markeredgewidth=0.5)
             weights = np.cos(np.radians(lat))
             wv_mean = np.average(np.mean(data, axis=1), weights=weights)
-            ax.set_xlabel(f'⟨WVC⟩ = {wv_mean:.2g} kg/m²', fontsize=MEAN_FS)
+            ax.set_xlabel(_fmt_wv(wv_mean), fontsize=MEAN_FS)
         ax.set_aspect('equal')
         ax.set_xticks([])
         ax.set_yticks([])
@@ -149,8 +158,7 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
 cb = fig.colorbar(im, ax=ax_array, extend='both',
                   ticks=np.logspace(np.log10(contourmin), np.log10(contourmax),
                                     int(np.log10(contourmax/contourmin)) + 1),
-                  orientation='horizontal', shrink=0.6, pad=0.04,
-                  label='Water Vapor Column (kg m$^{-2}$)')
+                  orientation='horizontal', shrink=0.6, pad=0.04)
 cb.ax.tick_params(labelsize=CB_FS)
 cb.set_label('Water Vapor Column (kg m$^{-2}$)', fontsize=CB_FS)
 
