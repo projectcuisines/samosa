@@ -27,7 +27,13 @@ def read_nc(path, var, lat_var='lat', lon_var='lon', avg_axis=None, offset=0.0, 
 
 
 def read_pcm_cf(case_n):
-    """Read Generic PCM ice cloud fraction (3D), project to 2D with max-overlap."""
+    """Read Generic PCM ice cloud fraction (3D), project to 2D with max-overlap.
+
+    Ice only: liquid_cloud_fraction in the submitted files is a byte-identical
+    copy of ice_cloud_fraction, so combining the two would double-count the same
+    cloud. These panels are therefore a lower bound until the PCM output is
+    resubmitted with a distinct liquid field.
+    """
     _d = '/models/data/samosa/genericpcm/OHT_off'
     path = f'{_d}/case-{case_n}/SAMOSA_output_file_Generic_PCM_case-{case_n}_OHT_off.nc'
     data, lat, lon = read_nc(path, 'ice_cloud_fraction', lat_var='latitude', lon_var='longitude')
@@ -81,7 +87,7 @@ cf_lfric4,           _ = roll_to_180(cf_lfric4, lon_lfric)
 # ---- Generic PCM ---------------------------------------------------
 cf_pcm1,  lat_pcm, lon_pcm = read_pcm_cf(1)
 cf_pcm4,         _,       _ = read_pcm_cf(4)
-cf_pcm16,        _,       _ = read_pcm_cf(16)
+# Case 16 is not converged in the Generic PCM (see SAMOSA_summary.pdf) and is omitted
 
 # ---- Figure --------------------------------------------------------
 contourmin, contourmax, numcontours = 0.0, 100.0, 21
@@ -101,8 +107,8 @@ panels = [
     [(lon_exocam,   lat_exocam,  cf_exocam1,  180.), (lon_exocam,   lat_exocam,  cf_exocam4,  180.), (lon_exocam,   lat_exocam,  cf_exocam16, 180.) ],
     # ROCKE-3D
     [(lon_r3d_s,    lat_r3d,     cf_r3d1),     (lon_r3d_s,    lat_r3d,     cf_r3d4),     (lon_r3d_s,    lat_r3d,     cf_r3d16)    ],
-    # Generic PCM (no OHT)
-    [(lon_pcm,      lat_pcm,     cf_pcm1),     (lon_pcm,      lat_pcm,     cf_pcm4),     (lon_pcm,      lat_pcm,     cf_pcm16)    ],
+    # Generic PCM (no OHT; Case 16 not converged)
+    [(lon_pcm,      lat_pcm,     cf_pcm1),     (lon_pcm,      lat_pcm,     cf_pcm4),     None                                     ],
     # LFRic (case 16 not available)
     [(lon_lfric_s,  lat_lfric,   cf_lfric1),   (lon_lfric_s,  lat_lfric,   cf_lfric4),   None                                     ],
 ]

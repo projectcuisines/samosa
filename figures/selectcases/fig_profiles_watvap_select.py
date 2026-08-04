@@ -185,7 +185,6 @@ _d = '/models/data/samosa/genericpcm/OHT_off'
 _pcm_files = [
     (f'{_d}/case-1/SAMOSA_output_file_Generic_PCM_case-1_OHT_off.nc',   1),
     (f'{_d}/case-4/SAMOSA_output_file_Generic_PCM_case-4_OHT_off.nc',   4),
-    (f'{_d}/case-16/SAMOSA_output_file_Generic_PCM_case-16_OHT_off.nc', 16),
 ]
 
 def read_pcm(path, case_num):
@@ -205,7 +204,13 @@ def read_pcm(path, case_num):
     P_prof = pcm_pressure_from_alt(T_ss, alt, P_SURFACE[case_num])
     return T_ss, Q_ss, T_as, Q_as, P_prof
 
-T_pcm, Q_pcm, T_pcm_as, Q_pcm_as, P_pcm = zip(*[read_pcm(f, c) for f, c in _pcm_files])
+# Case 16 is not converged in the Generic PCM (see SAMOSA_summary.pdf) and is omitted
+_pcm     = [read_pcm(f, c) for f, c in _pcm_files]
+T_pcm    = [_pcm[0][0], _pcm[1][0], None]
+Q_pcm    = [_pcm[0][1], _pcm[1][1], None]
+T_pcm_as = [_pcm[0][2], _pcm[1][2], None]
+Q_pcm_as = [_pcm[0][3], _pcm[1][3], None]
+P_pcm    = [_pcm[0][4], _pcm[1][4], None]
 
 
 # ── LFRic ────────────────────────────────────────────────────────────

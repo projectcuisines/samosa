@@ -98,9 +98,7 @@ Ts_pcm1,  lat_pcm, lon_pcm = read_nc(
 Ts_pcm4,         _,       _ = read_nc(
     f'{_d}/case-4/SAMOSA_output_file_Generic_PCM_case-4_OHT_off.nc',
     'surface_temperature', lat_var='latitude', lon_var='longitude')
-Ts_pcm16,        _,       _ = read_nc(
-    f'{_d}/case-16/SAMOSA_output_file_Generic_PCM_case-16_OHT_off.nc',
-    'surface_temperature', lat_var='latitude', lon_var='longitude')
+# Case 16 is not converged in the Generic PCM (see SAMOSA_summary.pdf) and is omitted
 
 # ---- Figure --------------------------------------------------------
 contourmin, contourmax, numcontours = 175.0, 400.0, 21
@@ -120,8 +118,8 @@ panels = [
     [(lon_exocam,   lat_exocam,  Ts_exocam1,  180.), (lon_exocam,   lat_exocam,  Ts_exocam4,  180.), (lon_exocam,   lat_exocam,  Ts_exocam16, 180.) ],
     # ROCKE-3D
     [(lon_r3d_s,    lat_r3d,     Ts_r3d1),     (lon_r3d_s,    lat_r3d,     Ts_r3d4),     (lon_r3d_s,    lat_r3d,     Ts_r3d16)    ],
-    # Generic PCM (no OHT)
-    [(lon_pcm,      lat_pcm,     Ts_pcm1),     (lon_pcm,      lat_pcm,     Ts_pcm4),     (lon_pcm,      lat_pcm,     Ts_pcm16)    ],
+    # Generic PCM (no OHT; Case 16 not converged)
+    [(lon_pcm,      lat_pcm,     Ts_pcm1),     (lon_pcm,      lat_pcm,     Ts_pcm4),     None                                     ],
     # LFRic (case 16 not available)
     [(lon_lfric_s,  lat_lfric,   Ts_lfric1),   (lon_lfric_s,  lat_lfric,   Ts_lfric4),   None                                     ],
     # PlaHab

@@ -104,7 +104,8 @@ def read_lfric_wind(fname):
 exocam_data = [read_exocam_wind(c) for c in [1, 4, 16]]
 plasim_data = [read_plasim_wind(f) for f in _plasim_files]
 r3d_data    = [read_r3d_wind(c)   for c in [1, 4, 16]]
-pcm_data    = [read_pcm_wind(c)   for c in [1, 4, 16]]
+# Case 16 is not converged in the Generic PCM (see SAMOSA_summary.pdf) and is omitted
+pcm_data    = [read_pcm_wind(1), read_pcm_wind(4), None]
 _lf1        = read_lfric_wind(f'{_d_lfric}/lfric_samosa_case01.nc')
 _lf4        = read_lfric_wind(f'{_d_lfric}/lfric_samosa_case04.nc')
 lfric_data  = [_lf1, _lf4, None]
