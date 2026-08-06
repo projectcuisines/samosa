@@ -26,6 +26,8 @@ flux1 = np.array( [ 500, 1900, 2400, 1200, 1500, 2100, 1600, 800, 1100, 400, 900
 pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 0.16, 1.44, 0.43, 10.0 ] )
 
 # Average Water Vapor Column (kg m⁻²)
+# Generic PCM values are the Qmass column reported in samosa_gcm_output_case-N_OHT_off.dat,
+# which confirms kg/m^2 as the common unit here.
 plasim  = np.array( [ 0.059, 5113.363, 271.733, 7.509, 37.305, 1452.570, 76.876, 0.351, 7.048, 0.007, 3.042, 1258.514, 59.214, 1.955, 0.416, 1111.793 ] )
 exocam  = np.array( [ 0.2335, runaway, runaway, 19.2138, runaway, runaway, runaway, 1.7490, 7.9707, 0.0102, 5.8914, 1430.7613, runaway, 4.2041, 0.9534, 1295.6428 ] )
 rocke3d = np.array( [ 0.25980374, runaway, runaway, 14.9693165, 31.839989, runaway, 32.45563, 1.5794185, 5.687923, 0.031635746, 4.2059116, 271.75916, 46.070984, 2.964403, 0.52949935, 132.49808 ] )

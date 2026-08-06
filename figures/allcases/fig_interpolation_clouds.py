@@ -25,6 +25,9 @@ flux1 = np.array( [ 500, 1900, 2400, 1200, 1500, 2100, 1600, 800, 1100, 400, 900
 pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 0.16, 1.44, 0.43, 10.0 ] )
 
 # Average Total Cloud Fraction (%)
+# Generic PCM values are the Cldfrac column reported by the modeling group in
+# samosa_gcm_output_case-N_OHT_off.dat, not a projection of the 3-D cloud field
+# (max-overlap on ice_cloud_fraction gives 43.2% at Case 1 against 25.6% reported).
 plasim  = np.array( [ 42.7, 68.2, 70.6, 56.2, 80.1, 32.1, 58.1, 25.7, 58.0, 25.2, 76.2, 30.1, 85.3, 52.7, 48.4, 53.3 ] )
 exocam  = np.array( [ 68.75, runaway, runaway, 43.98, runaway, runaway, runaway, 16.34, 75.82, 15.85, 83.08, 56.79, runaway, 34.01, 78.96, 61.40 ] )
 rocke3d = np.array( [ 68.20222, runaway, runaway, 51.043224, 81.88261, runaway, 88.81546, 58.24044, 61.535275, 98.8356, 68.16493, 68.01357, 85.71091, 43.637707, 74.40385, 48.08909 ] )
