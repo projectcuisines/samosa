@@ -41,6 +41,18 @@ Albedo Figure (fig_interpolation_albedo.py, added 2026-08-13):
   Result: albedo spread (median 19.9 pp) is about half the cloud fraction spread (median 41.9 pp), but the model ranking is still unstable --
   ExoPlaSim is brightest at 6 sample points and darkest at 4.
 
+  DEGENERATE PANELS: the linear variogram fits slope=0 exactly for ExoCAM and LFRic, i.e. a pure nugget. Ordinary kriging then weights all points
+  equally regardless of distance and returns the sample mean everywhere, so those panels are flat and carry no spatial information; only the
+  exact_values=True pinning at the sample points survives. They are now stippled and labelled in the figure. This was NOT caught by reusing the
+  linear variogram from the other interpolation figures -- crossval_variogram_albedo.py was written afterwards to check it.
+
+  crossval_variogram_albedo.py: linear still wins on mean LOO RMSE (0.461 vs 0.468 exponential, 0.479 spherical, 0.482 power, 0.484 gaussian), so it
+  remains the right global choice. Per model: for ExoCAM every non-degenerate alternative is worse (0.374-0.401 vs 0.360), so a constant really is the
+  best estimate there. For LFRic (only 6 points) exponential does better (0.297 vs 0.334), so its flatness is partly a fitting artifact.
+
+  Related pre-existing issue: in fig_interpolation_clouds.py the Generic PCM fit has slope=0.0079, i.e. very nearly degenerate too (field ptp 0.89
+  logit vs 2.3-4.8 for the other models). That panel of the cloud fraction figure is close to flat for the same reason and is worth revisiting.
+
 
 Standard Deviation Figure:
 

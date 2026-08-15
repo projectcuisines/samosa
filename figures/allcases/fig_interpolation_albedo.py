@@ -70,6 +70,13 @@ def logit( x ):
 def sigmoid( y ):
     return 100.0 / ( 1.0 + np.exp( -y ) )
 
+# A linear variogram whose fitted slope is zero is a pure nugget: ordinary
+# kriging then weights every sample point equally regardless of distance, so
+# the interpolated surface collapses to the sample mean and carries no spatial
+# information. Those panels are stippled to distinguish that case from a
+# genuinely flat but resolved field.
+slope_eps = 1.0e-8
+
 fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3' ],
                                  [ 'P4', 'P5', 'P6' ]],
                                figsize=(18, 9) )
@@ -88,6 +95,7 @@ OK = OrdinaryKriging(
 )
 
 z1, z1_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+slope_exocam = OK.variogram_model_parameters[ 0 ]
 xv, yv = np.meshgrid( pn2, flux )
 
 #--------------------------------------------------------------------
@@ -104,6 +112,7 @@ OK = OrdinaryKriging(
 )
 
 R3_z1, R3_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+slope_rocke3d = OK.variogram_model_parameters[ 0 ]
 
 #--------------------------------------------------------------------
 # ExoPlaSim Kriging
@@ -119,6 +128,7 @@ OK = OrdinaryKriging(
 )
 
 PlaSim_z1, PlaSim_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+slope_plasim = OK.variogram_model_parameters[ 0 ]
 
 #--------------------------------------------------------------------
 # Generic PCM Kriging
@@ -134,6 +144,7 @@ OK = OrdinaryKriging(
 )
 
 pcm_z1, pcm_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+slope_pcm = OK.variogram_model_parameters[ 0 ]
 
 #--------------------------------------------------------------------
 # LFRic Kriging
@@ -149,6 +160,7 @@ OK = OrdinaryKriging(
 )
 
 lfric_z1, lfric_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+slope_lfric = OK.variogram_model_parameters[ 0 ]
 
 #--------------------------------------------------------------------
 # PlaHab Kriging
@@ -164,12 +176,23 @@ OK = OrdinaryKriging(
 )
 
 PlaHab_z1, PlaHab_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+slope_plahab = OK.variogram_model_parameters[ 0 ]
 
 # Shared axis limits
 xlim = [ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ]
 ylim = [ min( pn2 )*0.9, max( pn2 )*1.1 ]
 contour_levels = np.linspace( contourmin, contourmax, cinterval )
 marker_edge = 'k'
+
+def flag_degenerate( ax, slope ):
+    """Stipple a panel whose variogram fit collapsed to a pure nugget."""
+    if slope > slope_eps:
+        return
+    ax.contourf( yv*fluxscale, xv, np.ones_like( xv ), levels=[0.5, 1.5],
+                 hatches=['....'], colors='none', alpha=0 )
+    ax.text( 0.5, 0.06, 'no resolvable spatial structure', transform=ax.transAxes,
+             ha='center', va='bottom', fontsize=10, style='italic', color='0.15',
+             bbox=dict( facecolor='white', edgecolor='none', alpha=0.75, pad=2.0 ) )
 
 def setup_panel( ax, title ):
     ax.set_title( title, fontsize=14 )
@@ -188,6 +211,7 @@ cf1 = axd[ 'P1' ].contourf( yv*fluxscale, xv, sigmoid(PlaSim_z1), cmap=cm, level
 axd[ 'P1' ].contourf( yv*fluxscale, xv, np.sqrt(PlaSim_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P1' ].scatter( flux1*fluxscale, pres1, c=plasim, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P1' ], f'ExoPlaSim (n={len(plasim)})' )
+flag_degenerate( axd[ 'P1' ], slope_plasim )
 
 #--------------------------------------------------------------------
 # Panel 2
@@ -196,6 +220,7 @@ cf2 = axd[ 'P2' ].contourf( yv*fluxscale, xv, sigmoid(z1), cmap=cm, levels=conto
 axd[ 'P2' ].contourf( yv*fluxscale, xv, np.sqrt(z1_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P2' ].scatter( exocam_flux1*fluxscale, exocam_pres1, c=exocam_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P2' ], f'ExoCAM (n={len(exocam_stable)})' )
+flag_degenerate( axd[ 'P2' ], slope_exocam )
 
 #--------------------------------------------------------------------
 # Panel 3
@@ -204,6 +229,7 @@ cf3 = axd[ 'P3' ].contourf( yv*fluxscale, xv, sigmoid(R3_z1), cmap=cm, levels=co
 axd[ 'P3' ].contourf( yv*fluxscale, xv, np.sqrt(R3_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P3' ].scatter( rocke3d_flux1*fluxscale, rocke3d_pres1, c=rocke3d_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P3' ], f'ROCKE-3D (n={len(rocke3d_stable)})' )
+flag_degenerate( axd[ 'P3' ], slope_rocke3d )
 
 #--------------------------------------------------------------------
 # Panel 4
@@ -212,6 +238,7 @@ cf4 = axd[ 'P4' ].contourf( yv*fluxscale, xv, sigmoid(pcm_z1), cmap=cm, levels=c
 axd[ 'P4' ].contourf( yv*fluxscale, xv, np.sqrt(pcm_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P4' ].scatter( pcm_flux1*fluxscale, pcm_pres1, c=pcm, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P4' ], f'Generic PCM (n={len(pcm)})' )
+flag_degenerate( axd[ 'P4' ], slope_pcm )
 
 #--------------------------------------------------------------------
 # Panel 5
@@ -220,6 +247,7 @@ cf5 = axd[ 'P5' ].contourf( yv*fluxscale, xv, sigmoid(lfric_z1), cmap=cm, levels
 axd[ 'P5' ].contourf( yv*fluxscale, xv, np.sqrt(lfric_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P5' ].scatter( lfric_flux1*fluxscale, lfric_pres1, c=lfric, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P5' ], f'LFRic (n={len(lfric)})' )
+flag_degenerate( axd[ 'P5' ], slope_lfric )
 
 #--------------------------------------------------------------------
 # Panel 6
@@ -228,6 +256,7 @@ cf6 = axd[ 'P6' ].contourf( yv*fluxscale, xv, sigmoid(PlaHab_z1), cmap=cm, level
 axd[ 'P6' ].contourf( yv*fluxscale, xv, np.sqrt(PlaHab_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
 axd[ 'P6' ].scatter( plahab_flux1*fluxscale, plahab_pres1, c=plahab_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
 setup_panel( axd[ 'P6' ], f'PlaHab (n={len(plahab_stable)})' )
+flag_degenerate( axd[ 'P6' ], slope_plahab )
 
 #--------------------------------------------------------------------
 # Finalize
