@@ -28,14 +28,22 @@ Energy Balance Figure (fig_energy_balance.py, added 2026-08-13):
 
   Caveat: TOA balance is necessary but not sufficient for equilibrium -- a run can be balanced at TOA while the slab ocean still drifts.
 
-  ExoCAM Case 7: exocam/samosa7.cam.h0.avg.nc exists with real data (TS=345.1 K, ICEFRAC=0, ASR=309.5, OLR=288.4 -> -5.28%) but has no row in
-  exocam/output.txt. It is a runaway in progress, so excluding it from the analysis is right, but it belongs on this figure as an open marker and was
-  missing from the first version. Its value comes from FSNT/FLUT rather than toaEBAL.
-
   ExoCAM archive gap: in the submitted samosaN.cam.h0.avg.nc files, FSNTOA, FSNTOAC, FSNTC, FSDSC, FLUTC, SWCF and LWCF are ALL identically zero.
-  Only FSNT, FSDS, FLUT and FLNT carry data. So ExoCAM's TOA shortwave cannot be checked independently; FSNT is top-of-model and sits ~1 W/m^2 from
-  the reported toaEBAL (cases 11 and 12 differ most: 1.31% vs 0.70% and 0.91% vs 0.20%). Worth requesting a resubmission with the TOA and clear-sky
-  fields populated -- it would also make cloud radiative forcing available to the intercomparison.
+  Only FSNT, FSDS, FLUT and FLNT carry data, so the summary TOAALB/toaEBAL cannot be reproduced from the primary output. DECISION (2026-08-15): use
+  only the populated fields and derive ExoCAM from the NetCDF like every other model, rather than mixing a text summary with primary data. FSNT is
+  top-of-model, so albedo comes out ~0.3 pp above TOAALB (0.9 pp at Case 12) and the imbalance up to ~1.3 W/m^2 from toaEBAL (cases 11 and 12 differ
+  most: 1.35% vs 0.70%, 0.97% vs 0.20%). Use gw (gauss weights, in the files) NOT cos(lat) -- gw-weighted TS reproduces the summary TS exactly for
+  all 11 files, which is the check that validates the whole extraction.
+
+  Consequences of that switch: ExoCAM goes from 7/10 to 6/10 accepted cases within 1% (median 0.82%, max 2.19%); albedo spread median 19.9 -> 19.5 pp
+  and max 41.7 -> 41.3 pp; ExoCAM LOO RMSE 0.360 -> 0.349. No conclusion changes, and the ExoCAM albedo variogram still fits slope=0 exactly.
+
+  ExoCAM Case 7: exocam/samosa7.cam.h0.avg.nc holds a real run (TS=345.1 K, ICEFRAC=0, ASR=309.3, OLR=288.4 -> -5.23%) but has no row in output.txt.
+  It is a runaway in progress, so excluding it from the interpolated figures is right, but it belongs on the energy balance figure as an open marker.
+  Deriving ExoCAM from the NetCDF picks it up automatically.
+
+  Still worth asking Eric for a resubmission with the TOA and clear-sky fields populated -- it would let ExoCAM be verified like the others and would
+  make cloud radiative forcing (SWCF/LWCF) available to the intercomparison.
 
   LFRic verification: lfric_samosa_caseNN.nc sw_net_toa and lw_up_toa reproduce the .txt global diagnostics exactly (ASR, OLR, albedo, imbalance all
   to the last digit), so the LFRic numbers used here are confirmed against primary data.

@@ -26,22 +26,23 @@ pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83, 
 
 # Planetary albedo (%), from the standardized SAMOSA global output.
 #   ROCKE-3D  plan_alb_hemis[2] as reported by the modeling group
-#   ExoCAM    TOAALB as reported in exocam/output.txt
 #   ExoPlaSim rsut / ( rst + rsut ) from the area-weighted TOA fluxes
+#   ExoCAM    1 - FSNT / ( S / 4 ), gw-weighted from samosaN.cam.h0.avg.nc
 #   others    1 - ASR / ( S / 4 ), using the incident flux fixed by the protocol
-# Cross-checks against the primary NetCDF, where that is possible:
+# Cross-checks against the primary NetCDF:
 #   ROCKE-3D   reported plan_alb 23.08% vs 1 - ASR/(S/4) = 23.08% at Case 1.
 #   LFRic      sw_net_toa / lw_up_toa reproduce the .txt global diagnostics
 #              exactly, so the derived albedos here are confirmed.
-#   ExoCAM     cannot be confirmed the same way: FSNTOA and every clear-sky
-#              field are archived as identically zero, leaving FSNT (top of
-#              model) as the only usable shortwave flux. Albedo from FSNT runs
-#              0.3 pp above TOAALB on average and 0.9 pp at Case 12. TOAALB is
-#              retained here as the group's own TOA diagnostic; the choice does
-#              not affect any conclusion, and in particular the variogram fits
-#              a zero slope either way.
+#   ExoCAM     FSNTOA and every clear-sky field are archived as identically
+#              zero in the submitted files, so the summary TOAALB cannot be
+#              reproduced from the primary output and FSNT (top of model) is
+#              the only usable shortwave flux. We derive ExoCAM from the NetCDF
+#              like every other model rather than mixing sources; this runs
+#              0.3 pp above TOAALB on average and 0.9 pp at Case 12. The
+#              gw-weighted TS reproduces the summary TS exactly for all 11
+#              files, which validates the weighting.
 plasim  = np.array( [ 40.77, 25.00, 21.85, 39.99, 31.52, 18.87, 29.82, 40.23, 33.58, 42.23, 38.32, 17.26, 31.10, 36.40, 39.34, 32.58 ] )
-exocam  = np.array( [ 26.99, runaway, runaway, 30.74, runaway, runaway, runaway, 20.33, 34.23, 31.44, 22.02, 18.13, runaway, 28.58, 20.02, 16.49 ] )
+exocam  = np.array( [ 27.31, runaway, runaway, 31.08, runaway, runaway, runaway, 20.74, 34.54, 31.78, 22.69, 19.05, runaway, 28.91, 20.38, 16.95 ] )
 rocke3d = np.array( [ 23.08, runaway, runaway, 31.56, 39.86, runaway, 44.31, 22.14, 37.63, 21.21, 28.72, 17.96, 40.84, 30.09, 22.26, 12.78 ] )
 plahab  = np.array( [ 19.11, runaway, runaway, 33.03, 33.02, runaway, 34.90, 29.62, 30.82, 0.89, 63.70, 35.51, 34.85, 31.12, 19.93, 35.54 ] )
 pcm     = np.array( [ 25.57, 14.42, 22.69, 17.72, 28.53, 19.54, 21.31 ] )
