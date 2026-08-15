@@ -29,8 +29,17 @@ pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83, 
 #   ExoCAM    TOAALB as reported in exocam/output.txt
 #   ExoPlaSim rsut / ( rst + rsut ) from the area-weighted TOA fluxes
 #   others    1 - ASR / ( S / 4 ), using the incident flux fixed by the protocol
-# The two independent routes agree where both are available: for ROCKE-3D Case 1
-# the reported plan_alb is 23.08% against 1 - ASR/(S/4) = 23.08%.
+# Cross-checks against the primary NetCDF, where that is possible:
+#   ROCKE-3D   reported plan_alb 23.08% vs 1 - ASR/(S/4) = 23.08% at Case 1.
+#   LFRic      sw_net_toa / lw_up_toa reproduce the .txt global diagnostics
+#              exactly, so the derived albedos here are confirmed.
+#   ExoCAM     cannot be confirmed the same way: FSNTOA and every clear-sky
+#              field are archived as identically zero, leaving FSNT (top of
+#              model) as the only usable shortwave flux. Albedo from FSNT runs
+#              0.3 pp above TOAALB on average and 0.9 pp at Case 12. TOAALB is
+#              retained here as the group's own TOA diagnostic; the choice does
+#              not affect any conclusion, and in particular the variogram fits
+#              a zero slope either way.
 plasim  = np.array( [ 40.77, 25.00, 21.85, 39.99, 31.52, 18.87, 29.82, 40.23, 33.58, 42.23, 38.32, 17.26, 31.10, 36.40, 39.34, 32.58 ] )
 exocam  = np.array( [ 26.99, runaway, runaway, 30.74, runaway, runaway, runaway, 20.33, 34.23, 31.44, 22.02, 18.13, runaway, 28.58, 20.02, 16.49 ] )
 rocke3d = np.array( [ 23.08, runaway, runaway, 31.56, 39.86, runaway, 44.31, 22.14, 37.63, 21.21, 28.72, 17.96, 40.84, 30.09, 22.26, 12.78 ] )

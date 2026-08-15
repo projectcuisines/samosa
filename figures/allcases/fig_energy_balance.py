@@ -14,7 +14,14 @@ from matplotlib.lines import Line2D
 # value means it is gaining energy (still warming).
 #
 # OLR and ASR are the standardized SAMOSA global output quantities:
-#   ExoCAM       exocam/output.txt (OLR, toaEBAL; ASR = OLR + toaEBAL)
+#   ExoCAM       exocam/output.txt (OLR, toaEBAL; ASR = OLR + toaEBAL), except
+#                Case 7, which is absent from output.txt but present as
+#                samosa7.cam.h0.avg.nc, and is taken from the area-weighted
+#                FSNT and FLUT of that file. Note that FSNTOA and every
+#                clear-sky field are archived as identically zero in the
+#                ExoCAM files, so FSNT (top of model) is the only usable
+#                shortwave flux; it runs about 1 W/m^2 above the reported
+#                toaEBAL, which is immaterial for a case at -5.3%.
 #   ExoPlaSim    exoplasim/samosaNN.nc, area-weighted rst / rlut
 #   ROCKE-3D     rocke3d/rocke_NNq.nc, -trnf_toa_hemis[2] / srnf_toa_hemis[2]
 #   Generic PCM  genericpcm/OHT_off/case-N/samosa_gcm_output_case-N_OHT_off.dat
@@ -34,7 +41,7 @@ pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83, 
 # Residual TOA imbalance, per cent of incident flux (nan = no data submitted)
 imbalance = {
     'ExoPlaSim':   np.array( [  0.46,   0.85,   0.03,  -0.04,   0.04,   0.26,   0.08,   0.52,  -0.04,   0.23,  -0.01,   0.25,   0.03,   0.07,   0.07,   0.36 ] ),
-    'ExoCAM':      np.array( [  1.96,    nan,    nan,   0.23,    nan,    nan,    nan,   0.59,   0.31,   2.11,   0.70,   0.20,    nan,   0.49,   1.26,   0.08 ] ),
+    'ExoCAM':      np.array( [  1.96,    nan,    nan,   0.23,    nan,    nan,  -5.28,   0.59,   0.31,   2.11,   0.70,   0.20,    nan,   0.49,   1.26,   0.08 ] ),
     'ROCKE-3D':    np.array( [  0.53,  -8.94,    nan,   0.11,   0.00, -16.21,   0.09,   0.41,   0.01,   6.32,   0.07,  -3.12,  -0.06,  -0.10,   0.00,  -0.10 ] ),
     'Generic PCM': np.array( [ 16.81, -23.95, -36.01,   1.83, -24.56, -31.78, -20.63,   2.18,   3.27,  19.66,  13.26, -12.10, -28.24,   2.41,   7.70, -10.70 ] ),
     'LFRic':       np.array( [  0.66,    nan,    nan,  -0.37,    nan,    nan,    nan,    nan,  -0.12,    nan,    nan,  -0.11,    nan,  -0.33,   0.98,    nan ] ),

@@ -28,6 +28,18 @@ Energy Balance Figure (fig_energy_balance.py, added 2026-08-13):
 
   Caveat: TOA balance is necessary but not sufficient for equilibrium -- a run can be balanced at TOA while the slab ocean still drifts.
 
+  ExoCAM Case 7: exocam/samosa7.cam.h0.avg.nc exists with real data (TS=345.1 K, ICEFRAC=0, ASR=309.5, OLR=288.4 -> -5.28%) but has no row in
+  exocam/output.txt. It is a runaway in progress, so excluding it from the analysis is right, but it belongs on this figure as an open marker and was
+  missing from the first version. Its value comes from FSNT/FLUT rather than toaEBAL.
+
+  ExoCAM archive gap: in the submitted samosaN.cam.h0.avg.nc files, FSNTOA, FSNTOAC, FSNTC, FSDSC, FLUTC, SWCF and LWCF are ALL identically zero.
+  Only FSNT, FSDS, FLUT and FLNT carry data. So ExoCAM's TOA shortwave cannot be checked independently; FSNT is top-of-model and sits ~1 W/m^2 from
+  the reported toaEBAL (cases 11 and 12 differ most: 1.31% vs 0.70% and 0.91% vs 0.20%). Worth requesting a resubmission with the TOA and clear-sky
+  fields populated -- it would also make cloud radiative forcing available to the intercomparison.
+
+  LFRic verification: lfric_samosa_caseNN.nc sw_net_toa and lw_up_toa reproduce the .txt global diagnostics exactly (ASR, OLR, albedo, imbalance all
+  to the last digit), so the LFRic numbers used here are confirmed against primary data.
+
 
 Albedo Figure (fig_interpolation_albedo.py, added 2026-08-13):
 
