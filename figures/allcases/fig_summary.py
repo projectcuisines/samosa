@@ -87,7 +87,7 @@ def krige( p, f, z ):
 style = { 'ExoPlaSim':   dict( color='#ff7f0e', ls='-'  ),
           'ExoCAM':      dict( color='#1f77b4', ls='-'  ),
           'ROCKE-3D':    dict( color='#2ca02c', ls='-'  ),
-          'PlaHab':      dict( color='#8c564b', ls='-'  ),
+          'PlaHab':      dict( color='#8c564b', ls='--' ),
           'Generic PCM': dict( color='#d62728', ls='-'  ),
           'LFRic':       dict( color='#9467bd', ls='-'  ) }
 
@@ -256,9 +256,10 @@ ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
 ax.set_ylabel( 'N$_2$ surface pressure (bar)', fontsize=12 )
 ax.tick_params( axis='both', labelsize=11 )
 
+legend_order = [ n for n in drawn if n != 'PlaHab' ] + [ n for n in drawn if n == 'PlaHab' ]
 handles  = [ Line2D( [], [], color=style[n][ 'color' ],
                      lw=2.2, ls=style[n][ 'ls' ], label=n )
-             for n in drawn ]
+             for n in legend_order ]
 ax.legend( handles=handles, loc='upper left', fontsize=10, ncol=1,
            framealpha=1, borderpad=0.7, labelspacing=0.5 )
 
