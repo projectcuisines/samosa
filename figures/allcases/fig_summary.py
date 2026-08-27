@@ -163,6 +163,26 @@ def influence( name ):
 
 alpha = { n: influence( n ) for n in mean_models }
 
+# A partial model is silenced entirely outside the convex hull of its own cases,
+# the same clipping already applied to its drawn isotherm. Without this the
+# shading and the curves disagree: the Generic PCM, which never ran Case 16,
+# extrapolates to 269.9 K at (1400 W m^-2, 10 bar) and vetoes the ice-free
+# consensus there, while its isotherm is not drawn anywhere near that point, so
+# Case 16 sits in the contested band with no curve to account for it. A model
+# should not block a consensus where its curve is not shown.
+# A model's own sample points are vertices of its hull, so a display node a
+# fraction of a per cent away from one can fall outside and silence the model
+# where it actually has data. Case 4 is the Generic PCM's own case and the
+# nearest node sits 0.59% below it in pressure. The hull is therefore unioned
+# with a small buffer around each sample point.
+HULL_BUF = 0.02       # normalized units, about three grid diagonals
+
+for n in partial_models:
+    p_pts, f_pts, _ = ts_in[ n ]
+    near = np.min( np.hypot( _PP[ ..., None ] - norm_pres( p_pts ),
+                             _FF[ ..., None ] - norm_flux( f_pts ) ), axis=-1 ) < HULL_BUF
+    alpha[ n ] = alpha[ n ] * ( sampled_region( p_pts, f_pts ) | near )
+
 # margin > 0 means the model places the global mean below freezing
 def consensus_bands( names ):
     cold = [ ( T_FREEZE - Z[ n ] ) + ( 1.0 - alpha[ n ] ) * BIG for n in names ]
