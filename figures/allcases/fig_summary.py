@@ -201,9 +201,32 @@ band_blue, band_warm = consensus_bands( mean_models )
 mean_models_3d = [ n for n in mean_models if n != 'PlaHab' ]
 band_blue_3d, band_warm_3d = consensus_bands( mean_models_3d )
 
-contested_all = ~( band_blue    | band_warm    )
-contested_3d  = ~( band_blue_3d | band_warm_3d )
+# Silencing a partial model at its hull edge can punch an interior hole in the
+# contested band: just outside the Generic PCM hull near 2.6-2.8 bar it stops
+# blocking the frozen consensus while ExoCAM has not yet crossed 273.16 K, so a
+# pocket at 1150-1180 W m^-2 reverts to blue inside an otherwise contested
+# region. Such pockets are an artifact of where a mask edge falls, not a
+# consensus. At any given pressure the contested band is a single interval in
+# instellation -- it is the transition between a frozen and an ice-free
+# consensus -- so it is reported as the interval between its extremes at that
+# pressure. binary_fill_holes does not do this: the pockets open out to the
+# exterior in 2-D and so are notches rather than enclosed islands.
+def close_rows( M ):
+    out = M.copy()
+    for j in range( M.shape[ 1 ] ):
+        w = np.where( M[ :, j ] )[ 0 ]
+        if len( w ):
+            out[ w.min():w.max() + 1, j ] = True
+    return out
+
+contested_all = close_rows( ~( band_blue    | band_warm    ) )
+contested_3d  = close_rows( ~( band_blue_3d | band_warm_3d ) )
+contested_all = contested_all | contested_3d          # keep white inside grey
 contested_plahab = contested_all & ~contested_3d
+
+# The three regions must stay a partition of the plane
+band_blue = band_blue & ~contested_all
+band_warm = band_warm & ~contested_all
 # The mean-field WELL mask is not applied to the ice-free band: ExoCAM and
 # ROCKE-3D lose their hot cases to runaway, so that mask is false across most of
 # the region this band occupies.  The majority-runaway wash drawn on top already
