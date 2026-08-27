@@ -118,8 +118,6 @@ ax.set_ylabel( 'TOA imbalance, (OLR $-$ ASR) / (S/4)  (%)', fontsize=12 )
 ax.tick_params( axis='y', labelsize=11 )
 
 ax.text( 16.45, tol, f'$\\pm${tol:.0f}%', ha='right', va='bottom', fontsize=9, color='0.55' )
-ax.text( 0.55, 20.5, 'still cooling  $\\uparrow$', fontsize=10, color='0.4', style='italic' )
-ax.text( 0.55, -11.7, 'still warming  $\\downarrow$', fontsize=10, color='0.4', style='italic' )
 
 # One marker shape and color per model, and nothing else encoded in the symbol
 model_handles = [ Line2D( [0], [0], marker=style[ m ][ 'marker' ], color='none',
