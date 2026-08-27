@@ -50,29 +50,6 @@ imbalance = {
     'PlaHab':      np.array( [ -0.19,    nan,    nan,   0.76,  -0.54,    nan,  -0.57,   2.04,   1.06,  -9.65,  -0.25,  -0.50,  -0.36,   2.79,  -0.07,  -0.42 ] ),
 }
 
-# Residual surface energy imbalance, per cent of incident flux, on the same
-# sign convention as the TOA panel: positive = the surface is losing energy.
-#
-# Net downward surface flux is net SW + net LW - sensible - latent. Only two
-# groups submitted every term needed to close it:
-#   ExoCAM     FSNS - FLNS - SHFLX - LHFLX, gw-weighted. CAM signs are FSNS
-#              positive down and FLNS/SHFLX/LHFLX positive up.
-#   ExoPlaSim  rss + rls + hfss + hfls, cos(lat)-weighted. All four are stored
-#              positive downward already, so they add.
-#
-# The other four cannot supply this panel:
-#   ROCKE-3D     has srtrnf_grnd (net radiation at ground) but no sensible or
-#                latent heat flux, so the budget cannot be closed. Plotting net
-#                radiation alone would show a spurious 24-65 W/m2 imbalance.
-#   LFRic        has sw_down_surf and lw_net_surf only: no upward SW at the
-#                surface (nor a surface albedo) and no turbulent fluxes.
-#   Generic PCM  submitted only the standardized global output, whose Fsdn and
-#   PlaHab       Fnet columns are insufficient to close a surface budget.
-surface = {
-    'ExoCAM':      np.array( [   2.00,    nan,    nan,   0.24,    nan,    nan,  -3.62,   0.67,   0.36,   2.11,   0.28,   0.06,    nan,   0.59,   1.20,   0.06 ] ),
-    'ExoPlaSim':   np.array( [  -0.00,   0.39,  -0.03,  -0.13,  -1.54,  -0.04,  -0.38,  -0.40,  -0.11,   0.01,  -0.63,   0.06,  -2.01,  -0.16,  -0.73,  -0.25 ] ),
-}
-
 # True where the case is carried into the analysis of Figures 2-5; False where
 # the group submitted output but classified the run as runaway or unstable.
 # Only the True cases are plotted: this figure is a convergence check on the
@@ -122,24 +99,22 @@ models   = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab'
 tol      = 1.0      # per cent; band within which a run is taken as equilibrated
 linthresh = 1.0     # per cent; linear/log crossover of the symlog axis
 
-fig, ( ax, axs ) = plt.subplots( 2, 1, figsize=( 13, 8.6 ), sharex=True,
-                                 gridspec_kw=dict( height_ratios=[ 2.0, 1.0 ], hspace=0.08 ) )
+fig, ax = plt.subplots( figsize=( 13, 7.0 ) )
 
-for a in ( ax, axs ):
-    # Shade each case by its climate regime, in the colors of Figure 14, so the
-    # convergence diagnostic can be read against the regime it belongs to.
-    for i, r in zip( cases, regime ):
-        a.axvspan( i - 0.5, i + 0.5, color=regime_color[ r ], lw=0, zorder=0 )
+# Shade each case by its climate regime, in the colors of Figure 14, so the
+# convergence diagnostic can be read against the regime it belongs to.
+for i, r in zip( cases, regime ):
+    ax.axvspan( i - 0.5, i + 0.5, color=regime_color[ r ], lw=0, zorder=0 )
 
-    # Regime color alone no longer separates the cases, since neighbours sharing
-    # a regime merge into one block, so the boundaries are ruled explicitly.
-    for i in range( 1, 16 ):
-        a.axvline( i + 0.5, color='0.74', lw=0.8, zorder=0.5 )
+# Regime color alone does not separate the cases, since neighbours sharing a
+# regime merge into one block, so the boundaries are ruled explicitly.
+for i in range( 1, 16 ):
+    ax.axvline( i + 0.5, color='0.74', lw=0.8, zorder=0.5 )
 
-    # Zero line, and the tolerance marked by rules rather than fill
-    a.axhline( 0.0, color='0.45', lw=0.9, zorder=2 )
-    for sgn in ( -1, 1 ):
-        a.axhline( sgn * tol, color='0.72', lw=0.8, ls=( 0, ( 4, 3 ) ), zorder=1 )
+# Zero line, and the tolerance marked by rules rather than fill
+ax.axhline( 0.0, color='0.45', lw=0.9, zorder=2 )
+for sgn in ( -1, 1 ):
+    ax.axhline( sgn * tol, color='0.72', lw=0.8, ls=( 0, ( 4, 3 ) ), zorder=1 )
 
 offsets = np.linspace( -0.30, 0.30, len( models ) )
 
@@ -153,39 +128,19 @@ for off, name in zip( offsets, models ):
     ax.scatter( x[ good ], y[ good ], marker=st[ 'marker' ], s=58,
                 facecolors=st[ 'color' ], edgecolors='k', linewidths=0.6, zorder=4 )
 
-    # Same lane, same symbol, so a model sits in the same place in both panels
-    if name in surface:
-        ys = surface[ name ]
-        goods = ~np.isnan( ys ) & ok
-        axs.scatter( x[ goods ], ys[ goods ], marker=st[ 'marker' ], s=58,
-                     facecolors=st[ 'color' ], edgecolors='k', linewidths=0.6, zorder=4 )
-
 ax.set_yscale( 'symlog', linthresh=linthresh, linscale=1.1 )
 ax.set_yticks( [ -10, -3, -1, 0, 1, 3, 10, 20 ] )
 ax.set_yticklabels( [ '-10', '-3', '-1', '0', '1', '3', '10', '20' ] )
 ax.set_ylim( -14, 26 )
-ax.set_ylabel( 'TOA imbalance\n(OLR $-$ ASR) / (S/4)  (%)', fontsize=11.5 )
+ax.set_ylabel( 'TOA imbalance, (OLR $-$ ASR) / (S/4)  (%)', fontsize=12 )
 
-# The surface residuals span only about +/-4%, so a linear axis is clearer here
-# than the symlog the TOA panel needs, and it keeps the +/-1% rules comparable.
-axs.set_yticks( [ -2, -1, 0, 1, 2 ] )
-axs.set_ylim( -3.5, 2.7 )
-axs.set_ylabel( 'Surface imbalance\n$-F_\\mathrm{sfc}$ / (S/4)  (%)', fontsize=11.5 )
+ax.set_xlim( 0.4, 16.6 )
+ax.set_xticks( cases )
+ax.set_xticklabels( [ f'{c}\n{f:.0f}\n{p:.2f}' for c, f, p in zip( cases, flux1, pres1 ) ], fontsize=9 )
+ax.set_xlabel( 'Case / instellation (W m$^{-2}$) / N$_2$ surface pressure (bar)', fontsize=12, labelpad=8 )
 
-axs.set_xlim( 0.4, 16.6 )
-axs.set_xticks( cases )
-axs.set_xticklabels( [ f'{c}\n{f:.0f}\n{p:.2f}' for c, f, p in zip( cases, flux1, pres1 ) ], fontsize=9 )
-axs.set_xlabel( 'Case / instellation (W m$^{-2}$) / N$_2$ surface pressure (bar)', fontsize=12, labelpad=8 )
-
-for a in ( ax, axs ):
-    a.tick_params( axis='y', labelsize=11 )
-    a.text( 16.45, tol, f'$\\pm${tol:.0f}%', ha='right', va='bottom', fontsize=9, color='0.55' )
-
-# Say why four of the six models are absent below, so their absence does not
-# read as a result
-axs.text( 0.55, -3.35, 'ExoCAM and ExoPlaSim only: no other group submitted '
-                       'every term needed to close the surface budget',
-          fontsize=9.5, color='0.35', style='italic', va='bottom' )
+ax.tick_params( axis='y', labelsize=11 )
+ax.text( 16.45, tol, f'$\\pm${tol:.0f}%', ha='right', va='bottom', fontsize=9, color='0.55' )
 
 # One marker shape and color per model, and nothing else encoded in the symbol
 model_handles = [ Line2D( [0], [0], marker=style[ m ][ 'marker' ], color='none',
