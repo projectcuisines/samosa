@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
+from matplotlib.patches import Patch
 
 # ─── Top-of-atmosphere energy balance for all SAMOSA cases ───────────────────
 #
@@ -98,6 +99,25 @@ style = {
     'PlaHab':      dict( color='#8c564b', marker='P' ),
 }
 
+# Regime of each case, on the consensus rule of fig_summary.py but evaluated at
+# the sample point from the models that actually ran it, rather than from the
+# kriged field. 'runaway' where at least half of the four full-coverage models
+# (ExoPlaSim, ExoCAM, ROCKE-3D, PlaHab) fail; otherwise 'frozen' if every model
+# with data there puts the global mean below 273.16 K, 'warm' if every model
+# puts it above, and 'mixed' if they disagree on the sign.
+regime = [ 'frozen', 'runaway', 'runaway', 'mixed', 'mixed', 'runaway', 'mixed', 'frozen',
+           'frozen', 'frozen', 'frozen', 'warm', 'mixed', 'frozen', 'frozen', 'warm' ]
+
+# Colors are taken from fig_summary.py so the two figures read as one scheme
+regime_color = { 'frozen':  '#d6e6f4',     # every model below 273.16 K
+                 'warm':    '#dcefdb',     # every model above 273.16 K
+                 'mixed':   '#ffffff',     # models disagree on the sign
+                 'runaway': '#f2d6d8' }    # majority of full-coverage models runaway
+regime_label = { 'frozen':  'All below 273 K',
+                 'mixed':   'Models disagree',
+                 'warm':    'All above 273 K',
+                 'runaway': 'Majority runaway' }
+
 models   = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab' ]
 tol      = 1.0      # per cent; band within which a run is taken as equilibrated
 linthresh = 1.0     # per cent; linear/log crossover of the symlog axis
@@ -106,11 +126,15 @@ fig, ( ax, axs ) = plt.subplots( 2, 1, figsize=( 13, 8.6 ), sharex=True,
                                  gridspec_kw=dict( height_ratios=[ 2.0, 1.0 ], hspace=0.08 ) )
 
 for a in ( ax, axs ):
-    # Shade alternate cases, so it is unambiguous which markers belong to which
-    # case. This replaces the separator lines, which are redundant once the
-    # columns are shaded, and the +/-1% band, which competed with the shading.
-    for i in cases[ 1::2 ]:
-        a.axvspan( i - 0.5, i + 0.5, color='#eef1f4', lw=0, zorder=0 )
+    # Shade each case by its climate regime, in the colors of Figure 14, so the
+    # convergence diagnostic can be read against the regime it belongs to.
+    for i, r in zip( cases, regime ):
+        a.axvspan( i - 0.5, i + 0.5, color=regime_color[ r ], lw=0, zorder=0 )
+
+    # Regime color alone no longer separates the cases, since neighbours sharing
+    # a regime merge into one block, so the boundaries are ruled explicitly.
+    for i in range( 1, 16 ):
+        a.axvline( i + 0.5, color='0.74', lw=0.8, zorder=0.5 )
 
     # Zero line, and the tolerance marked by rules rather than fill
     a.axhline( 0.0, color='0.45', lw=0.9, zorder=2 )
@@ -168,9 +192,16 @@ model_handles = [ Line2D( [0], [0], marker=style[ m ][ 'marker' ], color='none',
                           markerfacecolor=style[ m ][ 'color' ], markeredgecolor='k',
                           markeredgewidth=0.6, markersize=9, label=m ) for m in models ]
 
-ax.legend( handles=model_handles, loc='lower left', ncol=6, fontsize=11,
-           bbox_to_anchor=( 0.0, 1.005 ), frameon=False, columnspacing=1.8,
-           handletextpad=0.4 )
+regime_handles = [ Patch( facecolor=regime_color[ r ], edgecolor='0.7', linewidth=0.6,
+                          label=regime_label[ r ] )
+                   for r in ( 'frozen', 'mixed', 'warm', 'runaway' ) ]
+
+fig.legend( handles=model_handles, loc='lower left', ncol=6, fontsize=11,
+            bbox_to_anchor=( 0.0, 1.055 ), bbox_transform=ax.transAxes,
+            frameon=False, columnspacing=1.8, handletextpad=0.4 )
+fig.legend( handles=regime_handles, loc='lower left', ncol=4, fontsize=10,
+            bbox_to_anchor=( 0.0, 1.005 ), bbox_transform=ax.transAxes,
+            frameon=False, columnspacing=1.8, handletextpad=0.6, handlelength=1.6 )
 
 fig.savefig( "fig_energy_balance.png", bbox_inches='tight', dpi=150 )
 fig.savefig( "fig_energy_balance.eps", bbox_inches='tight' )
