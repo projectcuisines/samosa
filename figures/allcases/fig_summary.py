@@ -65,7 +65,15 @@ sigma_thresh = 45.0      # K, matches fig_interpolation_temp.py
 
 # ── Kriging onto a fine display grid ──────────────────────────────────────────
 fluxf = np.linspace( 400, 2600, 221 ) / fluxscale
-pn2f  = np.exp( np.linspace( np.log( 0.10 ), np.log( 10.0 ), 181 ) )
+# The 20 protocol pressures are rounded to two decimals and so are not exactly
+# log-spaced. They are merged into the display grid so that every sample point
+# lands on a node: otherwise the shading at a sample point is evaluated up to
+# ~1% away in pressure, and with a linear variogram and exact_values=True the
+# kriged field has a cusp at data points and can move several K over that
+# offset. That put Case 5 in the frozen region although PlaHab reports 281.4 K
+# there, because the kriged value at the neighboring node was 272.9 K.
+pn2f  = np.unique( np.concatenate( [ np.exp( np.linspace( np.log( 0.10 ), np.log( 10.0 ), 181 ) ),
+                                     pn2 ] ) )
 
 log_pn2 = np.log( pn2 )
 lpn2_min, lpn2_max = log_pn2.min(), log_pn2.max()
@@ -324,15 +332,20 @@ handles  = [ Line2D( [], [], color=style[n][ 'color' ],
 ax.legend( handles=handles, loc='upper left', fontsize=10, ncol=1,
            framealpha=1, borderpad=0.7, labelspacing=0.5 )
 
-# Area fractions of the plane as drawn: flux is linear and pressure logarithmic,
-# and the display grid is uniform in both, so a plain mean is the drawn area.
+# Area fractions of the plane as drawn: flux is linear and pressure logarithmic.
+# The pressure grid is no longer uniform once the protocol pressures are merged
+# in, so cells are weighted by their width in log pressure.
+_wp = np.gradient( np.log( pn2f ) )
+_W  = np.broadcast_to( _wp, ( len( fluxf ), len( pn2f ) ) )
+area = lambda M: float( np.sum( M * _W ) / np.sum( _W ) )
+
 print( '=== fraction of the plane ===' )
 for label, m in ( ( 'all models below freezing', band_blue ),
                   ( 'all models above freezing', band_warm ),
                   ( 'contested, 3-D models only', contested_3d ),
                   ( 'contested, PlaHab only',     contested_plahab ),
                   ( 'contested, total',           contested_all ) ):
-    print( f'  {label:28s} {100.0 * m.mean():5.1f}%' )
+    print( f'  {label:28s} {100.0 * area( m ):5.1f}%' )
 
 suffix = "" if SHOW_PARTIAL else "_nopartial"
 fig.savefig( f"fig_summary{suffix}.png", bbox_inches='tight' )
