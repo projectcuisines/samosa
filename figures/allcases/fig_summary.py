@@ -164,12 +164,26 @@ def influence( name ):
 alpha = { n: influence( n ) for n in mean_models }
 
 # margin > 0 means the model places the global mean below freezing
-cold_margin = [ ( T_FREEZE - Z[ n ] ) + ( 1.0 - alpha[ n ] ) * BIG for n in mean_models ]
-warm_margin = [ ( Z[ n ] - T_FREEZE ) + ( 1.0 - alpha[ n ] ) * BIG for n in mean_models ]
-# At least one model must actually be constraining, or neither band is asserted
-constrained = np.max( [ alpha[ n ] for n in mean_models ], axis=0 ) > 0.5
-band_blue = ( np.min( cold_margin, axis=0 ) >  0.0 ) & constrained
-band_warm = ( np.min( warm_margin, axis=0 ) >= 0.0 ) & constrained
+def consensus_bands( names ):
+    cold = [ ( T_FREEZE - Z[ n ] ) + ( 1.0 - alpha[ n ] ) * BIG for n in names ]
+    warm = [ ( Z[ n ] - T_FREEZE ) + ( 1.0 - alpha[ n ] ) * BIG for n in names ]
+    # At least one model must actually be constraining, or neither band is asserted
+    con  = np.max( [ alpha[ n ] for n in names ], axis=0 ) > 0.5
+    return ( ( np.min( cold, axis=0 ) >  0.0 ) & con,
+             ( np.min( warm, axis=0 ) >= 0.0 ) & con )
+
+band_blue, band_warm = consensus_bands( mean_models )
+
+# The contested band is split by whether PlaHab, the only 2-D model, is needed
+# to produce the disagreement. Adding a model can only shrink the two consensus
+# bands, so the 3-D contested region is a strict subset of the full one and the
+# difference is exactly the area PlaHab alone makes contested.
+mean_models_3d = [ n for n in mean_models if n != 'PlaHab' ]
+band_blue_3d, band_warm_3d = consensus_bands( mean_models_3d )
+
+contested_all = ~( band_blue    | band_warm    )
+contested_3d  = ~( band_blue_3d | band_warm_3d )
+contested_plahab = contested_all & ~contested_3d
 # The mean-field WELL mask is not applied to the ice-free band: ExoCAM and
 # ROCKE-3D lose their hot cases to runaway, so that mask is false across most of
 # the region this band occupies.  The majority-runaway wash drawn on top already
@@ -196,7 +210,8 @@ X, Y = np.meshgrid( pn2f, fluxf * fluxscale )   # X = pressure, Y = instellation
 
 c_frozen = '#d6e6f4'    # every 3-D model: global mean below freezing
 c_warm   = '#dcefdb'    # every model: global mean above freezing
-c_mixed  = '#ffffff'    # models disagree, left white
+c_mixed  = '#ffffff'    # the 3-D models disagree, left white
+c_mixed_2d = '#e6e6e6'  # contested only once PlaHab, the 2-D model, is included
 c_run    = '#f2d6d8'    # pre-blended: EPS does not support transparency
 marker_edge = 'k'
 
@@ -211,8 +226,11 @@ ax.contourf( Y, X, band_warm.astype( float ),  levels=[ 0.5, 1.5 ], colors=[ c_w
 # confused with the individual model isotherms
 ax.contourf( Y, X, frac_run, levels=[ 0.49, 1.01 ], colors=[ c_run ], zorder=3 )
 
-ax.contourf( Y, X, ( ~( band_blue | band_warm ) ).astype( float ),
-             levels=[ 0.5, 1.5 ], colors=[ c_mixed ], zorder=2 )
+# Grey first, then the 3-D-only contested band in white on top of it
+ax.contourf( Y, X, contested_all.astype( float ),
+             levels=[ 0.5, 1.5 ], colors=[ c_mixed_2d ], zorder=2 )
+ax.contourf( Y, X, contested_3d.astype( float ),
+             levels=[ 0.5, 1.5 ], colors=[ c_mixed ], zorder=2.2 )
 
 drawn = consensus_models + ( partial_models if SHOW_PARTIAL else [] )
 for name in drawn:
@@ -262,6 +280,16 @@ handles  = [ Line2D( [], [], color=style[n][ 'color' ],
              for n in legend_order ]
 ax.legend( handles=handles, loc='upper left', fontsize=10, ncol=1,
            framealpha=1, borderpad=0.7, labelspacing=0.5 )
+
+# Area fractions of the plane as drawn: flux is linear and pressure logarithmic,
+# and the display grid is uniform in both, so a plain mean is the drawn area.
+print( '=== fraction of the plane ===' )
+for label, m in ( ( 'all models below freezing', band_blue ),
+                  ( 'all models above freezing', band_warm ),
+                  ( 'contested, 3-D models only', contested_3d ),
+                  ( 'contested, PlaHab only',     contested_plahab ),
+                  ( 'contested, total',           contested_all ) ):
+    print( f'  {label:28s} {100.0 * m.mean():5.1f}%' )
 
 suffix = "" if SHOW_PARTIAL else "_nopartial"
 fig.savefig( f"fig_summary{suffix}.png", bbox_inches='tight' )
