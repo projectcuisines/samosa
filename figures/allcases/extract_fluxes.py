@@ -71,7 +71,8 @@ REF_TS = {   # values already embedded in the figure scripts, for validation
 
 def blank():
     return dict( ts=np.full( 16, np.nan ), olr=np.full( 16, np.nan ),
-                 asr=np.full( 16, np.nan ), alb=np.full( 16, np.nan ) )
+                 asr=np.full( 16, np.nan ), alb=np.full( 16, np.nan ),
+                 sfc=np.full( 16, np.nan ) )
 
 def coslat_mean( field, lat ):
     w = np.cos( np.deg2rad( lat ) )[ :, None ] * np.ones( ( 1, field.shape[ -1 ] ) )
@@ -92,6 +93,12 @@ for i in range( 16 ):
         d[ 'ts' ][ i ]  = gm( ds.variables[ 'TS' ][ 0 ] )
         d[ 'asr' ][ i ] = gm( ds.variables[ 'FSNT' ][ 0 ] )
         d[ 'olr' ][ i ] = gm( ds.variables[ 'FLUT' ][ 0 ] )
+        # Net downward flux at the surface. CAM signs: FSNS positive down,
+        # FLNS/SHFLX/LHFLX positive up.
+        d[ 'sfc' ][ i ] = ( gm( ds.variables[ 'FSNS'  ][ 0 ] )
+                          - gm( ds.variables[ 'FLNS'  ][ 0 ] )
+                          - gm( ds.variables[ 'SHFLX' ][ 0 ] )
+                          - gm( ds.variables[ 'LHFLX' ][ 0 ] ) )
     d[ 'alb' ][ i ] = 100.0 * ( 1.0 - d[ 'asr' ][ i ] / incident[ i ] )
 data[ 'ExoCAM' ] = d
 
@@ -107,6 +114,9 @@ for i in range( 16 ):
         olr  = abs( coslat_mean( ds.variables[ 'rlut' ][ 0 ], lat ) )
         rsut = abs( coslat_mean( ds.variables[ 'rsut' ][ 0 ], lat ) )
         d[ 'ts' ][ i ] = coslat_mean( ds.variables[ 'ts' ][ 0 ], lat )
+        # rss, rls, hfss and hfls are all stored positive downward, so they add
+        d[ 'sfc' ][ i ] = sum( coslat_mean( ds.variables[ k ][ 0 ], lat )
+                               for k in ( 'rss', 'rls', 'hfss', 'hfls' ) )
     d[ 'asr' ][ i ], d[ 'olr' ][ i ] = asr, olr
     d[ 'alb' ][ i ] = 100.0 * rsut / ( asr + rsut )
 data[ 'ExoPlaSim' ] = d
@@ -204,6 +214,14 @@ print( '\n=== fig_energy_balance.py: imbalance (OLR-ASR)/(S/4) in per cent ===' 
 for m in order:
     imb = 100.0 * ( data[ m ][ 'olr' ] - data[ m ][ 'asr' ] ) / incident
     print( f'  {m:12s} {fmt(imb)}' )
+
+print( '\n=== fig_energy_balance.py: surface imbalance -F_sfc/(S/4) in per cent ===' )
+print( '  Only ExoCAM and ExoPlaSim submitted every term needed to close the' )
+print( '  surface budget. ROCKE-3D has srtrnf_grnd (net radiation at ground)' )
+print( '  but no turbulent fluxes; LFRic has sw_down_surf and lw_net_surf only;' )
+print( '  Generic PCM and PlaHab submitted only the standardized global output.' )
+for m in ( 'ExoCAM', 'ExoPlaSim' ):
+    print( f'  {m:12s} {fmt( -100.0 * data[ m ][ "sfc" ] / incident )}' )
 
 print( '\n=== fig_interpolation_albedo.py: albedo (%), 200.0 = runaway sentinel ===' )
 for m in order:
