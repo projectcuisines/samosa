@@ -156,9 +156,13 @@ def sampled_region( p_pts, f_pts ):
 # which reach 0.80, fade out where they have nothing nearby.
 mean_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic' ]
 d_full, d_none = 0.30, 0.55     # normalized (log p, flux) units
-# Large enough to dominate any temperature margin (|T - 273| < 110 K here) but not
-# so large that a model at alpha = 0.999 is handed a spurious slack of several K.
-BIG = 300.0
+# A model's margin is blended toward SLACK as its weight falls, so a fully faded
+# model contributes +SLACK and never blocks, whatever its temperature, while a
+# partially faded one hands over gradually. The old formulation added
+# (1 - alpha) * 300 K, which had to be large enough to dominate any temperature
+# margin and therefore switched off blocking as soon as alpha left 1, making the
+# fade abrupt in effect however smooth it was in space.
+SLACK = 5.0
 
 _PP, _FF = np.meshgrid( norm_pres( pn2f ), norm_flux( fluxf ) )
 
@@ -183,18 +187,39 @@ alpha = { n: influence( n ) for n in mean_models }
 # where it actually has data. Case 4 is the Generic PCM's own case and the
 # nearest node sits 0.59% below it in pressure. The hull is therefore unioned
 # with a small buffer around each sample point.
-HULL_BUF = 0.02       # normalized units, about three grid diagonals
+HULL_W = 0.12         # normalized units over which a partial model fades out
 
+def hull_sdist( p_pts, f_pts ):
+    """Signed distance to the convex hull of a model's own cases, negative
+    inside. Exact on the outward side of each edge, which is all that the
+    taper needs."""
+    pts = np.column_stack( [ norm_pres( p_pts ), norm_flux( f_pts ) ] )
+    V   = pts[ ConvexHull( pts ).vertices ]
+    d   = np.full( _PP.shape, -1e9 )
+    for k in range( len( V ) ):
+        a, b = V[ k ], V[ ( k + 1 ) % len( V ) ]
+        e = b - a
+        L = np.hypot( *e )
+        d = np.maximum( d, ( e[1] / L ) * ( _PP - a[0] ) - ( e[0] / L ) * ( _FF - a[1] ) )
+    return d
+
+def smoothstep( x ):
+    x = np.clip( x, 0.0, 1.0 )
+    return x * x * ( 3.0 - 2.0 * x )
+
+# A hard 0/1 hull mask makes alpha discontinuous, and with it the consensus
+# margins, so the band edge jumps where the hull boundary crosses it. The mask
+# is therefore a taper over HULL_W rather than a step, and the margins below
+# blend toward a small positive slack rather than adding a large penalty, so
+# that a fading model hands over gradually to the next one.
 for n in partial_models:
     p_pts, f_pts, _ = ts_in[ n ]
-    near = np.min( np.hypot( _PP[ ..., None ] - norm_pres( p_pts ),
-                             _FF[ ..., None ] - norm_flux( f_pts ) ), axis=-1 ) < HULL_BUF
-    alpha[ n ] = alpha[ n ] * ( sampled_region( p_pts, f_pts ) | near )
+    alpha[ n ] = alpha[ n ] * smoothstep( ( HULL_W - hull_sdist( p_pts, f_pts ) ) / HULL_W )
 
 # margin > 0 means the model places the global mean below freezing
 def consensus_bands( names ):
-    cold = [ ( T_FREEZE - Z[ n ] ) + ( 1.0 - alpha[ n ] ) * BIG for n in names ]
-    warm = [ ( Z[ n ] - T_FREEZE ) + ( 1.0 - alpha[ n ] ) * BIG for n in names ]
+    cold = [ alpha[ n ] * ( T_FREEZE - Z[ n ] ) + ( 1.0 - alpha[ n ] ) * SLACK for n in names ]
+    warm = [ alpha[ n ] * ( Z[ n ] - T_FREEZE ) + ( 1.0 - alpha[ n ] ) * SLACK for n in names ]
     # At least one model must actually be constraining, or neither band is asserted
     con  = np.max( [ alpha[ n ] for n in names ], axis=0 ) > 0.5
     return ( ( np.min( cold, axis=0 ) >  0.0 ) & con,
