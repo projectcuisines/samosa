@@ -51,6 +51,11 @@ imbalance = {
 
 # True where the case is carried into the analysis of Figures 2-5; False where
 # the group submitted output but classified the run as runaway or unstable.
+# Only the True cases are plotted: this figure is a convergence check on the
+# runs that actually enter the analysis, so a rejected run has no bearing on
+# whether the results shown elsewhere are equilibrated. The imbalances of the
+# rejected runs are quoted in the text where they bear on a group's own
+# classification.
 accepted = {
     'ExoPlaSim':   np.array( [ True ] * 16 ),
     'ExoCAM':      np.array( [ True, False, False, True, False, False, False, True, True, True, True, True, False, True, True, True ] ),
@@ -92,18 +97,15 @@ for off, name in zip( offsets, models ):
     st = style[ name ]
     x  = cases + off
 
-    good = ~np.isnan( y ) &  ok
-    bad  = ~np.isnan( y ) & ~ok
+    good = ~np.isnan( y ) & ok
 
     ax.scatter( x[ good ], y[ good ], marker=st[ 'marker' ], s=58,
                 facecolors=st[ 'color' ], edgecolors='k', linewidths=0.6, zorder=4 )
-    ax.scatter( x[ bad ], y[ bad ], marker=st[ 'marker' ], s=58,
-                facecolors='none', edgecolors=st[ 'color' ], linewidths=1.4, zorder=3 )
 
 ax.set_yscale( 'symlog', linthresh=linthresh, linscale=1.1 )
-ax.set_yticks( [ -30, -10, -3, -1, 0, 1, 3, 10, 30 ] )
-ax.set_yticklabels( [ '-30', '-10', '-3', '-1', '0', '1', '3', '10', '30' ] )
-ax.set_ylim( -60, 34 )
+ax.set_yticks( [ -10, -3, -1, 0, 1, 3, 10, 20 ] )
+ax.set_yticklabels( [ '-10', '-3', '-1', '0', '1', '3', '10', '20' ] )
+ax.set_ylim( -14, 26 )
 ax.set_xlim( 0.4, 16.6 )
 
 ax.set_xticks( cases )
@@ -113,25 +115,17 @@ ax.set_ylabel( 'TOA imbalance, (OLR $-$ ASR) / (S/4)  (%)', fontsize=12 )
 ax.tick_params( axis='y', labelsize=11 )
 
 ax.text( 16.5, 0.0, f'$\\pm${tol:.0f}%', ha='right', va='center', fontsize=9, color='0.4' )
-ax.text( 0.55, 24.0, 'still cooling  $\\uparrow$', fontsize=10, color='0.4', style='italic' )
-ax.text( 0.55, -46.0, 'still warming  $\\downarrow$', fontsize=10, color='0.4', style='italic' )
+ax.text( 0.55, 20.5, 'still cooling  $\\uparrow$', fontsize=10, color='0.4', style='italic' )
+ax.text( 0.55, -11.7, 'still warming  $\\downarrow$', fontsize=10, color='0.4', style='italic' )
 
+# One marker shape and color per model, and nothing else encoded in the symbol
 model_handles = [ Line2D( [0], [0], marker=style[ m ][ 'marker' ], color='none',
                           markerfacecolor=style[ m ][ 'color' ], markeredgecolor='k',
-                          markeredgewidth=0.6, markersize=8, label=m ) for m in models ]
-fill_handles = [
-    Line2D( [0], [0], marker='o', color='none', markerfacecolor='0.4',
-            markeredgecolor='k', markeredgewidth=0.6, markersize=8, label='Used in analysis' ),
-    Line2D( [0], [0], marker='o', color='none', markerfacecolor='none',
-            markeredgecolor='0.4', markeredgewidth=1.4, markersize=8, label='Submitted, classified runaway/unstable' ),
-]
+                          markeredgewidth=0.6, markersize=9, label=m ) for m in models ]
 
-# Legends sit above the axes so they never cover the large negative outliers
-leg1 = ax.legend( handles=model_handles, loc='lower left', ncol=6, fontsize=10,
-                  bbox_to_anchor=( 0.0, 1.075 ), frameon=False, columnspacing=1.4 )
-ax.add_artist( leg1 )
-ax.legend( handles=fill_handles, loc='lower left', ncol=2, fontsize=10,
-           bbox_to_anchor=( 0.0, 1.005 ), frameon=False, columnspacing=1.4 )
+ax.legend( handles=model_handles, loc='lower left', ncol=6, fontsize=11,
+           bbox_to_anchor=( 0.0, 1.005 ), frameon=False, columnspacing=1.8,
+           handletextpad=0.4 )
 
 fig.tight_layout()
 fig.savefig( "fig_energy_balance.png", bbox_inches='tight', dpi=150 )
