@@ -81,13 +81,16 @@ linthresh = 1.0     # per cent; linear/log crossover of the symlog axis
 
 fig, ax = plt.subplots( figsize=( 13, 7.0 ) )
 
-# Light separators between cases, so the six markers in each column stay grouped
-for i in range( 1, 16 ):
-    ax.axvline( i + 0.5, color='0.92', lw=0.8, zorder=0 )
+# Shade alternate cases, so it is unambiguous which markers belong to which
+# case. This replaces the separator lines, which are redundant once the
+# columns are shaded, and the +/-1% band, which competed with the shading.
+for i in cases[ 1::2 ]:
+    ax.axvspan( i - 0.5, i + 0.5, color='#eef1f4', lw=0, zorder=0 )
 
-# Equilibrium band and zero line
-ax.axhspan( -tol, tol, color='#dce6ef', zorder=1 )
+# Zero line, and the equilibrium tolerance now marked by rules rather than fill
 ax.axhline( 0.0, color='0.45', lw=0.9, zorder=2 )
+for sgn in ( -1, 1 ):
+    ax.axhline( sgn * tol, color='0.72', lw=0.8, ls=( 0, ( 4, 3 ) ), zorder=1 )
 
 offsets = np.linspace( -0.30, 0.30, len( models ) )
 
@@ -114,7 +117,7 @@ ax.set_xlabel( 'Case / instellation (W m$^{-2}$) / N$_2$ surface pressure (bar)'
 ax.set_ylabel( 'TOA imbalance, (OLR $-$ ASR) / (S/4)  (%)', fontsize=12 )
 ax.tick_params( axis='y', labelsize=11 )
 
-ax.text( 16.5, 0.0, f'$\\pm${tol:.0f}%', ha='right', va='center', fontsize=9, color='0.4' )
+ax.text( 16.45, tol, f'$\\pm${tol:.0f}%', ha='right', va='bottom', fontsize=9, color='0.55' )
 ax.text( 0.55, 20.5, 'still cooling  $\\uparrow$', fontsize=10, color='0.4', style='italic' )
 ax.text( 0.55, -11.7, 'still warming  $\\downarrow$', fontsize=10, color='0.4', style='italic' )
 
