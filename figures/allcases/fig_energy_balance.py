@@ -27,7 +27,7 @@ from matplotlib.patches import Patch
 #   ExoPlaSim    exoplasim/samosaNN.nc, area-weighted rst / rlut
 #   ROCKE-3D     rocke3d/rocke_NNq.nc, -trnf_toa_hemis[2] / srnf_toa_hemis[2]
 #   Generic PCM  genericpcm/OHT_off/case-N/samosa_gcm_output_case-N_OHT_off.dat
-#   LFRic        lfric/samosa_global_diagnostics_lfric_2025-08-22.txt
+#   LFRic        lfric/samosa_global_diagnostics_lfric_2026-08-28.txt
 #   PlaHab       plahab/simulations/sampleN/global_samosa_plahab_*
 #                (the simulations/ copies are authoritative; the top-level
 #                 seq1sam4 file is a stale duplicate that disagrees by ~3 K)
@@ -46,7 +46,7 @@ imbalance = {
     'ExoCAM':      np.array( [  2.00,    nan,    nan,   0.31,    nan,    nan,  -5.23,   0.68,   0.38,   2.19,   1.35,   0.97,    nan,   0.55,   1.30,   0.20 ] ),
     'ROCKE-3D':    np.array( [  0.53,  -8.94,    nan,   0.11,   0.00, -16.21,   0.09,   0.41,   0.01,   6.32,   0.07,  -3.12,  -0.06,  -0.10,   0.00,  -0.10 ] ),
     'Generic PCM': np.array( [ 16.81, -23.95, -36.01,   1.83, -24.56, -31.78, -20.63,   2.18,   3.27,  19.66,  13.26, -12.10, -28.24,   2.41,   7.70, -10.70 ] ),
-    'LFRic':       np.array( [  0.66,    nan,    nan,  -0.37,    nan,    nan,    nan,    nan,  -0.12,    nan,    nan,  -0.11,    nan,  -0.33,   0.98,    nan ] ),
+    'LFRic':       np.array( [  0.66,    nan,    nan,  -0.37,    nan,    nan,    nan,    nan,  -0.12,    nan,    nan,  -0.11,    nan,  -0.33,   0.98,   0.16 ] ),
     'PlaHab':      np.array( [ -0.19,    nan,    nan,   0.76,  -0.54,    nan,  -0.57,   2.04,   1.06,  -9.65,  -0.25,  -0.50,  -0.36,   2.79,  -0.07,  -0.42 ] ),
 }
 
@@ -62,7 +62,7 @@ accepted = {
     'ExoCAM':      np.array( [ True, False, False, True, False, False, False, True, True, True, True, True, False, True, True, True ] ),
     'ROCKE-3D':    np.array( [ True, False, False, True, True, False, True, True, True, True, True, True, True, True, True, True ] ),
     'Generic PCM': np.array( [ True, False, False, True, False, False, False, True, True, True, False, False, False, True, True, False ] ),
-    'LFRic':       np.array( [ True, False, False, True, False, False, False, False, True, False, False, True, False, True, True, False ] ),
+    'LFRic':       np.array( [ True, False, False, True, False, False, False, False, True, False, False, True, False, True, True, True ] ),
     'PlaHab':      np.array( [ True, False, False, True, True, False, True, True, True, True, True, True, True, True, True, True ] ),
 }
 

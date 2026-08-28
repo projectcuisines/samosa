@@ -215,7 +215,6 @@ P_pcm    = [_pcm[0][4], _pcm[1][4], None]
 
 # ── LFRic ────────────────────────────────────────────────────────────
 # Full levels, surface (lev 0) → TOA (lev -1); SS at lon=0° after roll
-# Case 16 not available
 
 _d = '/models/data/samosa/lfric'
 
@@ -236,14 +235,15 @@ def read_lfric(fname):
     P_prof = hemi_mean(P3d, lat, lon_s, day=True) / 100.0   # Pa → hPa
     return T_ss, Q_ss, T_as, Q_as, P_prof
 
-_lfric1 = read_lfric(f'{_d}/lfric_samosa_case01.nc')
-_lfric4 = read_lfric(f'{_d}/lfric_samosa_case04.nc')
+_lfric1  = read_lfric(f'{_d}/lfric_samosa_case01.nc')
+_lfric4  = read_lfric(f'{_d}/lfric_samosa_case04.nc')
+_lfric16 = read_lfric(f'{_d}/lfric_samosa_case16.nc')
 
-T_lfric    = [_lfric1[0], _lfric4[0], None]
-Q_lfric    = [_lfric1[1], _lfric4[1], None]
-T_lfric_as = [_lfric1[2], _lfric4[2], None]
-Q_lfric_as = [_lfric1[3], _lfric4[3], None]
-P_lfric    = [_lfric1[4], _lfric4[4], None]
+T_lfric    = [_lfric1[0], _lfric4[0], _lfric16[0]]
+Q_lfric    = [_lfric1[1], _lfric4[1], _lfric16[1]]
+T_lfric_as = [_lfric1[2], _lfric4[2], _lfric16[2]]
+Q_lfric_as = [_lfric1[3], _lfric4[3], _lfric16[3]]
+P_lfric    = [_lfric1[4], _lfric4[4], _lfric16[4]]
 
 
 # ── Figure: Specific Humidity ─────────────────────────────────────────

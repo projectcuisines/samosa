@@ -50,9 +50,9 @@ pcm     = np.array( [ 25.57, 14.42, 22.69, 17.72, 28.53, 19.54, 21.31 ] )
 pcm_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 600 ] ) / fluxscale
 pcm_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
 
-lfric       = np.array( [ 26.03, 35.74, 34.16, 23.22, 34.41, 28.25 ] )
-lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600 ] ) / fluxscale
-lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43 ] )
+lfric       = np.array( [ 26.03, 35.74, 34.16, 23.22, 34.41, 28.25, 21.35 ] )
+lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
+lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 
 exocam_mask  = exocam  != runaway
 rocke3d_mask = rocke3d != runaway

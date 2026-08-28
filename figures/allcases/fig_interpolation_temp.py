@@ -42,9 +42,9 @@ pcm = np.array( [ 210.9195445942203, 286.7294656230531, 246.76730657647218, 266.
 pcm_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 600 ] ) / fluxscale
 pcm_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
 
-lfric       = np.array( [ 195.37, 251.48, 241.35, 333.20, 228.84, 203.64 ] )
-lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600 ] ) / fluxscale
-lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43 ] )
+lfric       = np.array( [ 195.37, 251.48, 241.35, 333.20, 228.84, 203.64, 361.70 ] )
+lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
+lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 
 # Normalize both axes to [0, 1] for kriging so distance metric is balanced
 log_pn2  = np.log( pn2 )

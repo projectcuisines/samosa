@@ -108,7 +108,8 @@ r3d_data    = [read_r3d_wind(c)   for c in [1, 4, 16]]
 pcm_data    = [read_pcm_wind(1), read_pcm_wind(4), None]
 _lf1        = read_lfric_wind(f'{_d_lfric}/lfric_samosa_case01.nc')
 _lf4        = read_lfric_wind(f'{_d_lfric}/lfric_samosa_case04.nc')
-lfric_data  = [_lf1, _lf4, None]
+_lf16       = read_lfric_wind(f'{_d_lfric}/lfric_samosa_case16.nc')
+lfric_data  = [_lf1, _lf4, _lf16]
 
 # panels[col][row] = (U_bar, P_hPa, lat) or None
 panels = [

@@ -75,9 +75,11 @@ wv_r3d1, wv_r3d4, wv_r3d16 = wv_r3d1[:, _idx], wv_r3d4[:, _idx], wv_r3d16[:, _id
 _d = '/models/data/samosa/lfric'
 wv_lfric1, lat_lfric, lon_lfric = read_nc(f'{_d}/lfric_samosa_case01.nc', 'tot_col_m_v')
 wv_lfric4,          _,        _ = read_nc(f'{_d}/lfric_samosa_case04.nc', 'tot_col_m_v')
+wv_lfric16,         _,        _ = read_nc(f'{_d}/lfric_samosa_case16.nc', 'tot_col_m_v')
 
 wv_lfric1, lon_lfric_s = roll_to_180(wv_lfric1, lon_lfric)
 wv_lfric4,           _ = roll_to_180(wv_lfric4, lon_lfric)
+wv_lfric16,          _ = roll_to_180(wv_lfric16, lon_lfric)
 
 # ---- Generic PCM ---------------------------------------------------
 _d = '/models/data/samosa/genericpcm/OHT_off'
@@ -110,8 +112,8 @@ panels = [
     [(lon_r3d_s,    lat_r3d,     wv_r3d1),     (lon_r3d_s,    lat_r3d,     wv_r3d4),     (lon_r3d_s,    lat_r3d,     wv_r3d16)    ],
     # Generic PCM (no OHT; Case 16 not converged)
     [(lon_pcm,      lat_pcm,     wv_pcm1),     (lon_pcm,      lat_pcm,     wv_pcm4),     None                                     ],
-    # LFRic (case 16 not available)
-    [(lon_lfric_s,  lat_lfric,   wv_lfric1),   (lon_lfric_s,  lat_lfric,   wv_lfric4),   None                                     ],
+    # LFRic
+    [(lon_lfric_s,  lat_lfric,   wv_lfric1),   (lon_lfric_s,  lat_lfric,   wv_lfric4),   (lon_lfric_s,  lat_lfric,   wv_lfric16)     ],
 ]
 
 TITLE_FS = 11

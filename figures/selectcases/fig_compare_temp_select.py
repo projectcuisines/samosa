@@ -86,9 +86,11 @@ Ts_plahab16 = read_plahab(f'{_d}/sample16/case16_tsurf.out', lon_plahab)
 _d = '/models/data/samosa/lfric'
 Ts_lfric1, lat_lfric, lon_lfric = read_nc(f'{_d}/lfric_samosa_case01.nc', 'grid_surface_temperature')
 Ts_lfric4,          _,        _ = read_nc(f'{_d}/lfric_samosa_case04.nc', 'grid_surface_temperature')
+Ts_lfric16,         _,        _ = read_nc(f'{_d}/lfric_samosa_case16.nc', 'grid_surface_temperature')
 
 Ts_lfric1, lon_lfric_s = roll_to_180(Ts_lfric1, lon_lfric)
 Ts_lfric4,           _ = roll_to_180(Ts_lfric4, lon_lfric)
+Ts_lfric16,          _ = roll_to_180(Ts_lfric16, lon_lfric)
 
 # ---- Generic PCM ---------------------------------------------------
 _d = '/models/data/samosa/genericpcm/OHT_off'
@@ -120,8 +122,8 @@ panels = [
     [(lon_r3d_s,    lat_r3d,     Ts_r3d1),     (lon_r3d_s,    lat_r3d,     Ts_r3d4),     (lon_r3d_s,    lat_r3d,     Ts_r3d16)    ],
     # Generic PCM (no OHT; Case 16 not converged)
     [(lon_pcm,      lat_pcm,     Ts_pcm1),     (lon_pcm,      lat_pcm,     Ts_pcm4),     None                                     ],
-    # LFRic (case 16 not available)
-    [(lon_lfric_s,  lat_lfric,   Ts_lfric1),   (lon_lfric_s,  lat_lfric,   Ts_lfric4),   None                                     ],
+    # LFRic
+    [(lon_lfric_s,  lat_lfric,   Ts_lfric1),   (lon_lfric_s,  lat_lfric,   Ts_lfric4),   (lon_lfric_s,  lat_lfric,   Ts_lfric16)     ],
     # PlaHab
     [(lon_plahab,   lat_plahab,  Ts_plahab1),  (lon_plahab,   lat_plahab,  Ts_plahab4),  (lon_plahab,   lat_plahab,  Ts_plahab16) ],
 ]

@@ -28,7 +28,7 @@ Per-model sources and the traps in each:
                Case 3 has no file.
 
   Generic PCM  genericpcm/OHT_off/case-N/samosa_gcm_output_case-N_OHT_off.dat
-  LFRic        lfric/samosa_global_diagnostics_lfric_2025-08-22.txt
+  LFRic        lfric/samosa_global_diagnostics_lfric_2026-08-28.txt
                Both are whitespace tables in the template column order.
 
   PlaHab       plahab/simulations/sampleN/global_samosa_plahab_*
@@ -57,7 +57,7 @@ ACCEPTED = {
     'ExoCAM':      [ 1, 4, 8, 9, 10, 11, 12, 14, 15, 16 ],
     'ROCKE-3D':    [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
     'Generic PCM': [ 1, 4, 8, 9, 10, 14, 15 ],
-    'LFRic':       [ 1, 4, 9, 12, 14, 15 ],
+    'LFRic':       [ 1, 4, 9, 12, 14, 15, 16 ],
     'PlaHab':      [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
 }
 
@@ -163,7 +163,7 @@ for i in range( 16 ):
         break
 data[ 'Generic PCM' ] = d
 
-data[ 'LFRic' ] = read_table( f'{ROOT}/lfric/samosa_global_diagnostics_lfric_2025-08-22.txt' )
+data[ 'LFRic' ] = read_table( f'{ROOT}/lfric/samosa_global_diagnostics_lfric_2026-08-28.txt' )
 
 # ── PlaHab ───────────────────────────────────────────────────────────────────
 d = blank()

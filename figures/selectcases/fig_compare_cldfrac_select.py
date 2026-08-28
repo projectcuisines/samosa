@@ -80,9 +80,11 @@ cf_r3d1, cf_r3d4, cf_r3d16 = cf_r3d1[:, _idx], cf_r3d4[:, _idx], cf_r3d16[:, _id
 _d = '/models/data/samosa/lfric'
 cf_lfric1, lat_lfric, lon_lfric = read_nc(f'{_d}/lfric_samosa_case01.nc', 'cloud_amount_maxrnd', scale=100.)
 cf_lfric4,          _,        _ = read_nc(f'{_d}/lfric_samosa_case04.nc', 'cloud_amount_maxrnd', scale=100.)
+cf_lfric16,         _,        _ = read_nc(f'{_d}/lfric_samosa_case16.nc', 'cloud_amount_maxrnd', scale=100.)
 
 cf_lfric1, lon_lfric_s = roll_to_180(cf_lfric1, lon_lfric)
 cf_lfric4,           _ = roll_to_180(cf_lfric4, lon_lfric)
+cf_lfric16,          _ = roll_to_180(cf_lfric16, lon_lfric)
 
 # ---- Generic PCM ---------------------------------------------------
 cf_pcm1,  lat_pcm, lon_pcm = read_pcm_cf(1)
@@ -109,8 +111,8 @@ panels = [
     [(lon_r3d_s,    lat_r3d,     cf_r3d1),     (lon_r3d_s,    lat_r3d,     cf_r3d4),     (lon_r3d_s,    lat_r3d,     cf_r3d16)    ],
     # Generic PCM (no OHT; Case 16 not converged)
     [(lon_pcm,      lat_pcm,     cf_pcm1),     (lon_pcm,      lat_pcm,     cf_pcm4),     None                                     ],
-    # LFRic (case 16 not available)
-    [(lon_lfric_s,  lat_lfric,   cf_lfric1),   (lon_lfric_s,  lat_lfric,   cf_lfric4),   None                                     ],
+    # LFRic
+    [(lon_lfric_s,  lat_lfric,   cf_lfric1),   (lon_lfric_s,  lat_lfric,   cf_lfric4),   (lon_lfric_s,  lat_lfric,   cf_lfric16)     ],
 ]
 
 TITLE_FS = 11
