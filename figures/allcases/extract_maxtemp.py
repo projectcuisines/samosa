@@ -23,6 +23,19 @@ Per-model sources:
                surface_temperature.
   LFRic        lfric/lfric_samosa_caseNN.nc, grid_surface_temperature. The
                coordinate is lat, not latitude as in the Generic PCM files.
+  HEXTOR       hextor/global_output_HEXTOR.dat. No spatial field is submitted:
+               HEXTOR is a 1-D EBM on 18 belts in the tidally locked
+               coordinate, so Tmax and Tmin are read straight from the
+               Tmax/Tmin columns rather than reduced from a map. They are
+               substellar and antistellar belt means, which is the closest
+               available analogue to the GCM field extrema.
+  ExoColumn    exocolumn/global_output_ExoColumn_a2736.dat. A single globally
+               averaged column with no horizontal dimension, so Tmax = Tmin =
+               Tglob by construction and the frozen / partly frozen / ice-free
+               classification below can only ever return the two extremes for
+               it. That is a real property of the model, not a gap in the
+               submission, but it means its state counts are not comparable
+               with the resolved models'.
   PlaHab       plahab/simulations/sampleN/model_samosa_plahab_*.out. Four
                36x20 maps are concatenated in one file; block 0 is tsurf,
                verified against the standalone caseN_tsurf.out for samples 1
@@ -47,6 +60,8 @@ ACCEPTED = {
     'PlaHab':      [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
     'Generic PCM': [ 1, 4, 8, 9, 10, 14, 15 ],
     'LFRic':       [ 1, 4, 9, 12, 14, 15, 16 ],
+    'HEXTOR':      [ 1, 4, 8, 9, 11, 14, 15 ],
+    'ExoColumn':   [ 1, 4, 8, 9, 10, 11, 14, 15 ],
 }
 
 # Global means already in fig_summary.py, used only to validate the mapping
@@ -61,6 +76,8 @@ REF = {
                 11:181.1, 12:295.3, 13:286.1, 14:246.1, 15:207.9, 16:292.7 },
  'Generic PCM': { 1:210.92, 4:286.73, 8:246.77, 9:266.60, 10:210.69, 14:246.04, 15:217.25 },
  'LFRic':     { 1:195.37, 4:251.48, 9:241.35, 12:333.20, 14:228.84, 15:203.64, 16:361.70 },
+ 'HEXTOR':    { 1:173.92, 4:312.24, 8:225.08, 9:277.17, 11:228.72, 14:242.30, 15:189.11 },
+ 'ExoColumn': { 1:206.98, 4:293.26, 8:248.49, 9:269.66, 10:201.36, 11:242.60, 14:251.63, 15:216.92 },
 }
 
 T_FREEZE = 273.16
@@ -131,8 +148,31 @@ def read_plahab( case ):
     return _mean_max( ts, w )
 
 
+def read_exocolumn( case ):
+    """ExoColumn is one column: Tglob, Tmax and Tmin are the same number."""
+    for line in open( f'{ROOT}/exocolumn/global_output_ExoColumn_a2736.dat' ):
+        if line.startswith( '#' ) or not line.strip():
+            continue
+        c = line.split()
+        if int( c[ 0 ] ) == case:
+            return ( float( c[ 3 ] ), float( c[ 4 ] ), float( c[ 5 ] ) )
+    raise KeyError( f'case {case} not in the ExoColumn output file' )
+
+
+def read_hextor( case ):
+    """HEXTOR reports Tglob, Tmax and Tmin directly; there is no field to reduce."""
+    for line in open( f'{ROOT}/hextor/global_output_HEXTOR.dat' ):
+        if line.startswith( '#' ) or not line.strip():
+            continue
+        c = line.split()
+        if int( c[ 0 ] ) == case:
+            return ( float( c[ 3 ] ), float( c[ 4 ] ), float( c[ 5 ] ) )
+    raise KeyError( f'case {case} not in the HEXTOR output file' )
+
+
 READERS = { 'ExoPlaSim': read_exoplasim, 'ExoCAM': read_exocam, 'ROCKE-3D': read_rocke3d,
-            'PlaHab': read_plahab, 'Generic PCM': read_pcm, 'LFRic': read_lfric }
+            'PlaHab': read_plahab, 'Generic PCM': read_pcm, 'LFRic': read_lfric,
+            'HEXTOR': read_hextor, 'ExoColumn': read_exocolumn }
 
 results = {}
 print( f"{'model':<12} {'case':>4} {'Tglob':>8} {'ref':>8} {'d':>7} {'Tmin':>8} {'Tmax':>8}  state" )
@@ -162,7 +202,8 @@ for model, name in order:
         vals = [ f"{results[model][c][idx]:.1f}" if c in results[ model ] else 'runawaytemp'
                  for c in range( 1, 17 ) ]
         print( f"{name.replace('tmax',tag):<14}= np.array( [ " + ", ".join( vals ) + " ] )" )
-for model, name in [ ( 'Generic PCM', 'tmax_pcm' ), ( 'LFRic', 'tmax_lfric' ) ]:
+for model, name in [ ( 'Generic PCM', 'tmax_pcm' ), ( 'LFRic', 'tmax_lfric' ),
+                     ( 'HEXTOR', 'tmax_hextor' ), ( 'ExoColumn', 'tmax_exocolumn' ) ]:
     for idx, tag in ( ( 0, 'tmax' ), ( 1, 'tmin' ) ):
         vals = [ f"{results[model][c][idx]:.1f}" for c in ACCEPTED[ model ] ]
         print( f"{name.replace('tmax',tag):<14}= np.array( [ " + ", ".join( vals ) + " ] )" )

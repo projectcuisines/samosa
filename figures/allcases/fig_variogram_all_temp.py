@@ -26,6 +26,14 @@ lfric       = np.array( [ 195.37, 251.48, 241.35, 333.20, 228.84, 203.64, 361.70
 lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 
+hextor       = np.array( [ 173.92, 312.24, 225.08, 277.17, 228.72, 242.30, 189.11 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 900, 900, 600 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+
+exocolumn       = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
+exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
+exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+
 exocam_mask  = exocam  != runawaytemp
 rocke3d_mask = rocke3d != runawaytemp
 plahab_mask  = plahab  != runawaytemp
@@ -60,11 +68,21 @@ models = [
     ( 'Generic PCM', norm_pres(pcm_pres1),      norm_flux(pcm_flux1),     pcm,            'tab:red'    ),
     ( 'LFRic',       norm_pres(lfric_pres1),    norm_flux(lfric_flux1),   lfric,          'tab:purple' ),
     ( 'PlaHab',      norm_pres(plahab_pres1),   norm_flux(plahab_flux1),  plahab_stable,  'tab:brown'  ),
+    ( 'HEXTOR',      norm_pres(hextor_pres1),   norm_flux(hextor_flux1),  hextor,         'tab:cyan'   ),
+    ( 'ExoColumn',   norm_pres(exocolumn_pres1),norm_flux(exocolumn_flux1),exocolumn,     'tab:gray'   ),
 ]
+
+# Kriging anisotropy, fitted per model in fit_anisotropy.py. The variogram is
+# fitted in the anisotropy-transformed coordinates, so these curves are only
+# comparable with the fig_interpolation_temp.py panels if the same ratios are
+# used here.
+ANISO = { 'ExoPlaSim': 2, 'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
+          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 7, 'ExoColumn': 7 }
 
 for name, np_, nf, vals, color in models:
     OK = OrdinaryKriging(
         np_, nf, vals,
+        anisotropy_scaling=ANISO[ name ],
         variogram_model="linear",
         verbose=False,
         enable_plotting=False,

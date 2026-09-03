@@ -24,6 +24,20 @@ lfric       = np.array( [ 26.03, 35.74, 34.16, 23.22, 34.41, 28.25, 21.35 ] )
 lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 
+# ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15. Cloud-free, but with a fixed
+# surface albedo of 0.2736 standing in for the shortwave effect of clouds, so
+# unlike HEXTOR its albedo sits inside the GCM range.
+exocolumn       = np.array( [ 26.01, 15.51, 23.11, 19.68, 27.26, 23.95, 21.97, 25.53 ] )
+exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
+exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+
+# HEXTOR, cases 1, 4, 8, 9, 11, 14, 15. Clear-sky by construction, so these are
+# surface-plus-Rayleigh albedos with no cloud contribution.
+hextor       = np.array( [ 20.18, 2.24, 14.54, 2.21, 11.36, 7.42, 19.62 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 900, 900, 600 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+
+
 exocam_mask  = exocam  != runaway
 rocke3d_mask = rocke3d != runaway
 plahab_mask  = plahab  != runaway
@@ -98,6 +112,8 @@ climate_models = [
     ( 'Generic PCM', pcm_pres1,     pcm_flux1,     logit( pcm             ) ),
     ( 'PlaHab',      plahab_pres1,  plahab_flux1,  logit( plahab_stable  ) ),
     ( 'LFRic',       lfric_pres1,   lfric_flux1,   logit( lfric           ) ),
+    ( 'HEXTOR',      hextor_pres1,  hextor_flux1,  logit( hextor          ) ),
+    ( 'ExoColumn',   exocolumn_pres1, exocolumn_flux1, logit( exocolumn     ) ),
 ]
 
 #--------------------------------------------------------------------

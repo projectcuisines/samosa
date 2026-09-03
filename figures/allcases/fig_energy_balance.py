@@ -48,6 +48,8 @@ imbalance = {
     'Generic PCM': np.array( [ 16.81, -23.95, -36.01,   1.83, -24.56, -31.78, -20.63,   2.18,   3.27,  19.66,  13.26, -12.10, -28.24,   2.41,   7.70, -10.70 ] ),
     'LFRic':       np.array( [  0.66,    nan,    nan,  -0.37,    nan,    nan,    nan,    nan,  -0.12,    nan,    nan,  -0.11,    nan,  -0.33,   0.98,   0.16 ] ),
     'PlaHab':      np.array( [ -0.19,    nan,    nan,   0.76,  -0.54,    nan,  -0.57,   2.04,   1.06,  -9.65,  -0.25,  -0.50,  -0.36,   2.79,  -0.07,  -0.42 ] ),
+    'HEXTOR':      np.array( [ -0.52,    nan,    nan,  -0.73,    nan,    nan,    nan,  -0.66,  -0.72,    nan,  -0.64,    nan,    nan,  -0.66,  -0.52,    nan ] ),
+    'ExoColumn':   np.array( [ -0.05,    nan,    nan,  -0.29,    nan,    nan,    nan,   0.06,  -0.20,   0.11,  -0.04,    nan,    nan,  -0.21,  -0.15,    nan ] ),
 }
 
 # True where the case is carried into the analysis of Figures 2-5; False where
@@ -64,6 +66,8 @@ accepted = {
     'Generic PCM': np.array( [ True, False, False, True, False, False, False, True, True, True, False, False, False, True, True, False ] ),
     'LFRic':       np.array( [ True, False, False, True, False, False, False, False, True, False, False, True, False, True, True, True ] ),
     'PlaHab':      np.array( [ True, False, False, True, True, False, True, True, True, True, True, True, True, True, True, True ] ),
+    'HEXTOR':      np.array( [ True, False, False, True, False, False, False, True, True, False, True, False, False, True, True, False ] ),
+    'ExoColumn':   np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, False ] ),
 }
 
 # Colors follow the selectcases figures so the models read consistently
@@ -74,6 +78,8 @@ style = {
     'Generic PCM': dict( color='#d62728', marker='D' ),
     'LFRic':       dict( color='#9467bd', marker='v' ),
     'PlaHab':      dict( color='#8c564b', marker='P' ),
+    'HEXTOR':      dict( color='#17becf', marker='X' ),
+    'ExoColumn':   dict( color='#7f7f7f', marker='*' ),
 }
 
 # Regime of each case, on the consensus rule of fig_summary.py but evaluated at
@@ -95,7 +101,7 @@ regime_label = { 'frozen':  'All below 273 K',
                  'warm':    'All above 273 K',
                  'runaway': 'Majority runaway' }
 
-models   = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab' ]
+models   = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab', 'HEXTOR', 'ExoColumn' ]
 tol      = 1.0      # per cent; band within which a run is taken as equilibrated
 linthresh = 1.0     # per cent; linear/log crossover of the symlog axis
 

@@ -7,10 +7,10 @@ surface, and the band between them where the models disagree.  Each model's own
 273.16 K isotherm is drawn on top, so the width of the contested band is the
 splay of the individual contours.
 
-Consensus shading uses all six models, but each model's influence fades with
-distance from the cases it actually ran, and the two partial submissions
-(Generic PCM, 7 cases; LFRic, 7 cases) are silenced outside the convex hull of
-their own cases.  Their isotherms are clipped to that same region, so they read
+Consensus shading uses all eight models, but each model's influence fades with
+distance from the cases it actually ran, and the four partial submissions
+(Generic PCM, LFRic and HEXTOR with 7 cases each, ExoColumn with 8) are
+silenced outside the convex hull of their own cases.  Their isotherms are clipped to that same region, so they read
 as short segments rather than as curves spanning the whole domain.  The
 runaway wash and the per-model agreement count use only the four models that
 attempted all 16 cases (ExoPlaSim, ExoCAM, ROCKE-3D, PlaHab).
@@ -39,6 +39,10 @@ pcm_flux1   = np.array( [ 500, 1200,  800, 1100, 400,  900, 600 ] ) / fluxscale
 pcm_pres1   = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
 lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900,  600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
+hextor_flux1 = np.array( [ 500, 1200,  800, 1100,  900,  900,  600 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+exocolumn_flux1 = np.array( [ 500, 1200,  800, 1100,  400,  900,  900,  600 ] ) / fluxscale
+exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
 
 # ── Temperature data (K) ──────────────────────────────────────────────────────
 runawaytemp = 600.0
@@ -57,6 +61,8 @@ ts_pcm     = np.array( [ 210.9195445942203, 286.7294656230531, 246.7673065764721
                          266.5987224285321, 210.69131033681012, 246.04296230476365,
                          217.2519558970929 ] )
 ts_lfric   = np.array( [ 195.37, 251.48, 241.35, 333.20, 228.84, 203.64, 361.70 ] )
+ts_hextor  = np.array( [ 173.92, 312.24, 225.08, 277.17, 228.72, 242.30, 189.11 ] )
+ts_exocolumn = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 
 
 ts_exocam_mask  = ts_exocam  != runawaytemp
@@ -88,8 +94,15 @@ def norm_pres( p ):
 def norm_flux( f ):
     return ( f - flux_min ) / ( flux_max - flux_min )
 
-def krige( p, f, z ):
+# Kriging anisotropy, fitted per model in fit_anisotropy.py; the same values the
+# fig_interpolation_temp.py panels use. A value of s means one unit of normalized
+# instellation counts s times a unit of normalized log-pressure.
+ANISO = { 'ExoPlaSim': 2, 'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
+          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 7, 'ExoColumn': 7 }
+
+def krige( p, f, z, scaling=1.0 ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,
+                          anisotropy_scaling=scaling,
                           variogram_model="linear", verbose=False,
                           enable_plotting=False, exact_values=True )
     return ok.execute( "grid", norm_pres( pn2f ), norm_flux( fluxf ) )
@@ -100,7 +113,9 @@ style = { 'ExoPlaSim':   dict( color='#ff7f0e', ls='-'  ),
           'ROCKE-3D':    dict( color='#2ca02c', ls='-'  ),
           'PlaHab':      dict( color='#8c564b', ls='--' ),
           'Generic PCM': dict( color='#d62728', ls='-'  ),
-          'LFRic':       dict( color='#9467bd', ls='-'  ) }
+          'LFRic':       dict( color='#9467bd', ls='-'  ),
+          'HEXTOR':      dict( color='#17becf', ls='--' ),
+          'ExoColumn':   dict( color='#7f7f7f', ls='--' ) }
 
 consensus_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab' ]
 
@@ -110,9 +125,13 @@ consensus_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab' ]
 # 1500 W m^-2.  Their isotherms are therefore drawn only inside the convex hull
 # of the cases each model actually ran, so that they appear as short segments
 # rather than as curves spanning the whole domain.
+# HEXTOR ran 7 of the 16 cases and nothing above 1200 W m^-2, so it is drawn on
+# the same footing. It is also the only 1-D model in the ensemble and the only
+# one without clouds, so its isotherms are not a like-for-like comparison with
+# the GCMs even inside its hull; the dashed style marks that.
 # Set to False to omit them entirely.
 SHOW_PARTIAL = True
-partial_models = [ 'Generic PCM', 'LFRic' ]
+partial_models = [ 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ]
 
 ts_in = {
     'ExoPlaSim':   ( pres1,                    flux1,                    ts_plasim ),
@@ -121,11 +140,13 @@ ts_in = {
     'PlaHab':      ( pres1[ ts_plahab_mask  ], flux1[ ts_plahab_mask  ], ts_plahab[  ts_plahab_mask  ] ),
     'Generic PCM': ( pcm_pres1,                pcm_flux1,                ts_pcm ),
     'LFRic':       ( lfric_pres1,              lfric_flux1,              ts_lfric ),
+    'HEXTOR':      ( hextor_pres1,             hextor_flux1,             ts_hextor ),
+    'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          ts_exocolumn ),
 }
 
 Z, WELL, SIG = {}, {}, {}
 for name, ( p, f, z ) in ts_in.items():
-    zz, vv    = krige( p, f, z )
+    zz, vv    = krige( p, f, z, ANISO[ name ] )
     Z[ name ] = np.asarray( zz )
     SIG[ name ]  = np.sqrt( np.asarray( vv ) )
     WELL[ name ] = SIG[ name ] < sigma_thresh
@@ -158,7 +179,7 @@ def sampled_region( p_pts, f_pts ):
 # models with full 16-case coverage keep alpha = 1 almost everywhere (ExoPlaSim's
 # largest distance to its own nearest case is 0.327) while the Generic PCM and LFRic,
 # which reach 0.80, fade out where they have nothing nearby.
-mean_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic' ]
+mean_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ]
 d_full, d_none = 0.30, 0.55     # normalized (log p, flux) units
 # A model's margin is blended toward SLACK as its weight falls, so a fully faded
 # model contributes +SLACK and never blocks, whatever its temperature, while a

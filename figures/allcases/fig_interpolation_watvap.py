@@ -40,12 +40,33 @@ lfric       = np.array( [ 0.41, 8.18, 7.37, 829.15, 2.34, 0.86, 1863.11 ] )
 lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 
+# ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15 (kg m^-2). It carries a vertical
+# coordinate and prognostic water vapour, so unlike HEXTOR it reports a column.
+exocolumn       = np.array( [ 0.00248419, 23.5491, 0.418244, 3.59523, 0.00097159, 0.199347, 0.591193, 0.0102235 ] )
+exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
+exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+
 exocam_mask  = exocam  != runaway
 rocke3d_mask = rocke3d != runaway
 
 exocam_flux1  = flux1[ exocam_mask ];  exocam_pres1  = pres1[ exocam_mask ];  exocam_stable  = exocam[ exocam_mask ]
 rocke3d_flux1 = flux1[ rocke3d_mask ]; rocke3d_pres1 = pres1[ rocke3d_mask ]; rocke3d_stable = rocke3d[ rocke3d_mask ]
 
+
+# Kriging anisotropy, fitted per model by leave-one-out cross-validation in
+# fit_anisotropy.py. pykrige scales the second coordinate, which here is
+# normalized instellation, so a value of s means one unit of normalized
+# instellation counts s times a unit of normalized log-pressure. Isotropic
+# kriging (s = 1) asserts the two axes are equally informative, which is false
+# for water vapor: rerun fit_anisotropy.py after any resubmission.
+ANISO = {
+    'ExoCAM':       10,
+    'ROCKE-3D':     7,
+    'ExoPlaSim':    3,
+    'Generic PCM':  15,
+    'LFRic':        15,
+    'ExoColumn':    10,
+}
 
 # Normalize both axes to [0, 1] for kriging so distance metric is balanced
 log_pn2  = np.log( pn2 )
@@ -58,9 +79,12 @@ def norm_pres( p ):
 def norm_flux( f ):
     return ( f - flux_min ) / ( flux_max - flux_min )
 
-fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3' ],
-                                 [ 'P4', 'P5', 'P6' ]],
-                               figsize=(18, 9) )
+# Two rows of four, with the colorbar alongside rather than occupying a panel
+# slot. Panels are ordered by model class, ending with the two one-dimensional
+# models.
+fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
+                                 [ 'P5', 'P6', 'P7', 'P8' ]],
+                               figsize=(22, 9) )
 
 norm           = mcolors.LogNorm( vmin=contourmin, vmax=contourmax )
 contour_levels = np.logspace( np.log10(contourmin), np.log10(contourmax), cinterval )
@@ -72,6 +96,7 @@ OK = OrdinaryKriging(
     norm_pres( exocam_pres1 ),
     norm_flux( exocam_flux1 ),
     np.log( exocam_stable ),
+    anisotropy_scaling=ANISO[ 'ExoCAM' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -88,6 +113,7 @@ OK = OrdinaryKriging(
     norm_pres( rocke3d_pres1 ),
     norm_flux( rocke3d_flux1 ),
     np.log( rocke3d_stable ),
+    anisotropy_scaling=ANISO[ 'ROCKE-3D' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -103,6 +129,7 @@ OK = OrdinaryKriging(
     norm_pres( pres1 ),
     norm_flux( flux1 ),
     np.log( plasim ),
+    anisotropy_scaling=ANISO[ 'ExoPlaSim' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -118,6 +145,7 @@ OK = OrdinaryKriging(
     norm_pres( pcm_pres1 ),
     norm_flux( pcm_flux1 ),
     np.log( pcm ),
+    anisotropy_scaling=ANISO[ 'Generic PCM' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -133,6 +161,7 @@ OK = OrdinaryKriging(
     norm_pres( lfric_pres1 ),
     norm_flux( lfric_flux1 ),
     np.log( lfric ),
+    anisotropy_scaling=ANISO[ 'LFRic' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -140,6 +169,22 @@ OK = OrdinaryKriging(
 )
 
 lfric_z1, lfric_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+
+#--------------------------------------------------------------------
+# ExoColumn Kriging
+
+OK = OrdinaryKriging(
+    norm_pres( exocolumn_pres1 ),
+    norm_flux( exocolumn_flux1 ),
+    np.log( exocolumn ),
+    anisotropy_scaling=ANISO[ 'ExoColumn' ],
+    variogram_model="linear",
+    verbose=False,
+    enable_plotting=False,
+    exact_values=True,
+)
+
+exocolumn_z1, exocolumn_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
 
 # Shared axis limits
 xlim = [ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ]
@@ -205,10 +250,26 @@ axd[ 'P6' ].text( 0.5, 0.5, 'No data\n(2D model)', ha='center', va='center',
                   transform=axd[ 'P6' ].transAxes, fontsize=13, style='italic', color='gray' )
 
 #--------------------------------------------------------------------
+# Panel 7 — HEXTOR (no water vapor column)
+
+axd[ 'P7' ].set_axis_off()
+axd[ 'P7' ].set_title( 'HEXTOR', fontsize=14 )
+axd[ 'P7' ].text( 0.5, 0.5, 'No data\n(1D model)', ha='center', va='center',
+                  transform=axd[ 'P7' ].transAxes, fontsize=13, style='italic', color='gray' )
+
+#--------------------------------------------------------------------
+# Panel 8 — ExoColumn
+
+cf8 = axd[ 'P8' ].contourf( yv*fluxscale, xv, np.exp(exocolumn_z1), cmap=cm, levels=contour_levels, norm=norm, extend='both' )
+axd[ 'P8' ].contourf( yv*fluxscale, xv, np.sqrt(exocolumn_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P8' ].scatter( exocolumn_flux1*fluxscale, exocolumn_pres1, c=exocolumn, cmap=cm, norm=norm, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P8' ], f'ExoColumn (n={len(exocolumn)})' )
+
+#--------------------------------------------------------------------
 # Finalize
 
 fig.subplots_adjust( wspace=0.3, hspace=0.4, right=0.88 )
-cax = fig.add_axes( [0.91, 0.1, 0.015, 0.8] )
+cax = fig.add_axes( [ 0.905, 0.12, 0.013, 0.76 ] )
 cb = fig.colorbar( cf1, cax=cax, extend='both', ticks=cbar_ticks )
 cb.ax.tick_params( labelsize=11 )
 cb.ax.get_yaxis().labelpad = 15

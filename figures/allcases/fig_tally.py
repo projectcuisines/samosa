@@ -40,14 +40,24 @@ plahab_mask  = np.array( [True,  False, False, True,  True,  False, True,  True,
                            True,  True,  True,  True,  True,  True,  True,  True ] )
 lfric_mask   = np.array( [True,  False, False, True,  False, False, False, False,
                            True,  False, False, True,  False, True,  True,  True ] )
+# HEXTOR: eight of the nine gaps are runaways beyond its radiative lookup
+# table; Case 10 is excluded separately for CO2 condensation.
+hextor_mask  = np.array( [True,  False, False, True,  False, False, False, True,
+                           True,  False, True,  False, False, True,  True,  False] )
+# ExoColumn: all eight gaps are incipient runaways with no steady state at that
+# (S, p). Unlike HEXTOR it converges Case 10, having no CO2 condensation.
+exocolumn_mask = np.array( [True,  False, False, True,  False, False, False, True,
+                            True,  True,  True,  False, False, True,  True,  False] )
 
 color_stable  = '#183629'
 color_unavail = '#183629'
 color_grid    = '#aaaaaa'
 
-fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3' ],
-                                  [ 'P4', 'P5', 'P6' ]],
-                                figsize=(18, 9) )
+# Two rows of four, ordered by model class and ending with the two
+# one-dimensional models.
+fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
+                                  [ 'P5', 'P6', 'P7', 'P8' ]],
+                                figsize=(22, 9) )
 
 xlim = [ max( flux ) + 50, min( flux ) - 50 ]
 ylim = [ min( pn2 ) * 0.9, max( pn2 ) * 1.1 ]
@@ -121,6 +131,20 @@ setup_panel( axd[ 'P5' ], f'LFRic (n={lfric_mask.sum()})' )
 axd[ 'P6' ].scatter( flux_all[  plahab_mask ], pres_all[  plahab_mask ], color=color_stable,  marker='o', s=50 )
 axd[ 'P6' ].scatter( flux_all[ ~plahab_mask ], pres_all[ ~plahab_mask ], color=color_unavail, marker='x', s=50 )
 setup_panel( axd[ 'P6' ], f'PlaHab (n={plahab_mask.sum()})' )
+
+#--------------------------------------------------------------------
+# Panel 7 - HEXTOR
+
+axd[ 'P7' ].scatter( flux_all[  hextor_mask ], pres_all[  hextor_mask ], color=color_stable,  marker='o', s=50 )
+axd[ 'P7' ].scatter( flux_all[ ~hextor_mask ], pres_all[ ~hextor_mask ], color=color_unavail, marker='x', s=50 )
+setup_panel( axd[ 'P7' ], f'HEXTOR (n={hextor_mask.sum()})' )
+
+#--------------------------------------------------------------------
+# Panel 8 - ExoColumn
+
+axd[ 'P8' ].scatter( flux_all[  exocolumn_mask ], pres_all[  exocolumn_mask ], color=color_stable,  marker='o', s=50 )
+axd[ 'P8' ].scatter( flux_all[ ~exocolumn_mask ], pres_all[ ~exocolumn_mask ], color=color_unavail, marker='x', s=50 )
+setup_panel( axd[ 'P8' ], f'ExoColumn (n={exocolumn_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Finalize

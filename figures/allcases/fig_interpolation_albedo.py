@@ -54,6 +54,20 @@ lfric       = np.array( [ 26.03, 35.74, 34.16, 23.22, 34.41, 28.25, 21.35 ] )
 lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 
+# HEXTOR, cases 1, 4, 8, 9, 11, 14, 15. Clear-sky by construction: HEXTOR has no
+# clouds, so these are surface-plus-Rayleigh albedos and sit well below the rest
+# of the ensemble wherever the surface is ice-free.
+hextor       = np.array( [ 20.18, 2.24, 14.54, 2.21, 11.36, 7.42, 19.62 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 900, 900, 600 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+
+# ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15. Cloud-free, but its fixed surface
+# albedo of 0.2736 stands in for the shortwave effect of clouds, so unlike
+# HEXTOR its albedo lands inside the range spanned by the GCMs.
+exocolumn       = np.array( [ 26.01, 15.51, 23.11, 19.68, 27.26, 23.95, 21.97, 25.53 ] )
+exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
+exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+
 exocam_mask  = exocam  != runaway
 rocke3d_mask = rocke3d != runaway
 plahab_mask  = plahab  != runaway
@@ -61,6 +75,25 @@ plahab_mask  = plahab  != runaway
 exocam_flux1  = flux1[ exocam_mask ];  exocam_pres1  = pres1[ exocam_mask ];  exocam_stable  = exocam[ exocam_mask ]
 rocke3d_flux1 = flux1[ rocke3d_mask ]; rocke3d_pres1 = pres1[ rocke3d_mask ]; rocke3d_stable = rocke3d[ rocke3d_mask ]
 plahab_flux1  = flux1[ plahab_mask ];  plahab_pres1  = pres1[ plahab_mask ];  plahab_stable  = plahab[ plahab_mask ]
+
+# Kriging anisotropy, fitted per model by leave-one-out cross-validation in
+# fit_anisotropy.py. pykrige scales the second coordinate, which here is
+# normalized instellation, so a value of s means one unit of normalized
+# instellation counts s times a unit of normalized log-pressure. Isotropic
+# kriging (s = 1) asserts the two axes are equally informative, which is false
+# for albedo: rerun fit_anisotropy.py after any resubmission.
+# LFRic is pinned at 1 for the same reason: its albedo fit resolves no
+# surface at any ratio, so anisotropy would only flatten it further.
+ANISO = {
+    'ExoCAM':       15,
+    'ROCKE-3D':     1.5,
+    'ExoPlaSim':    1.5,
+    'Generic PCM':  5,
+    'PlaHab':       4,
+    'LFRic':        1,
+    'HEXTOR':       15,
+    'ExoColumn':    5,
+}
 
 # Normalize both axes to [0, 1] for kriging so distance metric is balanced
 log_pn2  = np.log( pn2 )
@@ -87,9 +120,12 @@ def sigmoid( y ):
 # genuinely flat but resolved field.
 slope_eps = 1.0e-8
 
-fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3' ],
-                                 [ 'P4', 'P5', 'P6' ]],
-                               figsize=(18, 9) )
+# Two rows of four, with the colorbar alongside rather than occupying a panel
+# slot. Panels are ordered by model class, ending with the two one-dimensional
+# models.
+fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
+                                 [ 'P5', 'P6', 'P7', 'P8' ]],
+                               figsize=(22, 9) )
 
 #--------------------------------------------------------------------
 # ExoCAM Kriging
@@ -98,6 +134,7 @@ OK = OrdinaryKriging(
     norm_pres( exocam_pres1 ),
     norm_flux( exocam_flux1 ),
     logit( exocam_stable ),
+    anisotropy_scaling=ANISO[ 'ExoCAM' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -115,6 +152,7 @@ OK = OrdinaryKriging(
     norm_pres( rocke3d_pres1 ),
     norm_flux( rocke3d_flux1 ),
     logit( rocke3d_stable ),
+    anisotropy_scaling=ANISO[ 'ROCKE-3D' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -131,6 +169,7 @@ OK = OrdinaryKriging(
     norm_pres( pres1 ),
     norm_flux( flux1 ),
     logit( plasim ),
+    anisotropy_scaling=ANISO[ 'ExoPlaSim' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -147,6 +186,7 @@ OK = OrdinaryKriging(
     norm_pres( pcm_pres1 ),
     norm_flux( pcm_flux1 ),
     logit( pcm ),
+    anisotropy_scaling=ANISO[ 'Generic PCM' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -163,6 +203,7 @@ OK = OrdinaryKriging(
     norm_pres( lfric_pres1 ),
     norm_flux( lfric_flux1 ),
     logit( lfric ),
+    anisotropy_scaling=ANISO[ 'LFRic' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -179,6 +220,7 @@ OK = OrdinaryKriging(
     norm_pres( plahab_pres1 ),
     norm_flux( plahab_flux1 ),
     logit( plahab_stable ),
+    anisotropy_scaling=ANISO[ 'PlaHab' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -186,6 +228,38 @@ OK = OrdinaryKriging(
 )
 
 PlaHab_z1, PlaHab_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+
+#--------------------------------------------------------------------
+# HEXTOR Kriging
+
+OK = OrdinaryKriging(
+    norm_pres( hextor_pres1 ),
+    norm_flux( hextor_flux1 ),
+    logit( hextor ),
+    anisotropy_scaling=ANISO[ 'HEXTOR' ],
+    variogram_model="linear",
+    verbose=False,
+    enable_plotting=False,
+    exact_values=True,
+)
+
+hextor_z1, hextor_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+
+#--------------------------------------------------------------------
+# ExoColumn Kriging
+
+OK = OrdinaryKriging(
+    norm_pres( exocolumn_pres1 ),
+    norm_flux( exocolumn_flux1 ),
+    logit( exocolumn ),
+    anisotropy_scaling=ANISO[ 'ExoColumn' ],
+    variogram_model="linear",
+    verbose=False,
+    enable_plotting=False,
+    exact_values=True,
+)
+
+exocolumn_z1, exocolumn_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
 slope_plahab = OK.variogram_model_parameters[ 0 ]
 
 # Shared axis limits
@@ -269,10 +343,26 @@ setup_panel( axd[ 'P6' ], f'PlaHab (n={len(plahab_stable)})' )
 flag_degenerate( axd[ 'P6' ], slope_plahab )
 
 #--------------------------------------------------------------------
+# Panel 7
+
+cf7 = axd[ 'P7' ].contourf( yv*fluxscale, xv, sigmoid(hextor_z1), cmap=cm, levels=contour_levels, vmin=contourmin, vmax=contourmax, extend='both' )
+axd[ 'P7' ].contourf( yv*fluxscale, xv, np.sqrt(hextor_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P7' ].scatter( hextor_flux1*fluxscale, hextor_pres1, c=hextor, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P7' ], f'HEXTOR (n={len(hextor)})' )
+
+#--------------------------------------------------------------------
+# Panel 8
+
+cf8 = axd[ 'P8' ].contourf( yv*fluxscale, xv, sigmoid(exocolumn_z1), cmap=cm, levels=contour_levels, vmin=contourmin, vmax=contourmax, extend='both' )
+axd[ 'P8' ].contourf( yv*fluxscale, xv, np.sqrt(exocolumn_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+axd[ 'P8' ].scatter( exocolumn_flux1*fluxscale, exocolumn_pres1, c=exocolumn, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
+setup_panel( axd[ 'P8' ], f'ExoColumn (n={len(exocolumn)})' )
+
+#--------------------------------------------------------------------
 # Finalize
 
 fig.subplots_adjust( wspace=0.3, hspace=0.4, right=0.88 )
-cax = fig.add_axes( [0.91, 0.1, 0.015, 0.8] )
+cax = fig.add_axes( [ 0.905, 0.12, 0.013, 0.76 ] )
 cb = fig.colorbar( cf1, cax=cax, extend='both', ticks=cbar_ticks )
 cb.ax.tick_params( labelsize=11 )
 cb.ax.get_yaxis().labelpad = 15

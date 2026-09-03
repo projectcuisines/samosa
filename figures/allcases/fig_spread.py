@@ -20,6 +20,14 @@ pcm_flux1  = np.array( [ 500, 1200,  800, 1100, 400,  900, 600 ] ) / fluxscale
 pcm_pres1  = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
 lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900,  600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
+# HEXTOR contributes surface temperature only: it reports no water vapor column
+# and no cloud fraction, so it enters the temperature panel and not the others.
+hextor_flux1 = np.array( [ 500, 1200,  800, 1100,  900,  900,  600 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+# ExoColumn contributes surface temperature and water vapor; it is cloud-free,
+# so it does not enter the cloud fraction panel.
+exocolumn_flux1 = np.array( [ 500, 1200,  800, 1100,  400,  900,  900,  600 ] ) / fluxscale
+exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
 
 # ── Temperature data (K) ──────────────────────────────────────────────────────
 runawaytemp = 600.0
@@ -38,6 +46,8 @@ ts_pcm     = np.array( [ 210.9195445942203, 286.7294656230531, 246.7673065764721
                          266.5987224285321, 210.69131033681012, 246.04296230476365,
                          217.2519558970929 ] )
 ts_lfric   = np.array( [ 195.37, 251.48, 241.35, 333.20, 228.84, 203.64, 361.70 ] )
+ts_hextor  = np.array( [ 173.92, 312.24, 225.08, 277.17, 228.72, 242.30, 189.11 ] )
+ts_exocolumn = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 
 ts_exocam_mask  = ts_exocam  != runawaytemp
 ts_rocke3d_mask = ts_rocke3d != runawaytemp
@@ -93,12 +103,19 @@ pcm_in_main   = np.array( [ any( np.isclose( f, pcm_flux1   ) & np.isclose( p, p
 lfric_in_main = np.array( [ any( np.isclose( f, lfric_flux1 ) & np.isclose( p, lfric_pres1 ) ) for f, p in zip( flux1, pres1 ) ] )
 
 # Number of models with valid data at each of the 16 QMC sample points
+wv_exocolumn = np.array( [ 0.00248419, 23.5491, 0.418244, 3.59523, 0.00097159, 0.199347, 0.591193, 0.0102235 ] )
+
+exocolumn_in_main = np.array( [ any( np.isclose( f, exocolumn_flux1 ) & np.isclose( p, exocolumn_pres1 ) ) for f, p in zip( flux1, pres1 ) ] )
+
+hextor_in_main = np.array( [ any( np.isclose( f, hextor_flux1 ) & np.isclose( p, hextor_pres1 ) ) for f, p in zip( flux1, pres1 ) ] )
+
 n_ts = ( np.ones( 16 )           # ExoPlaSim always valid
        + ts_exocam_mask           + ts_rocke3d_mask  + ts_plahab_mask
-       + pcm_in_main              + lfric_in_main )
+       + pcm_in_main              + lfric_in_main    + hextor_in_main
+       + exocolumn_in_main )
 n_wv = ( np.ones( 16 )           # ExoPlaSim always valid; PlaHab has no WV data
        + wv_exocam_mask           + wv_rocke3d_mask
-       + pcm_in_main              + lfric_in_main )
+       + pcm_in_main              + lfric_in_main    + exocolumn_in_main )
 n_cf = ( np.ones( 16 )           # ExoPlaSim always valid
        + cf_exocam_mask           + cf_rocke3d_mask  + cf_plahab_mask
        + pcm_in_main              + lfric_in_main )
@@ -121,8 +138,21 @@ def logit( x ):
 def sigmoid( y ):
     return 100.0 / ( 1.0 + np.exp( -y ) )
 
-def krige( p, f, z ):
+# Kriging anisotropy, fitted per model and per variable in fit_anisotropy.py and
+# matching the values used by the fig_interpolation_* figures. A value of s means
+# one unit of normalized instellation counts s times a unit of normalized
+# log-pressure. Model-count surfaces stay isotropic: coverage is a property of
+# the sampling design, not of a physical field.
+ANISO_TS = { 'ExoPlaSim': 2,  'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
+             'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 7, 'ExoColumn': 7 }
+ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
+             'Generic PCM': 15, 'LFRic': 15, 'ExoColumn': 10 }
+ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 3,
+             'Generic PCM': 1, 'LFRic': 15 }
+
+def krige( p, f, z, scaling=1.0 ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,
+                          anisotropy_scaling=scaling,
                           variogram_model="linear", verbose=False,
                           enable_plotting=False, exact_values=True )
     z_pred, z_var = ok.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
@@ -142,23 +172,26 @@ def weighted_std( values, variances ):
 
 # ── Kriging: Temperature ──────────────────────────────────────────────────────
 ts_krige = [
-    krige( pres1,                              flux1,                              ts_plasim ),
-    krige( pres1[ ts_exocam_mask  ],           flux1[ ts_exocam_mask  ],           ts_exocam[  ts_exocam_mask  ] ),
-    krige( pres1[ ts_rocke3d_mask ],           flux1[ ts_rocke3d_mask ],           ts_rocke3d[ ts_rocke3d_mask ] ),
-    krige( pres1[ ts_plahab_mask  ],           flux1[ ts_plahab_mask  ],           ts_plahab[  ts_plahab_mask  ] ),
-    krige( pcm_pres1,                          pcm_flux1,                          ts_pcm ),
-    krige( lfric_pres1,                        lfric_flux1,                        ts_lfric ),
+    krige( pres1,                              flux1,                              ts_plasim,                      ANISO_TS[ 'ExoPlaSim'   ] ),
+    krige( pres1[ ts_exocam_mask  ],           flux1[ ts_exocam_mask  ],           ts_exocam[  ts_exocam_mask  ],  ANISO_TS[ 'ExoCAM'      ] ),
+    krige( pres1[ ts_rocke3d_mask ],           flux1[ ts_rocke3d_mask ],           ts_rocke3d[ ts_rocke3d_mask ],  ANISO_TS[ 'ROCKE-3D'    ] ),
+    krige( pres1[ ts_plahab_mask  ],           flux1[ ts_plahab_mask  ],           ts_plahab[  ts_plahab_mask  ],  ANISO_TS[ 'PlaHab'      ] ),
+    krige( pcm_pres1,                          pcm_flux1,                          ts_pcm,                         ANISO_TS[ 'Generic PCM' ] ),
+    krige( lfric_pres1,                        lfric_flux1,                        ts_lfric,                       ANISO_TS[ 'LFRic'       ] ),
+    krige( hextor_pres1,                       hextor_flux1,                       ts_hextor,                      ANISO_TS[ 'HEXTOR'      ] ),
+    krige( exocolumn_pres1,                    exocolumn_flux1,                    ts_exocolumn,                   ANISO_TS[ 'ExoColumn'   ] ),
 ]
 z_ts,   var_ts = zip( *ts_krige )
 std_ts = weighted_std( z_ts, var_ts )
 
 # ── Kriging: Water vapor (log-space; runaway excluded) ────────────────────────
 wv_krige = [
-    krige( pres1,                    flux1,                    np.log( wv_plasim ) ),
-    krige( pres1[ wv_exocam_mask  ], flux1[ wv_exocam_mask  ], np.log( wv_exocam[  wv_exocam_mask  ] ) ),
-    krige( pres1[ wv_rocke3d_mask ], flux1[ wv_rocke3d_mask ], np.log( wv_rocke3d[ wv_rocke3d_mask ] ) ),
-    krige( pcm_pres1,                pcm_flux1,                np.log( wv_pcm ) ),
-    krige( lfric_pres1,              lfric_flux1,              np.log( wv_lfric ) ),
+    krige( pres1,                    flux1,                    np.log( wv_plasim ),                     ANISO_WV[ 'ExoPlaSim'   ] ),
+    krige( pres1[ wv_exocam_mask  ], flux1[ wv_exocam_mask  ], np.log( wv_exocam[  wv_exocam_mask  ] ), ANISO_WV[ 'ExoCAM'      ] ),
+    krige( pres1[ wv_rocke3d_mask ], flux1[ wv_rocke3d_mask ], np.log( wv_rocke3d[ wv_rocke3d_mask ] ), ANISO_WV[ 'ROCKE-3D'    ] ),
+    krige( pcm_pres1,                pcm_flux1,                np.log( wv_pcm ),                        ANISO_WV[ 'Generic PCM' ] ),
+    krige( lfric_pres1,              lfric_flux1,              np.log( wv_lfric ),                      ANISO_WV[ 'LFRic'       ] ),
+    krige( exocolumn_pres1,          exocolumn_flux1,          np.log( wv_exocolumn ),                  ANISO_WV[ 'ExoColumn'   ] ),
 ]
 z_wv_log, var_wv = zip( *wv_krige )
 ln10    = np.log( 10 )
@@ -166,12 +199,12 @@ std_wv  = weighted_std( [ z / ln10 for z in z_wv_log ], var_wv )
 
 # ── Kriging: Cloud fraction (logit-space) ─────────────────────────────────────
 cf_krige = [
-    krige( pres1,                              flux1,                              logit( cf_plasim ) ),
-    krige( pres1[ cf_exocam_mask  ],           flux1[ cf_exocam_mask  ],           logit( cf_exocam[  cf_exocam_mask  ] ) ),
-    krige( pres1[ cf_rocke3d_mask ],           flux1[ cf_rocke3d_mask ],           logit( cf_rocke3d[ cf_rocke3d_mask ] ) ),
-    krige( pres1[ cf_plahab_mask  ],           flux1[ cf_plahab_mask  ],           logit( cf_plahab[  cf_plahab_mask  ] ) ),
-    krige( pcm_pres1,                          pcm_flux1,                          logit( cf_pcm ) ),
-    krige( lfric_pres1,                        lfric_flux1,                        logit( cf_lfric ) ),
+    krige( pres1,                              flux1,                              logit( cf_plasim ),                     ANISO_CF[ 'ExoPlaSim'   ] ),
+    krige( pres1[ cf_exocam_mask  ],           flux1[ cf_exocam_mask  ],           logit( cf_exocam[  cf_exocam_mask  ] ), ANISO_CF[ 'ExoCAM'      ] ),
+    krige( pres1[ cf_rocke3d_mask ],           flux1[ cf_rocke3d_mask ],           logit( cf_rocke3d[ cf_rocke3d_mask ] ), ANISO_CF[ 'ROCKE-3D'    ] ),
+    krige( pres1[ cf_plahab_mask  ],           flux1[ cf_plahab_mask  ],           logit( cf_plahab[  cf_plahab_mask  ] ), ANISO_CF[ 'PlaHab'      ] ),
+    krige( pcm_pres1,                          pcm_flux1,                          logit( cf_pcm ),                        ANISO_CF[ 'Generic PCM' ] ),
+    krige( lfric_pres1,                        lfric_flux1,                        logit( cf_lfric ),                      ANISO_CF[ 'LFRic'       ] ),
 ]
 z_cf,   var_cf = zip( *cf_krige )
 std_cf  = weighted_std( [ sigmoid( z ) for z in z_cf ], var_cf )

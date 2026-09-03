@@ -49,6 +49,24 @@ exocam_flux1  = flux1[ exocam_mask ];  exocam_pres1  = pres1[ exocam_mask ];  ex
 rocke3d_flux1 = flux1[ rocke3d_mask ]; rocke3d_pres1 = pres1[ rocke3d_mask ]; rocke3d_stable = rocke3d[ rocke3d_mask ]
 plahab_flux1  = flux1[ plahab_mask ];  plahab_pres1  = pres1[ plahab_mask ];  plahab_stable  = plahab[ plahab_mask ]
 
+# Kriging anisotropy, fitted per model by leave-one-out cross-validation in
+# fit_anisotropy.py. pykrige scales the second coordinate, which here is
+# normalized instellation, so a value of s means one unit of normalized
+# instellation counts s times a unit of normalized log-pressure. Isotropic
+# kriging (s = 1) asserts the two axes are equally informative, which is false
+# for cloud fraction: rerun fit_anisotropy.py after any resubmission.
+# Generic PCM is pinned at 1 because no scaling resolves a surface for it
+# here -- its fit is near-degenerate at every ratio, so the least distorted
+# metric is kept and the flatness left visible rather than tuned away.
+ANISO = {
+    'ExoCAM':       1,
+    'ROCKE-3D':     3,
+    'ExoPlaSim':    1,
+    'Generic PCM':  1,
+    'PlaHab':       3,
+    'LFRic':        15,
+}
+
 # Normalize both axes to [0, 1] for kriging so distance metric is balanced
 log_pn2  = np.log( pn2 )
 lpn2_min, lpn2_max = log_pn2.min(), log_pn2.max()
@@ -67,9 +85,12 @@ def logit( x ):
 def sigmoid( y ):
     return 100.0 / ( 1.0 + np.exp( -y ) )
 
-fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3' ],
-                                 [ 'P4', 'P5', 'P6' ]],
-                               figsize=(18, 9) )
+# Two rows of four, with the colorbar alongside rather than occupying a panel
+# slot. Panels are ordered by model class, ending with the two one-dimensional
+# models.
+fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
+                                 [ 'P5', 'P6', 'P7', 'P8' ]],
+                               figsize=(22, 9) )
 
 #--------------------------------------------------------------------
 # ExoCAM Kriging
@@ -78,6 +99,7 @@ OK = OrdinaryKriging(
     norm_pres( exocam_pres1 ),
     norm_flux( exocam_flux1 ),
     logit( exocam_stable ),
+    anisotropy_scaling=ANISO[ 'ExoCAM' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -94,6 +116,7 @@ OK = OrdinaryKriging(
     norm_pres( rocke3d_pres1 ),
     norm_flux( rocke3d_flux1 ),
     logit( rocke3d_stable ),
+    anisotropy_scaling=ANISO[ 'ROCKE-3D' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -109,6 +132,7 @@ OK = OrdinaryKriging(
     norm_pres( pres1 ),
     norm_flux( flux1 ),
     logit( plasim ),
+    anisotropy_scaling=ANISO[ 'ExoPlaSim' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -124,6 +148,7 @@ OK = OrdinaryKriging(
     norm_pres( pcm_pres1 ),
     norm_flux( pcm_flux1 ),
     logit( pcm ),
+    anisotropy_scaling=ANISO[ 'Generic PCM' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -139,6 +164,7 @@ OK = OrdinaryKriging(
     norm_pres( plahab_pres1 ),
     norm_flux( plahab_flux1 ),
     logit( plahab_stable ),
+    anisotropy_scaling=ANISO[ 'PlaHab' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -154,6 +180,7 @@ OK = OrdinaryKriging(
     norm_pres( lfric_pres1 ),
     norm_flux( lfric_flux1 ),
     logit( lfric ),
+    anisotropy_scaling=ANISO[ 'LFRic' ],
     variogram_model="linear",
     verbose=False,
     enable_plotting=False,
@@ -227,10 +254,26 @@ axd[ 'P6' ].scatter( plahab_flux1*fluxscale, plahab_pres1, c=plahab_stable, cmap
 setup_panel( axd[ 'P6' ], f'PlaHab (n={len(plahab_stable)})' )
 
 #--------------------------------------------------------------------
+# Panel 7 — HEXTOR (clear-sky model, no cloud fraction)
+
+axd[ 'P7' ].set_axis_off()
+axd[ 'P7' ].set_title( 'HEXTOR', fontsize=14 )
+axd[ 'P7' ].text( 0.5, 0.5, 'No data\n(clear-sky model)', ha='center', va='center',
+                  transform=axd[ 'P7' ].transAxes, fontsize=13, style='italic', color='gray' )
+
+#--------------------------------------------------------------------
+# Panel 8 — ExoColumn (cloud-free by construction)
+
+axd[ 'P8' ].set_axis_off()
+axd[ 'P8' ].set_title( 'ExoColumn', fontsize=14 )
+axd[ 'P8' ].text( 0.5, 0.5, 'No data\n(cloud-free model)', ha='center', va='center',
+                  transform=axd[ 'P8' ].transAxes, fontsize=13, style='italic', color='gray' )
+
+#--------------------------------------------------------------------
 # Finalize
 
 fig.subplots_adjust( wspace=0.3, hspace=0.4, right=0.88 )
-cax = fig.add_axes( [0.91, 0.1, 0.015, 0.8] )
+cax = fig.add_axes( [ 0.905, 0.12, 0.013, 0.76 ] )
 cb = fig.colorbar( cf1, cax=cax, extend='neither', ticks=cbar_ticks )
 cb.ax.tick_params( labelsize=11 )
 cb.ax.get_yaxis().labelpad = 15

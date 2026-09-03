@@ -29,7 +29,22 @@ Per-model sources and the traps in each:
 
   Generic PCM  genericpcm/OHT_off/case-N/samosa_gcm_output_case-N_OHT_off.dat
   LFRic        lfric/samosa_global_diagnostics_lfric_2026-08-28.txt
-               Both are whitespace tables in the template column order.
+  HEXTOR       hextor/global_output_HEXTOR.dat
+  ExoColumn    exocolumn/global_output_ExoColumn_a2736.dat
+               All four are whitespace tables in the template column order.
+               HEXTOR is a 1-D EBM: Qstrat, Qmass, Icethick, Cldliq, Cldice
+               and Cldfrac are NaN by construction, so it contributes only to
+               the temperature and albedo analyses. Its Fsdn is a uniform
+               1.0038x the protocol incident flux, so albedo is derived from
+               S/4 as for every other model, not from the submitted Fsdn.
+               ExoColumn is a single globally averaged column: Tmax = Tmin =
+               Tglob by construction, and Icethick, Cldliq, Cldice and Cldfrac
+               are written as -999. It does report Qstrat and Qmass, so unlike
+               HEXTOR it enters the water vapor analysis. Its Fsdn is the
+               downward shortwave at the SURFACE (0.56-0.94 of S/4, falling as
+               the column gets thicker and wetter), not at the top of the
+               atmosphere as in HEXTOR -- a third reading of the same protocol
+               column, so albedo again comes from S/4.
 
   PlaHab       plahab/simulations/sampleN/global_samosa_plahab_*
                Use simulations/, NOT the top-level global_samosa_plahab_
@@ -59,6 +74,8 @@ ACCEPTED = {
     'Generic PCM': [ 1, 4, 8, 9, 10, 14, 15 ],
     'LFRic':       [ 1, 4, 9, 12, 14, 15, 16 ],
     'PlaHab':      [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
+    'HEXTOR':      [ 1, 4, 8, 9, 11, 14, 15 ],
+    'ExoColumn':   [ 1, 4, 8, 9, 10, 11, 14, 15 ],
 }
 
 N = np.nan
@@ -163,7 +180,9 @@ for i in range( 16 ):
         break
 data[ 'Generic PCM' ] = d
 
-data[ 'LFRic' ] = read_table( f'{ROOT}/lfric/samosa_global_diagnostics_lfric_2026-08-28.txt' )
+data[ 'LFRic' ]  = read_table( f'{ROOT}/lfric/samosa_global_diagnostics_lfric_2026-08-28.txt' )
+data[ 'HEXTOR' ]    = read_table( f'{ROOT}/hextor/global_output_HEXTOR.dat' )
+data[ 'ExoColumn' ] = read_table( f'{ROOT}/exocolumn/global_output_ExoColumn_a2736.dat' )
 
 # ── PlaHab ───────────────────────────────────────────────────────────────────
 d = blank()
@@ -205,7 +224,7 @@ print( '  ExoCAM reproduces its summary TS exactly, which validates the gw weigh
 print( f'  overall: {"PASS" if allok else "FAIL - do not trust the fluxes below"}' )
 
 # ── Emit the arrays ──────────────────────────────────────────────────────────
-order = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab' ]
+order = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab', 'HEXTOR', 'ExoColumn' ]
 
 def fmt( vals ):
     return '[ ' + ', '.join( 'nan' if np.isnan( v ) else f'{v:.2f}' for v in vals ) + ' ]'
@@ -226,7 +245,11 @@ for m in ( 'ExoCAM', 'ExoPlaSim' ):
 print( '\n=== fig_interpolation_albedo.py: albedo (%), 200.0 = runaway sentinel ===' )
 for m in order:
     a = data[ m ][ 'alb' ]
-    if m in ( 'Generic PCM', 'LFRic' ):
+    # Compact form for the models that cover a subset of the 16 sample points.
+    # HEXTOR is listed here rather than with the sentinel models because its
+    # nine gaps are not all runaways: eight are, but Case 10 is excluded for
+    # CO2 condensation, which the runaway sentinel would misreport.
+    if m in ( 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ):
         sel = [ a[ c-1 ] for c in ACCEPTED[ m ] ]
         print( f'  {m:12s} {fmt(sel)}   (cases {ACCEPTED[m]})' )
     else:
