@@ -8,6 +8,8 @@
 # Notes:
 #
 # Columns of data
+# (listed below in the same order as the column line at the end of this
+#  header, which is the authoritative one -- write data against that line)
 #
 # INPUTS:
 # Sample = Sample number (1-64, see Table 1 and Table 4 in the protocol)
@@ -22,11 +24,11 @@
 # ASR = global, annual mean absorbed shortwave radiative flux (W/m^2)
 # Fsdn = global, annual mean total downward shortwave radiative flux (W/m^2)
 # Fnet = global, annual mean net longwave radiative flux (W/m^2)
-# Ocnfrac = global, annual mean open ocean fraction (i.e., fraction not covered by sea ice)
-# Icethick = global, annual mean ice thickness (km)
 # Qstrat = global, annual mean stratospheric specific humidity (kg/kg, at 1 hPa or model top, whichever is lower)
 # Qmass = global, annual mean vertically integrated water vapor column mass (kg/m^2)
-# Cldliq = global, annual mean cloud verticially integrated liquid column mass (kg/m^2)
+# Ocnfrac = global, annual mean open ocean fraction (i.e., fraction not covered by sea ice)
+# Icethick = global, annual mean ice thickness (km)
+# Cldliq = global, annual mean cloud vertically integrated liquid column mass (kg/m^2)
 # Cldice = global, annual mean cloud vertically integrated ice column mass (kg/m^2)
 # Cldfrac = global, annual mean open total cloud fraction
 
