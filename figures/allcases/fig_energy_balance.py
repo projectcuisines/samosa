@@ -5,14 +5,18 @@ from matplotlib.patches import Patch
 
 # ─── Top-of-atmosphere energy balance for all SAMOSA cases ───────────────────
 #
-# Plotted quantity is the residual TOA radiative imbalance
+# Plotted quantity is the magnitude of the residual TOA radiative imbalance
 #
-#     ( OLR - ASR ) / ( S / 4 )  x 100 %
+#     | ASR - OLR | / ( S / 4 )  x 100 %
 #
 # expressed as a percentage of the global mean incident stellar flux S/4, which
-# is fixed by the experiment design and therefore identical across models. A
-# positive value means the planet is losing energy (still cooling); a negative
-# value means it is gaining energy (still warming).
+# is fixed by the experiment design and therefore identical across models. The
+# figure is a convergence check, and how far a run sits from balance is what
+# that check turns on, so the magnitude is plotted and the sign suppressed: a
+# case is equilibrated if it lies below the 1% rule, whatever the direction of
+# its residual. The signed values are retained in the dict below, since the
+# direction still matters where the text attributes a warm bias to a run that
+# had not finished cooling.
 #
 # OLR and ASR are the standardized SAMOSA global output quantities:
 #   ExoCAM       samosaN.cam.h0.avg.nc, gw-weighted FSNT and FLUT. FSNTOA and
@@ -119,8 +123,13 @@ regime_label = { 'frozen':  'All below 273 K',
                  'runaway': 'Majority runaway' }
 
 models   = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab', 'HEXTOR', 'ExoColumn' ]
-tol      = 1.0      # per cent; band within which a run is taken as equilibrated
-linthresh = 1.0     # per cent; linear/log crossover of the symlog axis
+tol      = 1.0      # per cent; below which a run is taken as equilibrated
+# Plotting the magnitude frees the half of the axis that used to carry the
+# negative residuals, so the linear/log crossover drops from 1.0 to 0.1 and the
+# well-converged cluster, which is most of the ensemble, is resolved rather than
+# compressed against the zero line. Exact zeros still plot, which a pure log
+# axis would not allow.
+linthresh = 0.1     # per cent; linear/log crossover of the symlog axis
 
 fig, ax = plt.subplots( figsize=( 13, 7.0 ) )
 
@@ -134,10 +143,10 @@ for i, r in zip( cases, regime ):
 for i in range( 1, 16 ):
     ax.axvline( i + 0.5, color='0.74', lw=0.8, zorder=0.5 )
 
-# Zero line, and the tolerance marked by rules rather than fill
+# Perfect balance is the foot of the axis, and the tolerance is a single rule
+# rather than a symmetric pair, so a converged run is one that plots below it.
 ax.axhline( 0.0, color='0.45', lw=0.9, zorder=2 )
-for sgn in ( -1, 1 ):
-    ax.axhline( sgn * tol, color='0.72', lw=0.8, ls=( 0, ( 4, 3 ) ), zorder=1 )
+ax.axhline( tol, color='0.72', lw=0.8, ls=( 0, ( 4, 3 ) ), zorder=1 )
 
 offsets = np.linspace( -0.30, 0.30, len( models ) )
 
@@ -146,19 +155,20 @@ for off, name in zip( offsets, models ):
     st = style[ name ]
     x  = cases + off
 
-    y = imbalance[ name ]
+    y = np.abs( imbalance[ name ] )
     good = ~np.isnan( y ) & ok
     ax.scatter( x[ good ], y[ good ], marker=st[ 'marker' ], s=58,
                 facecolors=st[ 'color' ], edgecolors='k', linewidths=0.6, zorder=4 )
 
 ax.set_yscale( 'symlog', linthresh=linthresh, linscale=1.1 )
-ax.set_yticks( [ -10, -3, -1, 0, 1, 3, 10, 30 ] )
-ax.set_yticklabels( [ '-10', '-3', '-1', '0', '1', '3', '10', '30' ] )
-# The upper limit has to clear LFRic Case 7 at +29.09%, the largest imbalance
+ax.set_yticks( [ 0, 0.1, 0.3, 1, 3, 10, 30 ] )
+ax.set_yticklabels( [ '0', '0.1', '0.3', '1', '3', '10', '30' ] )
+# The upper limit has to clear LFRic Case 7 at 29.09%, the largest imbalance
 # carried anywhere in the ensemble; at the previous limit of 26 it was silently
-# clipped off the top of the axis.
-ax.set_ylim( -14, 38 )
-ax.set_ylabel( 'TOA imbalance, (OLR $-$ ASR) / (S/4)  (%)', fontsize=12 )
+# clipped off the top of the axis. The lower limit sits just below zero so that
+# the exactly balanced ROCKE-3D cases are not cut in half by the spine.
+ax.set_ylim( -0.02, 38 )
+ax.set_ylabel( 'TOA imbalance, |ASR $-$ OLR| / (S/4)  (%)', fontsize=12 )
 
 ax.set_xlim( 0.4, 16.6 )
 ax.set_xticks( cases )
@@ -166,7 +176,7 @@ ax.set_xticklabels( [ f'{c}\n{f:.0f}\n{p:.2f}' for c, f, p in zip( cases, flux1,
 ax.set_xlabel( 'Case / instellation (W m$^{-2}$) / N$_2$ surface pressure (bar)', fontsize=12, labelpad=8 )
 
 ax.tick_params( axis='y', labelsize=11 )
-ax.text( 16.45, tol, f'$\\pm${tol:.0f}%', ha='right', va='bottom', fontsize=9, color='0.55' )
+ax.text( 16.45, tol, f'{tol:.0f}%', ha='right', va='bottom', fontsize=9, color='0.55' )
 
 # One marker shape and color per model, and nothing else encoded in the symbol
 model_handles = [ Line2D( [0], [0], marker=style[ m ][ 'marker' ], color='none',
