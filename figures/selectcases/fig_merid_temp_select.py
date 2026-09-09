@@ -18,11 +18,16 @@
 # PlaHab is included although it is absent from the vertical profile figures:
 # it is two-dimensional and so has no profile to plot, but it does resolve
 # longitude, and its caseN_tsurf.out files exist for exactly the three selected
-# cases. HEXTOR and ExoColumn are not included. ExoColumn is a single column.
-# HEXTOR is one-dimensional in the tidally locked coordinate, which is angular
-# distance from the substellar point and so is closer to this figure's x axis
-# than to geographic latitude, but it submitted only the global summary file:
-# no per-belt output exists in the archive to plot.
+# cases.
+#
+# HEXTOR is included at Cases 1 and 4. It is one-dimensional in the tidally
+# locked coordinate, so its 18 belts are indexed by theta, the angle from the
+# substellar point, which is very nearly the variable plotted here. It is
+# absent from Case 16, where it has no steady state: that run reaches 618 K at
+# the substellar belt, beyond the range of its radiative lookup tables, which
+# is the runaway its submission notes report.
+#
+# ExoColumn is a single column and cannot appear at all.
 #
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -48,6 +53,7 @@ MODEL_STYLES = {
     'PCM':       dict(color='#d62728', lw=1.6),
     'LFRic':     dict(color='#9467bd', lw=1.6),
     'PlaHab':    dict(color='#8c564b', lw=1.6),
+    'HEXTOR':    dict(color='#17becf', lw=1.6),
 }
 MODEL_LABELS = {
     'ExoCAM':    'ExoCAM',
@@ -56,6 +62,7 @@ MODEL_LABELS = {
     'PCM':       'Generic PCM',
     'LFRic':     'LFRic',
     'PlaHab':    'PlaHab',
+    'HEXTOR':    'HEXTOR',
 }
 
 
@@ -150,6 +157,42 @@ for c, s in ((1, 'sample1'), (4, 'sample4'), (16, 'sample16')):
     plahab.append(centre_on_substellar(raw[:, 1:], raw[:, 0], lon_plahab, lon_ss=0.))
 
 
+# -- HEXTOR ----------------------------------------------------------
+# One-dimensional in the tidally locked coordinate: T is a function of theta,
+# the angle from the substellar point, over 18 belts centred at 5..175 degrees.
+#
+# The belts are NOT plotted against longitude directly. Every other curve here
+# is a cos(lat)-weighted mean over latitude at fixed longitude, and along a
+# meridian at longitude L the angle from the substellar point varies with
+# latitude as theta = arccos(cos(lat) cos(L)); only on the equator does theta
+# equal |L|. HEXTOR is therefore averaged over the same meridian so that it is
+# the same quantity as the rest of the ensemble. The mapping matters: it puts
+# the Case 1 substellar value at 195.7 K rather than the 202.8 K of the belt
+# itself, because the substellar meridian reaches to both poles.
+#
+# NOTE ON PROVENANCE: these files are read from the HEXTOR run directory, not
+# from /models/data/samosa/hextor, which holds only global_output_HEXTOR.dat.
+# The per-belt output should be added to the SAMOSA archive submission so that
+# this figure can be regenerated from the archive alone.
+_d = '/models/hextor/samosa'
+
+def read_hextor(case, lon_deg, nlat=721):
+    d = np.loadtxt(f'{_d}/case_{case:02d}_warm/zonal.txt')
+    theta, T_belt = d[:, 0], d[:, 1]
+    lat = np.radians(np.linspace(-90.0, 90.0, nlat))
+    w   = np.cos(lat)
+    prof = np.array([
+        np.average(np.interp(np.degrees(np.arccos(np.clip(np.cos(lat) * np.cos(L), -1.0, 1.0))),
+                             theta, T_belt), weights=w)
+        for L in np.radians(np.asarray(lon_deg, dtype=float))])
+    return np.asarray(lon_deg, dtype=float), prof
+
+_hextor_lon = np.linspace(-180.0, 180.0, 361)
+# Case 16 is a runaway for HEXTOR and is omitted, as it is from every other
+# figure in which that model appears.
+hextor = [read_hextor(1, _hextor_lon), read_hextor(4, _hextor_lon), None]
+
+
 # -- Figure ----------------------------------------------------------
 case_labels = ['Case 1\n500 W/m², 0.70 bar',
                'Case 4\n1200 W/m², 2.34 bar',
@@ -168,6 +211,7 @@ for ci, ax in enumerate(axes):
         ('PCM',       pcm[ci]),
         ('LFRic',     lfric[ci]),
         ('PlaHab',    plahab[ci]),
+        ('HEXTOR',    hextor[ci]),
     ]
 
     # Terminators and the freezing point, drawn under the model curves
@@ -195,16 +239,16 @@ from matplotlib.lines import Line2D
 # models go above the panels, as in fig_energy_balance.py, and the reference
 # lines are keyed below. Two legends cannot share 'outside lower center':
 # constrained layout gives them the same slot and the second hides the first.
-# Only five curves appear in the Case 16 panel, the Generic PCM having no
-# converged solution there.
+# Case 16 carries five curves rather than seven, the Generic PCM and HEXTOR
+# both having no converged solution there.
 model_handles = [Line2D([0], [0], ls='-', label=MODEL_LABELS[m], **MODEL_STYLES[m])
-                 for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab')]
+                 for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab', 'HEXTOR')]
 style_handles = [
     Line2D([0], [0], color='0.75', lw=0.8, ls=(0, (2, 2)), label='Terminator'),
     Line2D([0], [0], color='0.6',  lw=0.8, ls=(0, (4, 3)), label='273.16 K'),
 ]
 
-fig.legend(handles=model_handles, loc='outside upper center', ncols=6,
+fig.legend(handles=model_handles, loc='outside upper center', ncols=7,
            fontsize=FS_LEGEND, frameon=False,
            handlelength=2.0, handletextpad=0.6, columnspacing=1.8)
 fig.legend(handles=style_handles, loc='outside lower center', ncols=2,
