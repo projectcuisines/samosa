@@ -17,6 +17,13 @@ Four numbers per model per case:
           paper is explicit that single and double jet are "short-hand
           descriptive terms rather than precise descriptions", since the SJ
           regime splits at sigma ~ 0.5 and the DJ regime still superrotates.
+  umax    the maximum zonal mean zonal wind within 10 degrees of the equator at
+          the classification level, the abscissa of Figure 1(a) of Sergeev et
+          al. (2022). That axis is labelled "at 300 hPa", which is sigma = 0.3
+          for the roughly 1 bar TRAPPIST-1e configuration of that paper; here
+          surface pressure spans two orders of magnitude, so the fixed sigma is
+          the meaningful counterpart of their fixed pressure.
+  tsmin   the minimum surface temperature, the ordinate of their Figure 1(b).
   conv    the night-side static energy flux convergence, W m^-2 of night
           hemisphere, the quantity in the lower-right panel of Figure 2 of
           Haqq-Misra et al. (2018). See the note below on how it is obtained.
@@ -434,11 +441,12 @@ def diagnose( D ):
             ( D[ 'olr' ] - D[ 'asr' ] )[ :, night ], axis=-1 ), ts_cw ) )
 
     out = dict( tglob=tglob, t_day=t_day, t_night=t_night, t_eq=t_eq,
-                t_pole=t_pole, ratio=ratio, hotspot=hotspot, conv=conv )
+                t_pole=t_pole, ratio=ratio, hotspot=hotspot, conv=conv,
+                tsmin=float( np.nanmin( D[ 'ts' ] ) ) )
 
     if D[ 'u' ] is None:                      # PlaHab: surface contrasts only
         out.update( u_rms=np.nan, lam_r=np.nan, l_r=np.nan, jet='--',
-                    margin=np.nan, jetlat=np.nan )
+                    margin=np.nan, jetlat=np.nan, umax=np.nan )
         return out
 
     ksfc = -1 if D[ 'surface_is_last' ] else 0
@@ -474,7 +482,8 @@ def diagnose( D ):
     u_mid  = np.nanmax(  u_jet[ band ] )
     margin = float( u_eq - u_mid )
     jetlat = float( abs( lat[ inner ][ int( np.nanargmax( u_jet[ inner ] ) ) ] ) )
-    out.update( u_rms=u_rms, lam_r=lam_r, l_r=l_r, jetlat=jetlat,
+    umax   = float( np.nanmax( u_jet[ np.abs( lat ) <= 10 ] ) )
+    out.update( u_rms=u_rms, lam_r=lam_r, l_r=l_r, jetlat=jetlat, umax=umax,
                 jet=( 'SJ' if margin >= 0.0 else 'DJ' ), margin=margin )
     return out
 
@@ -483,7 +492,7 @@ if __name__ == '__main__':
     results = {}
     print( f"{'model':12s} {'case':>4s} {'Tglob':>8s} {'pub':>8s} {'dT':>6s} "
            f"{'hotspt':>6s} {'Urms':>6s} {'lamR/a':>7s} {'LR/a':>6s} {'jet':>4s} "
-           f"{'margin':>7s} {'jetlat':>6s} {'conv':>7s} {'ratio':>6s}" )
+           f"{'margin':>7s} {'jetlat':>6s} {'umax':>6s} {'tsmin':>6s} {'conv':>7s} {'ratio':>6s}" )
     worst, worst_where = 0.0, ''
     for name, reader in READERS.items():
         rows = []
@@ -496,7 +505,8 @@ if __name__ == '__main__':
             print( f"{name:12s} {case:4d} {r['tglob']:8.2f} {pub:8.2f} "
                    f"{r['tglob'] - pub:+6.2f} {r['hotspot']:+6.0f} {r['u_rms']:6.2f} "
                    f"{r['lam_r']:7.3f} {r['l_r']:6.3f} {r['jet']:>4s} "
-                   f"{r['margin']:+7.1f} {r['jetlat']:6.1f} {r['conv']:7.1f} "
+                   f"{r['margin']:+7.1f} {r['jetlat']:6.1f} {r['umax']:6.1f} "
+                   f"{r['tsmin']:6.1f} {r['conv']:7.1f} "
                    f"{r['ratio']:6.3f}" )
         results[ name ] = rows
 
@@ -516,6 +526,8 @@ if __name__ == '__main__':
             print( f"{k}_lr    = np.array( {fmt([ r['l_r'  ] for _, r in rows ], '%.3f')} )" )
             print( f"{k}_jet   = {[ r['jet'] for _, r in rows ]}" )
             print( f"{k}_jetlat= np.array( {fmt([ r['jetlat'] for _, r in rows ], '%.1f')} )" )
+            print( f"{k}_umax  = np.array( {fmt([ r['umax'] for _, r in rows ], '%.1f')} )" )
             print( f"{k}_conv  = np.array( {fmt([ r['conv'] for _, r in rows ], '%.1f')} )" )
+        print( f"{k}_tsmin = np.array( {fmt([ r['tsmin'] for _, r in rows ], '%.1f')} )" )
         print( f"{k}_ratio = np.array( {fmt([ r['ratio'] for _, r in rows ], '%.3f')} )" )
         print()
