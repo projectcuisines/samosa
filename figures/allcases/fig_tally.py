@@ -38,7 +38,7 @@ pcm_mask     = np.array( [True,  False, False, True,  False, False, False, True,
                            True,  True,  False, False, False, True,  True,  False] )
 plahab_mask  = np.array( [True,  False, False, True,  True,  False, True,  True,
                            True,  True,  True,  True,  True,  True,  True,  True ] )
-lfric_mask   = np.array( [True,  False, False, True,  False, False, False, False,
+lfric_mask   = np.array( [True,  False, False, True,  False, False, True,  False,
                            True,  False, False, True,  False, True,  True,  True ] )
 # HEXTOR: eight of the nine gaps are runaways beyond its radiative lookup
 # table; Case 10 is excluded separately for CO2 condensation.

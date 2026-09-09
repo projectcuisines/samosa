@@ -18,8 +18,8 @@ pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83,
 
 pcm_flux1  = np.array( [ 500, 1200,  800, 1100, 400,  900, 600 ] ) / fluxscale
 pcm_pres1  = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
-lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900,  600, 1400 ] ) / fluxscale
-lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
+lfric_flux1 = np.array( [ 500, 1200, 1600, 1100, 1500, 900,  600, 1400 ] ) / fluxscale
+lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 # HEXTOR contributes surface temperature only: it reports no water vapor column
 # and no cloud fraction, so it enters the temperature panel and not the others.
 hextor_flux1 = np.array( [ 500, 1200,  800, 1100,  900,  900,  600 ] ) / fluxscale
@@ -45,7 +45,7 @@ ts_plahab  = np.array( [ 196.3, runawaytemp, runawaytemp, 273.2, 281.4, runawayt
 ts_pcm     = np.array( [ 210.9195445942203, 286.7294656230531, 246.76730657647218,
                          266.5987224285321, 210.69131033681012, 246.04296230476365,
                          217.2519558970929 ] )
-ts_lfric   = np.array( [ 195.37, 251.48, 241.35, 333.20, 228.84, 203.64, 361.70 ] )
+ts_lfric   = np.array( [ 195.37, 251.48, 400.52, 241.35, 333.20, 228.84, 203.64, 361.70 ] )
 ts_hextor  = np.array( [ 173.92, 312.24, 225.08, 277.17, 228.72, 242.30, 189.11 ] )
 ts_exocolumn = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 
@@ -70,7 +70,7 @@ wv_rocke3d = np.array( [ 0.25980374, runaway_wv, runaway_wv, 14.9693165,
 wv_pcm     = np.array( [ 0.37484651163423993, 47.86514350558743, 2.1906175203429563,
                           25.650192288432617, 0.06080825624148188,
                           5.93210602524276, 0.8447688576786204 ] )
-wv_lfric   = np.array( [ 0.41, 8.18, 7.37, 829.15, 2.34, 0.86, 1863.11 ] )
+wv_lfric   = np.array( [ 0.41, 8.18, 1735.22, 7.37, 829.15, 2.34, 0.86, 1863.11 ] )
 
 # ── Cloud fraction data (%) ───────────────────────────────────────────────────
 runaway_cf = 200.0
@@ -89,7 +89,7 @@ cf_plahab  = np.array( [ 11.11879, runaway_cf, runaway_cf, 35.74597, 48.29323, r
 cf_pcm     = np.array( [ 25.5674468009485, 27.31228828919005, 16.96672860199983,
                          25.15276275245855, 24.55454268845772, 16.696470834684884,
                          32.84789893586739 ] )
-cf_lfric   = np.array( [ 31.0, 61.0, 58.0, 81.0, 44.0, 36.0, 83.0 ] )
+cf_lfric   = np.array( [ 31.0, 61.0, 34.0, 58.0, 81.0, 44.0, 36.0, 83.0 ] )
 
 wv_exocam_mask  = wv_exocam  != runaway_wv
 wv_rocke3d_mask = wv_rocke3d != runaway_wv
@@ -148,7 +148,7 @@ ANISO_TS = { 'ExoPlaSim': 2,  'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
 ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
              'Generic PCM': 15, 'LFRic': 15, 'ExoColumn': 10 }
 ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 3,
-             'Generic PCM': 1, 'LFRic': 15 }
+             'Generic PCM': 1, 'LFRic': 1 }
 
 def krige( p, f, z, scaling=1.0 ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,

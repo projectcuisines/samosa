@@ -9,7 +9,7 @@ splay of the individual contours.
 
 Consensus shading uses all eight models, but each model's influence fades with
 distance from the cases it actually ran, and the four partial submissions
-(Generic PCM, LFRic and HEXTOR with 7 cases each, ExoColumn with 8) are
+(Generic PCM and HEXTOR with 7 cases each, LFRic and ExoColumn with 8) are
 silenced outside the convex hull of their own cases.  Their isotherms are clipped to that same region, so they read
 as short segments rather than as curves spanning the whole domain.  The
 runaway wash and the per-model agreement count use only the four models that
@@ -37,8 +37,8 @@ pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83,
 
 pcm_flux1   = np.array( [ 500, 1200,  800, 1100, 400,  900, 600 ] ) / fluxscale
 pcm_pres1   = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
-lfric_flux1 = np.array( [ 500, 1200, 1100, 1500, 900,  600, 1400 ] ) / fluxscale
-lfric_pres1 = np.array( [ 0.70, 2.34, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
+lfric_flux1 = np.array( [ 500, 1200, 1600, 1100, 1500, 900,  600, 1400 ] ) / fluxscale
+lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
 hextor_flux1 = np.array( [ 500, 1200,  800, 1100,  900,  900,  600 ] ) / fluxscale
 hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
 exocolumn_flux1 = np.array( [ 500, 1200,  800, 1100,  400,  900,  900,  600 ] ) / fluxscale
@@ -60,7 +60,7 @@ ts_plahab  = np.array( [ 196.3, runawaytemp, runawaytemp, 273.2, 281.4, runawayt
 ts_pcm     = np.array( [ 210.9195445942203, 286.7294656230531, 246.76730657647218,
                          266.5987224285321, 210.69131033681012, 246.04296230476365,
                          217.2519558970929 ] )
-ts_lfric   = np.array( [ 195.37, 251.48, 241.35, 333.20, 228.84, 203.64, 361.70 ] )
+ts_lfric   = np.array( [ 195.37, 251.48, 400.52, 241.35, 333.20, 228.84, 203.64, 361.70 ] )
 ts_hextor  = np.array( [ 173.92, 312.24, 225.08, 277.17, 228.72, 242.30, 189.11 ] )
 ts_exocolumn = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 
@@ -120,9 +120,9 @@ style = { 'ExoPlaSim':   dict( color='#ff7f0e', ls='-'  ),
 consensus_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab' ]
 
 # The Generic PCM has exactly one case above 273.16 K (Case 4 at 286.7 K) and
-# submitted nothing above 1200 W m^-2.  LFRic has two (Case 12 at 333.2 K and
-# Case 16 at 361.7 K) but still only 7 of the 16 cases, and nothing above
-# 1500 W m^-2.  Their isotherms are therefore drawn only inside the convex hull
+# submitted nothing above 1200 W m^-2.  LFRic has three (Case 7 at 400.5 K,
+# Case 12 at 333.2 K and Case 16 at 361.7 K) but still only 8 of the 16 cases,
+# and nothing above 1600 W m^-2.  Their isotherms are therefore drawn only inside the convex hull
 # of the cases each model actually ran, so that they appear as short segments
 # rather than as curves spanning the whole domain.
 # HEXTOR ran 7 of the 16 cases and nothing above 1200 W m^-2, so it is drawn on

@@ -48,6 +48,34 @@ Energy Balance Figure (fig_energy_balance.py, added 2026-08-13):
   LFRic verification: lfric_samosa_caseNN.nc sw_net_toa and lw_up_toa reproduce the .txt global diagnostics exactly (ASR, OLR, albedo, imbalance all
   to the last digit), so the LFRic numbers used here are confirmed against primary data.
 
+  LFRic Case 7 (submitted 2026-09-04, ACCEPTED after query): the file is self-consistent -- lfric_samosa_case07.nc reproduces every column of the
+  new samosa_global_diagnostics_lfric_2026-09-04.txt row to 2 dp (Tglob 400.52, Tmax 427.12, Tmin 389.82, cldfrac 0.34, Qmass 1735.22, OLR 502.62,
+  ASR 386.24), so this is not an extraction or a mapping error. It is nonetheless extreme on every diagnostic:
+    - TOA imbalance +29.09%, against -0.37 to +0.98% across every other LFRic case, i.e. 30x the next largest, and the largest value anywhere
+      in the ensemble (the next is Generic PCM Case 10 at +19.66%).
+    - Planetary albedo 3.4%, against 21-36% elsewhere, despite a reported cloud fraction of 0.34.
+    - Stratospheric specific humidity 3.04e-01 kg/kg, five orders of magnitude above the <=1.8e-06 of every other case: a saturated steam stratosphere,
+      and the extreme end of the wet-stratosphere bias already logged for Case 16.
+  OLR of 502.6 W/m^2 over a 1735 kg/m^2 water column is also far above the ~276-288 W/m^2 at which LFRic's own Cases 12 and 16 settle, which is roughly
+  where the Simpson-Nakajima limit should cap it. Its 400.52 K global mean is 107.5 K above the warmest other model at that sample point (PlaHab 293.0;
+  ExoPlaSim 279.7; ROCKE-3D 267.7; ExoCAM runaway).
+  All of that reads like a run still cooling from a hot start, so it was queried rather than assumed. Sergeev (2026-09-04): the imbalance is not
+  improving, i.e. it is persistent rather than a decaying spin-up transient, and he attributes it to a cloud layer becoming stuck at the very top of
+  the model domain. DECISION (2026-09-04, with Jacob): if that is the model's behavior we use it. Case 7 is therefore accepted on the same footing as
+  every other submitted case, and LFRic goes from 7 to 8 cases across the analysis.
+  What moved as a result:
+    - fig_energy_balance.py: accepted['LFRic'][6] True. Case 7 is now the largest imbalance plotted anywhere in the figure.
+    - Anisotropy refit (fit_anisotropy.py): LFRic cloud fraction 15 -> 1, LFRic albedo 1 -> 1.5. Temperature (15) and water vapor (15) unchanged,
+      and no other model moved.
+    - Kriging skill drops sharply for LFRic temperature: leave-one-out RMSE at the fitted ratio of 15 goes 24.64 -> 37.83 K. 400.52 K at
+      (1600, 0.55) is not predictable from the other seven cases, so the LFRic panel of the temperature figure is now the least constrained.
+      Isotropic LOO for the same field goes 30.64 -> 54.13 K, and LFRic alone now prefers a power variogram (43.04) over linear; the ensemble mean
+      still favors linear (31.79 vs 32.73), so the uniform linear choice stands.
+    - fig_summary.py: "all models above freezing" 52.6% -> 52.5%. Below-freezing (32.3%) and contested (15.2%) unchanged.
+    - All nine allcases PNGs change. LFRic panel labels are computed from array length, so they self-update to n=8.
+  Still open with Sergeev: get the stuck-cloud-layer attribution in writing before it goes in print, and bundle with the surface-flux and
+  wet-stratosphere asks. If the cloud layer is later unstuck and the case resubmitted, this all has to be redone.
+
 
 Albedo Figure (fig_interpolation_albedo.py, added 2026-08-13):
 
