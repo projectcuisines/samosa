@@ -170,14 +170,14 @@ for c, s in ((1, 'sample1'), (4, 'sample4'), (16, 'sample16')):
 # the Case 1 substellar value at 195.7 K rather than the 202.8 K of the belt
 # itself, because the substellar meridian reaches to both poles.
 #
-# NOTE ON PROVENANCE: these files are read from the HEXTOR run directory, not
-# from /models/data/samosa/hextor, which holds only global_output_HEXTOR.dat.
-# The per-belt output should be added to the SAMOSA archive submission so that
-# this figure can be regenerated from the archive alone.
-_d = '/models/hextor/samosa'
+# The belt files were added to the archive on 2026-09-09, alongside a
+# README_zonal.txt giving the column layout and the mapping used below; before
+# that the archive held only global_output_HEXTOR.dat and this figure had to
+# read the model's run directory.
+_d = '/models/data/samosa/hextor'
 
 def read_hextor(case, lon_deg, nlat=721):
-    d = np.loadtxt(f'{_d}/case_{case:02d}_warm/zonal.txt')
+    d = np.loadtxt(f'{_d}/zonal_output_HEXTOR_case{case:02d}.dat')
     theta, T_belt = d[:, 0], d[:, 1]
     lat = np.radians(np.linspace(-90.0, 90.0, nlat))
     w   = np.cos(lat)
