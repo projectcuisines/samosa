@@ -1,22 +1,28 @@
 #
-# Zonal mean surface temperature: Selected Cases
+# Meridional mean surface temperature: Selected Cases
 # Layout: 1 row x 3 columns (Cases 1, 4, 16)
-# Solid lines: substellar hemisphere zonal mean; dashed: anti-stellar hemisphere.
+# x axis is longitude with the substellar point at the centre.
 #
 # Companion to fig_profiles_temp_select.py, which shows the same three cases in
-# the vertical. Here the average is taken along longitude at each latitude, so
-# the figure carries the meridional structure the profile figure integrates
-# away, and the day/night convention is the same in both.
+# the vertical. Here the surface temperature is averaged over latitude at each
+# longitude, weighted by cos(lat) for cell area, so the x axis runs from the
+# anti-stellar meridian through the substellar point and back, and the day-night
+# structure that the hemispheric averaging of the profile figure collapses into
+# two numbers is resolved as a curve. Longitude is measured from the substellar
+# point, so the terminators are at +/-90 degrees.
 #
-# PlaHab is included here although it is absent from the vertical profile
-# figure: it is two-dimensional and so has no profile to plot, but it does
-# resolve latitude, and its caseN_tsurf.out files exist for exactly the three
-# selected cases. HEXTOR and ExoColumn are not included. ExoColumn is a single
-# column and has no latitude at all. HEXTOR does resolve latitude -- 18 belts --
-# but submitted only the global summary file, so no per-belt output exists in
-# the archive; its belts are also in the tidally locked coordinate rather than
-# the geographic latitude used here, so they would need transforming even once
-# supplied.
+# There is no substellar / anti-stellar line style here as there is in the
+# profile figures: longitude is itself the day-night axis, so each model is a
+# single curve and the contrast is read off the curve directly.
+#
+# PlaHab is included although it is absent from the vertical profile figures:
+# it is two-dimensional and so has no profile to plot, but it does resolve
+# longitude, and its caseN_tsurf.out files exist for exactly the three selected
+# cases. HEXTOR and ExoColumn are not included. ExoColumn is a single column.
+# HEXTOR is one-dimensional in the tidally locked coordinate, which is angular
+# distance from the substellar point and so is closer to this figure's x axis
+# than to geographic latitude, but it submitted only the global summary file:
+# no per-belt output exists in the archive to plot.
 #
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -27,14 +33,11 @@ import matplotlib.pyplot as plt
 
 tfreeze = 273.16
 
-# Checked against the reported global means: recombining the two hemispheric
-# curves and area weighting in latitude returns each model's submitted global
-# mean to 0.03 K for ROCKE-3D, LFRic and PlaHab. ExoCAM, ExoPlaSim and the
-# Generic PCM come back about 1 K low, which is the flat half-and-half
-# recombination, not the curves: those grids either carry a column exactly on
-# the terminator, which belongs to neither hemisphere and is dropped, or split
-# unevenly. Averaging their fields over all longitudes instead reproduces the
-# reported means to 0.1 K.
+# Checked against the reported global means: averaging each curve uniformly in
+# longitude returns the model's submitted global mean, exactly, because the
+# longitude grids are uniform and the latitude weighting is already applied.
+# Unlike a hemispheric average this involves no terminator convention, so there
+# is no residual for the grids that carry a column on the terminator itself.
 
 # Colors follow fig_profiles_temp_select.py, with PlaHab taking the color it
 # carries in the allcases figures.
@@ -58,13 +61,6 @@ MODEL_LABELS = {
 
 # -- helpers ---------------------------------------------------------
 
-def roll_to_180(data, lon):
-    """Roll a (..., lon) field and its lon vector from [0, 360) to [-180, 180)."""
-    idx = np.searchsorted(lon, 180.0)
-    return (np.concatenate([data[..., idx:], data[..., :idx]], axis=-1),
-            np.concatenate([lon[idx:] - 360.0, lon[:idx]]))
-
-
 def read_nc(path, var, lat_var='lat', lon_var='lon', avg_axis=None, offset=0.0):
     with netCDF4.Dataset(path) as ds:
         raw  = ds.variables[var]
@@ -75,33 +71,35 @@ def read_nc(path, var, lat_var='lat', lon_var='lon', avg_axis=None, offset=0.0):
     return data, lat, lon
 
 
-def hemi_zonal_mean(data2d, lon, lon_ss=0.0, day=True):
-    """Mean along longitude over one hemisphere, at each latitude.
+def merid_mean(data2d, lat):
+    """Area-weighted mean along latitude, at each longitude. NaN-safe.
 
-    data2d : (nlat, nlon)
-    day    : True -> substellar hemisphere, False -> anti-stellar
-    Returns (nlat,). NaN-safe, and unweighted in longitude because every grid
-    used here is uniform in longitude, so a cell-width weight is a constant.
+    data2d : (nlat, nlon) -> returns (nlon,)
     """
-    cos_d = np.cos(np.radians(lon - lon_ss))
-    mask  = (cos_d > 0) if day else (cos_d < 0)
-    data  = np.asarray(data2d, dtype=float)
-    w     = mask[np.newaxis, :] * np.isfinite(data)
-    return np.where(np.isfinite(data), data, 0.0).dot(mask * 1.0) / w.sum(axis=1)
+    data = np.asarray(data2d, dtype=float)
+    w    = np.cos(np.radians(np.asarray(lat)))[:, np.newaxis] * np.isfinite(data)
+    return (np.where(np.isfinite(data), data, 0.0) * w).sum(axis=0) / w.sum(axis=0)
 
 
-def both_hemis(data2d, lat, lon, lon_ss=0.0):
-    return (lat,
-            hemi_zonal_mean(data2d, lon, lon_ss, day=True),
-            hemi_zonal_mean(data2d, lon, lon_ss, day=False))
+def centre_on_substellar(data2d, lat, lon, lon_ss):
+    """Meridional mean on a longitude axis running -180..180 about the substellar
+    point, with the wrap point duplicated at both ends so the curve closes."""
+    rel = ((np.asarray(lon, dtype=float) - lon_ss + 180.0) % 360.0) - 180.0
+    idx = np.argsort(rel)
+    rel, prof = rel[idx], merid_mean(data2d, lat)[idx]
+    # Repeat the first point at +360 so the curve reaches the right-hand edge
+    rel  = np.concatenate([rel, [rel[0] + 360.0]])
+    prof = np.concatenate([prof, [prof[0]]])
+    return rel, prof
 
 
 # -- ExoCAM ----------------------------------------------------------
-# Substellar point at native lon = 180, so the grid is left unrolled.
+# Substellar point at native lon = 180.
 _d = '/models/data/samosa/exocam'
-Ts_exocam, lat_exocam, lon_exocam = zip(*[
-    read_nc(f'{_d}/samosa{c}.cam.h0.avg.nc', 'TS', avg_axis=0) for c in (1, 4, 16)])
-exocam = [both_hemis(t, lat_exocam[0], lon_exocam[0], lon_ss=180.) for t in Ts_exocam]
+exocam = []
+for c in (1, 4, 16):
+    ts, lat, lon = read_nc(f'{_d}/samosa{c}.cam.h0.avg.nc', 'TS', avg_axis=0)
+    exocam.append(centre_on_substellar(ts, lat, lon, lon_ss=180.))
 
 # -- ExoPlaSim -------------------------------------------------------
 _d = '/models/data/samosa/exoplasim/full_t21_synchronous__3000teff_15day'
@@ -113,21 +111,15 @@ _plasim_files = [
 plasim = []
 for f in _plasim_files:
     ts, lat, lon = read_nc(f, 'ts', avg_axis=0)
-    ts, lon_s = roll_to_180(ts, lon)
-    plasim.append(both_hemis(ts, lat, lon_s))
+    plasim.append(centre_on_substellar(ts, lat, lon, lon_ss=0.))
 
 # -- ROCKE-3D --------------------------------------------------------
-# Celsius, and the substellar point is at native lon = 180: roll, then rotate
-# it to lon = 0 so the hemisphere mask matches the other models.
+# Celsius, and the substellar point is at native lon = 180.
 _d = '/models/data/samosa/rocke3d'
 r3d = []
 for c in (1, 4, 16):
     ts, lat, lon = read_nc(f'{_d}/rocke_{c:02d}q.nc', 'tsurf', offset=tfreeze)
-    ts, lon_s = roll_to_180(ts, lon)
-    _lon = lon_s + 180.0
-    _lon[_lon >= 180.0] -= 360.0
-    idx = np.argsort(_lon)
-    r3d.append(both_hemis(ts[:, idx], lat, _lon[idx]))
+    r3d.append(centre_on_substellar(ts, lat, lon, lon_ss=180.))
 
 # -- Generic PCM -----------------------------------------------------
 # Case 16 is not converged (see SAMOSA_summary.pdf) and is omitted.
@@ -137,7 +129,7 @@ for c in (1, 4):
     ts, lat, lon = read_nc(
         f'{_d}/case-{c}/SAMOSA_output_file_Generic_PCM_case-{c}_OHT_off.nc',
         'surface_temperature', lat_var='latitude', lon_var='longitude')
-    pcm.append(both_hemis(ts, lat, lon))
+    pcm.append(centre_on_substellar(ts, lat, lon, lon_ss=0.))
 pcm.append(None)
 
 # -- LFRic -----------------------------------------------------------
@@ -145,8 +137,7 @@ _d = '/models/data/samosa/lfric'
 lfric = []
 for c in (1, 4, 16):
     ts, lat, lon = read_nc(f'{_d}/lfric_samosa_case{c:02d}.nc', 'grid_surface_temperature')
-    ts, lon_s = roll_to_180(ts, lon)
-    lfric.append(both_hemis(ts, lat, lon_s))
+    lfric.append(centre_on_substellar(ts, lat, lon, lon_ss=0.))
 
 # -- PlaHab ----------------------------------------------------------
 # Plain text: column 0 is latitude, the remaining 20 are longitude.
@@ -156,7 +147,7 @@ _d = '/models/data/samosa/plahab/simulations'
 plahab = []
 for c, s in ((1, 'sample1'), (4, 'sample4'), (16, 'sample16')):
     raw = np.loadtxt(f'{_d}/{s}/case{c}_tsurf.out')
-    plahab.append(both_hemis(raw[:, 1:], raw[:, 0], lon_plahab))
+    plahab.append(centre_on_substellar(raw[:, 1:], raw[:, 0], lon_plahab, lon_ss=0.))
 
 
 # -- Figure ----------------------------------------------------------
@@ -179,46 +170,47 @@ for ci, ax in enumerate(axes):
         ('PlaHab',    plahab[ci]),
     ]
 
-    # Freezing reference, drawn first so the model curves sit over it
+    # Terminators and the freezing point, drawn under the model curves
+    for x in (-90, 90):
+        ax.axvline(x, color='0.75', lw=0.8, ls=(0, (2, 2)), zorder=1)
     ax.axhline(tfreeze, color='0.6', lw=0.8, ls=(0, (4, 3)), zorder=1)
 
     for name, entry in series:
         if entry is None:
             continue
-        lat, T_ss, T_as = entry
-        ax.plot(lat, T_ss, ls='-',  zorder=3, **MODEL_STYLES[name])
-        ax.plot(lat, T_as, ls='--', zorder=3, **MODEL_STYLES[name])
+        lon, T = entry
+        ax.plot(lon, T, ls='-', zorder=3, **MODEL_STYLES[name])
 
-    ax.set_xlim(-90, 90)
-    ax.set_xticks([-90, -60, -30, 0, 30, 60, 90])
+    ax.set_xlim(-180, 180)
+    ax.set_xticks([-180, -90, 0, 90, 180])
     ax.tick_params(axis='both', labelsize=FS_TICK)
     ax.grid(False)
 
     ax.set_title(case_labels[ci], fontsize=FS_TITLE, linespacing=1.5)
-    ax.set_xlabel('Latitude (°)', fontsize=FS_LABEL)
-    ax.set_ylabel('Zonal mean surface temperature (K)', fontsize=FS_LABEL)
+    ax.set_xlabel('Longitude from substellar point (°)', fontsize=FS_LABEL)
+    ax.set_ylabel('Meridional mean surface temperature (K)', fontsize=FS_LABEL)
 
 from matplotlib.lines import Line2D
 # A six-entry legend inside a panel covers the curves it is labelling, so the
-# models go above the panels, as in fig_energy_balance.py, and the line-style
-# key stays below. Two legends cannot share 'outside lower center': constrained
-# layout gives them the same slot and the second one hides the first. Only five
-# curves appear in the Case 16 panel, the Generic PCM having no converged
-# solution there.
+# models go above the panels, as in fig_energy_balance.py, and the reference
+# lines are keyed below. Two legends cannot share 'outside lower center':
+# constrained layout gives them the same slot and the second hides the first.
+# Only five curves appear in the Case 16 panel, the Generic PCM having no
+# converged solution there.
 model_handles = [Line2D([0], [0], ls='-', label=MODEL_LABELS[m], **MODEL_STYLES[m])
                  for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab')]
 style_handles = [
-    Line2D([0], [0], color='k', lw=1.6, ls='-',  label='Substellar hemi.'),
-    Line2D([0], [0], color='k', lw=1.6, ls='--', label='Anti-stellar hemi.'),
-    Line2D([0], [0], color='0.6', lw=0.8, ls=(0, (4, 3)), label='273.16 K'),
+    Line2D([0], [0], color='0.75', lw=0.8, ls=(0, (2, 2)), label='Terminator'),
+    Line2D([0], [0], color='0.6',  lw=0.8, ls=(0, (4, 3)), label='273.16 K'),
 ]
+
 fig.legend(handles=model_handles, loc='outside upper center', ncols=6,
            fontsize=FS_LEGEND, frameon=False,
            handlelength=2.0, handletextpad=0.6, columnspacing=1.8)
-fig.legend(handles=style_handles, loc='outside lower center', ncols=3,
+fig.legend(handles=style_handles, loc='outside lower center', ncols=2,
            fontsize=FS_LEGEND, frameon=True, framealpha=1.0,
            handlelength=2.5, handleheight=1.2, handletextpad=0.6,
            borderpad=0.6, labelspacing=0.5)
 
-fig.savefig('fig_zonal_temp_select.png', bbox_inches='tight', dpi=150)
-fig.savefig('fig_zonal_temp_select.eps', bbox_inches='tight')
+fig.savefig('fig_merid_temp_select.png', bbox_inches='tight', dpi=150)
+fig.savefig('fig_merid_temp_select.eps', bbox_inches='tight')
