@@ -33,6 +33,8 @@ exocam_case  = np.array( [ 1, 4, 8, 9, 10, 11, 12, 14, 15, 16 ] )
 exocam_lamr  = np.array( [ 1.399, 1.500, 1.476, 1.477, 1.394, 1.461, 1.616, 1.465, 1.424, 1.623 ] )
 exocam_lr    = np.array( [ 1.017, 0.834, 0.783, 1.034, 0.626, 1.454, 0.637, 0.944, 1.135, 0.664 ] )
 exocam_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'DJ']
+exocam_jetlat= np.array( [ 2.0, 42.0, 66.0, 2.0, 70.0, 2.0, 66.0, 34.0, 2.0, 58.0 ] )
+exocam_conv  = np.array( [ 57.1, 196.9, 140.7, 167.3, 55.7, 152.4, 310.8, 136.8, 84.9, 296.1 ] )
 exocam_ratio = np.array( [ 0.572, 0.507, 0.463, 0.590, 0.461, 0.638, 0.424, 0.553, 0.531, 0.374 ] )
 
 # ExoPlaSim
@@ -40,6 +42,8 @@ plasim_case  = np.array( [ 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16
 plasim_lamr  = np.array( [ 1.360, 1.636, 1.550, 1.490, 1.508, 1.607, 1.527, 1.434, 1.469, 1.353, 1.424, 1.610, 1.518, 1.445, 1.380, 1.611 ] )
 plasim_lr    = np.array( [ 1.021, 0.709, 1.418, 1.081, 1.438, 0.878, 1.220, 0.848, 1.272, 0.695, 1.591, 0.841, 1.417, 1.116, 1.235, 0.662 ] )
 plasim_jet   = ['DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ']
+plasim_jetlat= np.array( [ 58.1, 30.5, 2.8, 52.6, 2.8, 47.1, 2.8, 63.7, 2.8, 69.2, 2.8, 58.1, 2.8, 52.6, 41.5, 2.8 ] )
+plasim_conv  = np.array( [ 27.6, 361.0, 464.2, 174.3, 245.8, 430.4, 280.7, 94.7, 153.7, 29.6, 95.3, 313.8, 266.2, 113.1, 36.6, 249.5 ] )
 plasim_ratio = np.array( [ 0.655, 0.199, 0.512, 0.609, 0.443, 0.460, 0.545, 0.454, 0.665, 0.685, 0.632, 0.408, 0.418, 0.541, 0.651, 0.283 ] )
 
 # ROCKE-3D
@@ -47,6 +51,8 @@ rocke3d_case  = np.array( [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ] )
 rocke3d_lamr  = np.array( [ 1.409, 1.500, 1.508, 1.511, 1.479, 1.473, 1.417, 1.451, 1.572, 1.517, 1.464, 1.423, 1.579 ] )
 rocke3d_lr    = np.array( [ 0.979, 0.854, 1.318, 1.073, 0.949, 1.075, 0.900, 1.429, 0.767, 1.293, 0.927, 1.078, 0.650 ] )
 rocke3d_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ']
+rocke3d_jetlat= np.array( [ 0.0, 40.0, 20.0, 4.0, 68.0, 4.0, 68.0, 4.0, 64.0, 24.0, 40.0, 4.0, 68.0 ] )
+rocke3d_conv  = np.array( [ 56.4, 196.3, 227.1, 234.2, 138.0, 157.2, 65.6, 130.1, 295.2, 240.9, 130.0, 74.1, 303.5 ] )
 rocke3d_ratio = np.array( [ 0.454, 0.497, 0.546, 0.408, 0.525, 0.529, 0.477, 0.573, 0.198, 0.458, 0.519, 0.464, 0.246 ] )
 
 # LFRic
@@ -54,20 +60,24 @@ lfric_case  = np.array( [ 1, 4, 7, 9, 12, 14, 15, 16 ] )
 lfric_lamr  = np.array( [ 1.396, 1.487, 1.671, 1.472, 1.596, 1.453, 1.411, 1.629 ] )
 lfric_lr    = np.array( [ 0.803, 0.647, 0.396, 0.784, 0.338, 0.737, 0.899, 0.290 ] )
 lfric_jet   = ['SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'SJ', 'DJ']
+lfric_jetlat= np.array( [ 1.0, 43.0, 1.0, 1.0, 61.0, 1.0, 1.0, 69.0 ] )
+lfric_conv  = np.array( [ 53.0, 177.3, 447.4, 157.4, 299.6, 116.5, 67.4, 288.9 ] )
 lfric_ratio = np.array( [ 0.704, 0.522, 0.441, 0.614, 0.812, 0.645, 0.705, 0.430 ] )
 
 # Generic PCM
 pcm_case  = np.array( [ 1, 4, 8, 9, 10, 14, 15 ] )
 pcm_lamr  = np.array( [ 1.423, 1.537, 1.480, 1.509, 1.422, 1.479, 1.433 ] )
 pcm_lr    = np.array( [ 0.798, 0.640, 0.603, 0.771, 0.541, 0.756, 0.905 ] )
-pcm_jet   = ['DJ', 'DJ', 'DJ', 'DJ', 'DJ', 'DJ', 'DJ']
+pcm_jet   = ['SJ', 'DJ', 'DJ', 'DJ', 'DJ', 'DJ', 'SJ']
+pcm_jetlat= np.array( [ 3.9, 58.7, 62.6, 50.9, 62.6, 43.0, 0.0 ] )
+pcm_conv  = np.array( [ 75.4, 261.3, 142.2, 223.6, 73.2, 155.4, 90.9 ] )
 pcm_ratio = np.array( [ 0.520, 0.430, 0.492, 0.438, 0.355, 0.502, 0.548 ] )
 
-# PlaHab, HEXTOR and ExoColumn cannot appear in any of the three panels. Both
-# abscissae here are derived from the wind field, and none of the three submits
-# one. extract_regimes.py does report a contrast ratio for the three PlaHab
-# cases that carry a surface temperature field (0.615, 0.709 and 0.557 for
-# Cases 1, 4 and 16), which is usable in the text but has no abscissa to sit on.
+# PlaHab, HEXTOR and ExoColumn cannot appear in any of the three panels. Panel
+# (a) needs a wind field and panels (b) and (c) need a jet and a flux map, and
+# none of the three submits them. extract_regimes.py does report a contrast
+# ratio for the three PlaHab cases carrying a surface temperature field (0.615,
+# 0.709 and 0.557 for Cases 1, 4 and 16), usable in the text.
 
 # ─── Model style, following fig_summary.py ───────────────────────────────────
 style = { 'ExoPlaSim':   '#ff7f0e',
@@ -79,12 +89,26 @@ style = { 'ExoPlaSim':   '#ff7f0e',
 wind_models = [ 'ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'LFRic', 'Generic PCM' ]
 
 data = {
-    'ExoCAM':      ( exocam_case,  exocam_lamr,  exocam_lr,  exocam_jet,  exocam_ratio  ),
-    'ExoPlaSim':   ( plasim_case,  plasim_lamr,  plasim_lr,  plasim_jet,  plasim_ratio  ),
-    'ROCKE-3D':    ( rocke3d_case, rocke3d_lamr, rocke3d_lr, rocke3d_jet, rocke3d_ratio ),
-    'LFRic':       ( lfric_case,   lfric_lamr,   lfric_lr,   lfric_jet,   lfric_ratio   ),
-    'Generic PCM': ( pcm_case,     pcm_lamr,     pcm_lr,     pcm_jet,     pcm_ratio     ),
+    'ExoCAM':      dict( case=exocam_case,  lamr=exocam_lamr,  lr=exocam_lr,
+                         jet=exocam_jet,  jetlat=exocam_jetlat,  conv=exocam_conv,
+                         ratio=exocam_ratio ),
+    'ExoPlaSim':   dict( case=plasim_case,  lamr=plasim_lamr,  lr=plasim_lr,
+                         jet=plasim_jet,  jetlat=plasim_jetlat,  conv=plasim_conv,
+                         ratio=plasim_ratio ),
+    'ROCKE-3D':    dict( case=rocke3d_case, lamr=rocke3d_lamr, lr=rocke3d_lr,
+                         jet=rocke3d_jet, jetlat=rocke3d_jetlat, conv=rocke3d_conv,
+                         ratio=rocke3d_ratio ),
+    'LFRic':       dict( case=lfric_case,   lamr=lfric_lamr,   lr=lfric_lr,
+                         jet=lfric_jet,   jetlat=lfric_jetlat,   conv=lfric_conv,
+                         ratio=lfric_ratio ),
+    'Generic PCM': dict( case=pcm_case,     lamr=pcm_lamr,     lr=pcm_lr,
+                         jet=pcm_jet,     jetlat=pcm_jetlat,     conv=pcm_conv,
+                         ratio=pcm_ratio ),
 }
+
+def fan( name ):
+    """Small horizontal offset so co-located models stay distinguishable."""
+    return ( wind_models.index( name ) - 2.0 ) * 0.14
 
 c_slow   = '#eef3f8'
 c_rhines = '#faf3ec'
@@ -110,8 +134,8 @@ ax.axhline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 ax.axvline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 
 for name in wind_models:
-    case, lamr, lr, jet, _ = data[ name ]
-    ax.scatter( lamr, lr, s=95, color=style[ name ], edgecolors='k',
+    d = data[ name ]
+    ax.scatter( d[ 'lamr' ], d[ 'lr' ], s=95, color=style[ name ], edgecolors='k',
                 linewidths=0.7, label=name, zorder=5 )
 
 ax.set_xlim( 0.92, 1.78 )
@@ -133,30 +157,26 @@ ax.set_title( '(a) Circulation regime', fontsize=13 )
 # that agreement and disagreement can both be read off directly.
 
 ax = axes[1]
-grid_f, grid_p = np.meshgrid( flux, pn2 )
-ax.scatter( grid_f.ravel(), grid_p.ravel(), s=3, color='#cccccc', zorder=0 )
+ax.axhspan( 0.0, 20.0, color='#eef3f8', zorder=0 )
+for c in range( 1, 17 ):
+    ax.axvline( c, color='#e8e8e8', lw=0.8, zorder=0 )
 
-fan = { name: 10.0 ** ( ( i - 2.0 ) * 0.052 ) for i, name in enumerate( wind_models ) }
 for name in wind_models:
-    case, _, _, jet, _ = data[ name ]
-    for c, j in zip( case, jet ):
+    d = data[ name ]
+    for c, jl, j in zip( d[ 'case' ], d[ 'jetlat' ], d[ 'jet' ] ):
         single = ( j == 'SJ' )
-        ax.scatter( flux1[ c - 1 ], pres1[ c - 1 ] * fan[ name ],
-                    s=105, marker='o' if single else 's',
+        ax.scatter( c + fan( name ), jl, s=95,
+                    marker='o' if single else 's',
                     facecolor=style[ name ] if single else 'none',
                     edgecolors='k' if single else style[ name ],
                     linewidths=0.7 if single else 1.7, zorder=5 )
 
-# The fan spans +/- 0.104 decades, so a label at 1.45x clears it in every case
-for c in range( 1, 17 ):
-    ax.text( flux1[ c - 1 ], pres1[ c - 1 ] * 1.45, c, fontsize=9, color=c_label,
-             ha='center', va='bottom' )
-
-ax.set_yscale( 'log' )
-ax.set_xlim( max( flux ) + 50, min( flux ) - 50 )
-ax.set_ylim( min( pn2 ) * 0.62, max( pn2 ) * 2.4 )
-ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
-ax.set_ylabel( 'Surface pressure (bar)', fontsize=12 )
+ax.set_xlim( 0.4, 16.6 )
+ax.set_ylim( -4, 78 )
+ax.set_xticks( range( 1, 17 ) )
+ax.set_xlabel( 'Case', fontsize=12 )
+ax.set_ylabel( 'Latitude of the tropospheric jet ($\\degree$)', fontsize=12 )
+ax.text( 16.3, 8, 'equatorial jet', fontsize=10, style='italic', color=c_label, ha='right' )
 ax.legend( handles=[ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=9,
                              label='single (equatorial) jet' ),
                      Line2D( [], [], ls='', marker='s', mfc='none', mec='0.4',
@@ -169,30 +189,20 @@ ax.set_title( '(b) Jet structure at $\\sigma = 0.30$', fontsize=13 )
 
 if SHOW_TRANSPORT:
     ax = axes[2]
-    ax.axvspan( 1.0, 2.0, color=c_slow,   zorder=0 )
-    ax.axvspan( 0.0, 1.0, color=c_rhines, zorder=0 )
-    ax.axvline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
+    for c in range( 1, 17 ):
+        ax.axvline( c, color='#e8e8e8', lw=0.8, zorder=0 )
 
-    # Pooled across the ensemble the relation almost vanishes (r = 0.25), but
-    # that is an artifact of pooling: each model tracks it internally and the
-    # models sit at different offsets, so the trend lines are drawn per model.
     for name in wind_models:
-        case, _, lr, _, ratio = data[ name ]
-        ax.scatter( lr, ratio, s=95, color=style[ name ], edgecolors='k',
-                    linewidths=0.7, label=name, zorder=5 )
-        slope, icept = np.polyfit( lr, ratio, 1 )
-        xs = np.array( [ lr.min(), lr.max() ] )
-        ax.plot( xs, slope * xs + icept, color=style[ name ], lw=1.4,
-                 alpha=0.75, zorder=3 )
+        d = data[ name ]
+        ax.scatter( d[ 'case' ] + fan( name ), d[ 'conv' ], s=95,
+                    color=style[ name ], edgecolors='k', linewidths=0.7,
+                    label=name, zorder=5 )
 
-    ax.set_xlim( 0.15, 1.80 )
-    ax.set_xlabel( 'Non-dimensional Rhines length, $L_R/a$', fontsize=12 )
-    ax.set_ylabel( '$(T_{day} - T_{night}) / (T_{equator} - T_{pole})$', fontsize=12 )
-    ax.text( 1.75, 0.93, 'slow rotators',   fontsize=11, style='italic',
-             color=c_label, ha='right', transform=ax.get_xaxis_transform() )
-    ax.text( 0.18, 0.93, 'Rhines rotators', fontsize=11, style='italic',
-             color=c_label, ha='left',  transform=ax.get_xaxis_transform() )
-    ax.set_title( '(c) Day-night against equator-pole transport', fontsize=13 )
+    ax.set_xlim( 0.4, 16.6 )
+    ax.set_xticks( range( 1, 17 ) )
+    ax.set_xlabel( 'Case', fontsize=12 )
+    ax.set_ylabel( 'Night-side static energy flux convergence (W m$^{-2}$)', fontsize=12 )
+    ax.set_title( '(c) Night-side energy transport', fontsize=13 )
 
 fig.tight_layout()
 fig.savefig( 'fig_regimes.png', bbox_inches='tight' )
@@ -204,8 +214,8 @@ fig.savefig( 'fig_regimes.eps', bbox_inches='tight' )
 print( '=== regime spread across models, per case ===' )
 straddle = 0
 for c in range( 1, 17 ):
-    vals = { n: data[ n ][ 2 ][ np.where( data[ n ][ 0 ] == c )[0][0] ]
-             for n in wind_models if c in data[ n ][ 0 ] }
+    vals = { n: data[ n ][ 'lr' ][ np.where( data[ n ][ 'case' ] == c )[0][0] ]
+             for n in wind_models if c in data[ n ][ 'case' ] }
     if len( vals ) < 3:
         continue
     v = np.array( list( vals.values() ) )
@@ -217,8 +227,8 @@ print( f'  {straddle} of the multi-model cases straddle L_R/a = 1' )
 
 agree = total = 0
 for n in wind_models:
-    case, _, lr, jet, _ = data[ n ]
-    for c, l, j in zip( case, lr, jet ):
+    d = data[ n ]
+    for c, l, j in zip( d[ 'case' ], d[ 'lr' ], d[ 'jet' ] ):
         total += 1
         agree += ( l < 1.0 ) == ( j == 'DJ' )
 print( f'\n=== the Rhines criterion predicts the jet structure in '
@@ -227,7 +237,7 @@ print( f'\n=== the Rhines criterion predicts the jet structure in '
 print( '\n=== contrast ratio against the Rhines length ===' )
 all_lr, all_ratio = [], []
 for n in wind_models:
-    _, _, lr, _, ratio = data[ n ]
+    lr, ratio = data[ n ][ 'lr' ], data[ n ][ 'ratio' ]
     all_lr.append( lr ); all_ratio.append( ratio )
     print( f'  {n:12s} n={len(lr):2d}  r = {np.corrcoef(lr, ratio)[0,1]:+.2f}'
            f'   ratio {ratio.min():.2f}-{ratio.max():.2f}' )

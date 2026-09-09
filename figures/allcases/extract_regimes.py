@@ -10,6 +10,16 @@ Four numbers per model per case:
   lamR    the non-dimensional equatorial Rossby deformation radius, lambda_R/a
   LR      the non-dimensional Rhines length, L_R/a
   jet     'SJ' for a single equatorial jet, 'DJ' for two midlatitude jets
+  jetlat  the latitude of the tropospheric jet, taken as |lat| of the maximum
+          of the zonal mean zonal wind at the classification level, after the
+          ordinate of Figure 1(a) of Sergeev et al. (2022). This is the
+          continuous form of the SJ/DJ label and is preferable to it: that
+          paper is explicit that single and double jet are "short-hand
+          descriptive terms rather than precise descriptions", since the SJ
+          regime splits at sigma ~ 0.5 and the DJ regime still superrotates.
+  conv    the night-side static energy flux convergence, W m^-2 of night
+          hemisphere, the quantity in the lower-right panel of Figure 2 of
+          Haqq-Misra et al. (2018). See the note below on how it is obtained.
   ratio   the day-night to equator-pole surface temperature contrast ratio,
           (T_day - T_night) / (T_equator - T_pole), the ordinate of the right
           panel of Figure 6 of the same paper. T_day and T_night are the
@@ -63,6 +73,39 @@ Two deliberate departures from the 2018 paper, both forced by this ensemble:
   upper-tropospheric mean -- so the level has to be stated wherever the figure
   is discussed, and the margin printed below says how close each call was.
 
+On the night-side convergence. Haqq-Misra et al. (2018) compute it directly as
+the vertically integrated -div(v*s), with s = c_p*T + Phi + L_v*q. That cannot
+be reproduced from this archive, and the attempt is worth recording so it is not
+repeated. Applying the divergence theorem so that the area integral becomes the
+static energy flux across the two terminator meridians -- which avoids
+differencing on five different grids -- the calculation is ill-conditioned here:
+the convergence is a small residual between two large fluxes carried by the
+equatorial jet, and the archived fields do not close the mass budget that would
+make the residual meaningful. The spurious net mass flux across the closed
+terminator contour, which must be zero in a steady state, reaches 6e11 kg/s.
+Removing a reference static energy to correct for it brings most models to
+within 20% of the value below, but leaves ExoCAM Cases 8 and 10, Generic PCM
+Cases 8 and 10, and LFRic Case 7 wrong by factors of two to five, in some cases
+with the wrong sign. Only ROCKE-3D, whose residual mass flux is an order of
+magnitude smaller than the rest, agrees throughout. The cause is that the
+protocol asks for time-mean u and time-mean T separately rather than the
+time-mean flux, so the transient eddy contribution is not recoverable at all.
+
+What is used instead is the steady-state identity. A night-side column in
+equilibrium must import horizontally exactly what it loses radiatively, so the
+convergence equals the area-weighted mean of OLR - ASR over the night
+hemisphere, which every model archives as a two-dimensional field. This is
+exact rather than approximate, needs no vertical integration or grid stencil,
+and reduces to the same quantity. Its one weakness is that it inherits any
+top-of-atmosphere imbalance a case carries, so it should be read alongside the
+energy balance figure: where a model has not converged, this diagnostic reports
+the transport its unconverged state implies rather than the equilibrium value.
+It also cannot separate atmospheric from surface or ocean heat transport into
+the night side. RECOMMENDATION FOR THE PROTOCOL: asking participants for the
+time mean of the meridional and zonal static energy flux, rather than for the
+time means of the wind and temperature separately, would make the direct
+calculation possible and is cheap for the groups to add.
+
 Per-model sources and the traps in each:
 
   ExoCAM       exocam/samosaN.cam.h0.avg.nc, U and V on hybrid levels; pressure
@@ -77,7 +120,9 @@ Per-model sources and the traps in each:
                and is converted. Only 10 levels, so the sigma = 0.30 wind is
                interpolated in log sigma rather than taken from the nearest
                level -- with this few levels the nearest-level value can sit a
-               third of a scale height away.
+               third of a scale height away. No geopotential is archived, so
+               where a height is needed it is integrated hydrostatically from a
+               zero-height surface. rlut is stored NEGATIVE.
 
   ROCKE-3D     rocke3d/rocke_NNq.nc, ub and vb on the staggered lat2/lon2 B
                grid, plm in hPa running surface to TOA. Temperatures are in
@@ -100,8 +145,11 @@ Per-model sources and the traps in each:
                in the winds and the pressure alike. They are the same 29 levels
                in every case, so this is a thinned archive rather than damage,
                but the empty levels have to be dropped before anything is
-               interpolated in sigma or the profile comes back as NaN. Only 7
-               of 16 cases are accepted.
+               interpolated in sigma or the profile comes back as NaN. Its
+               latitude grid also runs to exactly +90, a degenerate row where a
+               zonal mean is meaningless; it reports 31-41 m s^-1 there against
+               0-10 m s^-1 one row equatorward, which is why jets are sought
+               only equatorward of JET_POLE. Only 7 of 16 cases are accepted.
 
   PlaHab       plahab/simulations/sampleN/caseN_tsurf.out, a whitespace table
                whose first column is latitude and whose remaining 20 columns
@@ -134,6 +182,10 @@ MAIR  = 0.028                      # kg mol^-1, as in Haqq-Misra et al. (2018)
 OMEGA = 2.0 * np.pi / ( 15.0 * 86400.0 )   # 15-day synchronous rotation
 BETA  = 2.0 * OMEGA / A                    # s^-1 m^-1, per Erratum 2
 SIGMA_JET = 0.30                   # level at which the jet structure is judged
+JET_POLE  = 75.0                   # jets are sought equatorward of this latitude
+RDRY  = RGAS / MAIR                # J kg^-1 K^-1 for the N2 background
+CP    = 3.5 * RDRY                 # diatomic, consistent with m_air = 0.028
+LV    = 2.5e6                      # J kg^-1
 
 # Cases each model has an accepted row for, matching fig_interpolation_temp.py
 ACCEPTED = {
@@ -199,8 +251,14 @@ def read_exocam( case ):
         p0  = float( ds.variables[ 'P0' ][:] )
         lat, lon, gw = _get( ds, 'lat' ), _get( ds, 'lon' ), _get( ds, 'gw' )
     p = hyam[ :, None, None ] * p0 + hybm[ :, None, None ] * ps[ None, :, : ]
-    return dict( lat=lat, lon=lon, p=p, u=u, v=v, ts=ts, wts=gw,
-                 surface_is_last=True )
+    with netCDF4.Dataset( f'{_d}/exocam/samosa{case}.cam.h0.avg.nc' ) as ds:
+        t3  = np.squeeze( _get( ds, 'T'  ) )
+        q3  = np.squeeze( _get( ds, 'Q'  ) )
+        z3  = np.squeeze( _get( ds, 'Z3' ) )
+        olr = np.squeeze( _get( ds, 'FLUT' ) )
+        asr = np.squeeze( _get( ds, 'FSNT' ) )
+    return dict( lat=lat, lon=lon, p=p, u=u, v=v, ts=ts, wts=gw, t=t3, q=q3, z=z3,
+                 olr=olr, asr=asr, surface_is_last=True )
 
 
 def read_plasim( case ):
@@ -213,8 +271,15 @@ def read_plasim( case ):
     if np.nanmax( ps ) < 1.0e4:            # hPa in the archive, Pa here
         ps = ps * 100.0
     p = lev[ :, None, None ] * ps[ None, :, : ]
-    return dict( lat=lat, lon=lon, p=p, u=u, v=v, ts=ts, wts=None,
-                 surface_is_last=True )
+    with netCDF4.Dataset( f'{_d}/exoplasim/samosa{case:02d}.nc' ) as ds:
+        t3   = np.squeeze( _get( ds, 'ta'   ) )
+        q3   = np.squeeze( _get( ds, 'hus'  ) )
+        rlut = np.squeeze( _get( ds, 'rlut' ) )
+        rst  = np.squeeze( _get( ds, 'rst'  ) )
+    # rlut is archived negative; no geopotential is shipped, so z is integrated
+    # hydrostatically from a zero-height aquaplanet surface (see the docstring)
+    return dict( lat=lat, lon=lon, p=p, u=u, v=v, ts=ts, wts=None, t=t3, q=q3, z=None,
+                 olr=np.abs( rlut ), asr=rst, surface_is_last=True )
 
 
 def read_rocke3d( case ):
@@ -226,8 +291,15 @@ def read_rocke3d( case ):
         lat,  lon  = _get( ds, 'lat'  ), _get( ds, 'lon'  )
         axyp = _get( ds, 'axyp' )
     p = np.broadcast_to( ( plm * 100.0 )[ :, None, None ], u.shape )
-    # Winds are on the staggered B grid, tsurf on the primary grid
+    with netCDF4.Dataset( f'{_d}/rocke3d/rocke_{case:02d}q.nc' ) as ds:
+        t3  = _get( ds, 'temp' ) + 273.16          # archived in Celsius
+        q3  = _get( ds, 'q' )
+        z3  = _get( ds, 'z' )
+        olr = -_get( ds, 'trnf_toa' )              # sign flip, per extract_fluxes.py
+        asr = _get( ds, 'srnf_toa' )
+    # Winds are on the staggered B grid, everything else on the primary grid
     return dict( lat=lat2, lon=lon2, p=p, u=u, v=v, ts=ts + 273.16, wts=axyp,
+                 t=t3, q=q3, z=z3, olr=olr, asr=asr,
                  ts_lat=lat, ts_lon=lon, surface_is_last=False )
 
 
@@ -244,8 +316,19 @@ def read_lfric( case ):
         for i in range( u.shape[2] ):
             p[ :, j, i ] = np.interp( hw[ :, j, i ], hf[ :, j, i ],
                                       np.log( pf[ :, j, i ] ) )
+    with netCDF4.Dataset( f'{_d}/lfric/lfric_samosa_case{case:02d}.nc' ) as ds:
+        tf  = _get( ds, 'temperature' )
+        qf  = _get( ds, 'qv' )
+        olr = _get( ds, 'lw_up_toa' )
+        asr = _get( ds, 'sw_net_toa' )
+    t3 = np.empty_like( u ); q3 = np.empty_like( u ); z3 = np.empty_like( u )
+    for j in range( u.shape[1] ):
+        for i in range( u.shape[2] ):
+            t3[ :, j, i ] = np.interp( hw[ :, j, i ], hf[ :, j, i ], tf[ :, j, i ] )
+            q3[ :, j, i ] = np.interp( hw[ :, j, i ], hf[ :, j, i ], qf[ :, j, i ] )
+    z3 = hw
     return dict( lat=lat, lon=lon, p=np.exp( p ), u=u, v=v, ts=ts, wts=None,
-                 surface_is_last=False )
+                 t=t3, q=q3, z=z3, olr=olr, asr=asr, surface_is_last=False )
 
 
 def read_pcm( case ):
@@ -259,14 +342,23 @@ def read_pcm( case ):
     # Only 29 of the 40 archived levels carry data; the rest are entirely fill
     live = np.array( [ k for k in range( p.shape[0] )
                        if np.isfinite( p[ k ] ).any() and np.isfinite( u[ k ] ).any() ] )
+    with netCDF4.Dataset( path ) as ds:
+        t3   = _get( ds, 'atmospheric_temperature' )
+        q3   = _get( ds, 'specific_humidity' )
+        alt  = _get( ds, 'altitude' ) * 1000.0       # archived in km
+        olr  = _get( ds, 'outgoing_longwave_radiation' )
+        asr  = _get( ds, 'absorbed_shortwave_radiation' )
+    z3 = np.broadcast_to( alt[ :, None, None ], p.shape )
     return dict( lat=lat, lon=lon, p=p[ live ], u=u[ live ], v=v[ live ], ts=ts,
-                 wts=None, surface_is_last=False )
+                 wts=None, t=t3[ live ], q=q3[ live ], z=z3[ live ],
+                 olr=olr, asr=asr, surface_is_last=False )
 
 
 def read_plahab( case ):
     table = np.loadtxt( f'{_d}/plahab/simulations/sample{case}/case{case}_tsurf.out' )
     return dict( lat=table[ :, 0 ], lon=LON_PLAHAB, p=None, u=None, v=None,
-                 ts=table[ :, 1: ], wts=None, surface_is_last=False )
+                 ts=table[ :, 1: ], wts=None, t=None, q=None, z=None,
+                 olr=None, asr=None, surface_is_last=False )
 
 
 READERS = { 'ExoCAM':      read_exocam,
@@ -330,12 +422,23 @@ def diagnose( D ):
     t_day, t_night, t_eq, t_pole, hotspot = surface_contrasts( D[ 'ts' ], ts_lat, ts_lon )
     ratio = ( t_day - t_night ) / ( t_eq - t_pole )
 
+    # Night-side static energy flux convergence, from the steady-state balance
+    lon_sub = 0.0 if abs( ( ( ts_lon[ int( np.nanargmax(
+        area_mean( np.moveaxis( D[ 'ts' ], 0, -1 ), ts_cw ) ) ) ] + 180.0 )
+        % 360.0 ) - 180.0 ) <= 90.0 else 180.0
+    night = np.abs( ( ( ts_lon - lon_sub + 180.0 ) % 360.0 ) - 180.0 ) > 90.0
+    if D.get( 'olr' ) is None:                # PlaHab archives no flux maps
+        conv = np.nan
+    else:
+        conv = float( area_mean( np.nanmean(
+            ( D[ 'olr' ] - D[ 'asr' ] )[ :, night ], axis=-1 ), ts_cw ) )
+
     out = dict( tglob=tglob, t_day=t_day, t_night=t_night, t_eq=t_eq,
-                t_pole=t_pole, ratio=ratio, hotspot=hotspot )
+                t_pole=t_pole, ratio=ratio, hotspot=hotspot, conv=conv )
 
     if D[ 'u' ] is None:                      # PlaHab: surface contrasts only
         out.update( u_rms=np.nan, lam_r=np.nan, l_r=np.nan, jet='--',
-                    margin=np.nan )
+                    margin=np.nan, jetlat=np.nan )
         return out
 
     ksfc = -1 if D[ 'surface_is_last' ] else 0
@@ -359,11 +462,19 @@ def diagnose( D ):
     u_jet = np.array( [ np.interp( np.log( SIGMA_JET ), np.log( sigma )[ order ],
                                    ubar[ order, j ] ) for j in range( len( lat ) ) ] )
 
-    # Single equatorial jet if the equatorial wind beats the midlatitude maximum
+    # Single equatorial jet if the equatorial wind beats the midlatitude
+    # maximum. The midlatitude band is closed at JET_POLE because the Generic
+    # PCM grid carries a degenerate row at exactly +90, where a zonal mean is
+    # meaningless and where it reports 31-41 m/s against 0-10 m/s at its own
+    # neighbouring row. Left open, that single point sets u_mid for every
+    # Generic PCM case and turns all seven of them into double jets.
+    band   = ( np.abs( lat ) >= 25 ) & ( np.abs( lat ) <= JET_POLE )
+    inner  = np.abs( lat ) <= JET_POLE
     u_eq   = np.nanmean( u_jet[ np.abs( lat ) <= 10 ] )
-    u_mid  = np.nanmax(  u_jet[ np.abs( lat ) >= 25 ] )
+    u_mid  = np.nanmax(  u_jet[ band ] )
     margin = float( u_eq - u_mid )
-    out.update( u_rms=u_rms, lam_r=lam_r, l_r=l_r,
+    jetlat = float( abs( lat[ inner ][ int( np.nanargmax( u_jet[ inner ] ) ) ] ) )
+    out.update( u_rms=u_rms, lam_r=lam_r, l_r=l_r, jetlat=jetlat,
                 jet=( 'SJ' if margin >= 0.0 else 'DJ' ), margin=margin )
     return out
 
@@ -372,7 +483,7 @@ if __name__ == '__main__':
     results = {}
     print( f"{'model':12s} {'case':>4s} {'Tglob':>8s} {'pub':>8s} {'dT':>6s} "
            f"{'hotspt':>6s} {'Urms':>6s} {'lamR/a':>7s} {'LR/a':>6s} {'jet':>4s} "
-           f"{'margin':>7s} {'dTdn':>6s} {'ratio':>6s}" )
+           f"{'margin':>7s} {'jetlat':>6s} {'conv':>7s} {'ratio':>6s}" )
     worst, worst_where = 0.0, ''
     for name, reader in READERS.items():
         rows = []
@@ -385,7 +496,7 @@ if __name__ == '__main__':
             print( f"{name:12s} {case:4d} {r['tglob']:8.2f} {pub:8.2f} "
                    f"{r['tglob'] - pub:+6.2f} {r['hotspot']:+6.0f} {r['u_rms']:6.2f} "
                    f"{r['lam_r']:7.3f} {r['l_r']:6.3f} {r['jet']:>4s} "
-                   f"{r['margin']:+7.1f} {r['t_day'] - r['t_night']:6.1f} "
+                   f"{r['margin']:+7.1f} {r['jetlat']:6.1f} {r['conv']:7.1f} "
                    f"{r['ratio']:6.3f}" )
         results[ name ] = rows
 
@@ -404,5 +515,7 @@ if __name__ == '__main__':
             print( f"{k}_lamr  = np.array( {fmt([ r['lam_r'] for _, r in rows ], '%.3f')} )" )
             print( f"{k}_lr    = np.array( {fmt([ r['l_r'  ] for _, r in rows ], '%.3f')} )" )
             print( f"{k}_jet   = {[ r['jet'] for _, r in rows ]}" )
+            print( f"{k}_jetlat= np.array( {fmt([ r['jetlat'] for _, r in rows ], '%.1f')} )" )
+            print( f"{k}_conv  = np.array( {fmt([ r['conv'] for _, r in rows ], '%.1f')} )" )
         print( f"{k}_ratio = np.array( {fmt([ r['ratio'] for _, r in rows ], '%.3f')} )" )
         print()
