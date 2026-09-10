@@ -36,9 +36,9 @@ pcm       = np.array( [ 0.37484651163423993, 47.86514350558743, 2.19061752034295
 pcm_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 600 ] ) / fluxscale
 pcm_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
 
-lfric       = np.array( [ 0.41, 8.18, 1735.22, 7.37, 829.15, 2.34, 0.86, 1863.11 ] )
-lfric_flux1 = np.array( [ 500, 1200, 1600, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
-lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
+lfric       = np.array( [ 0.41, 8.18, 1735.22, 1.01, 7.37, 0.04, 5.46, 829.15, 2.34, 0.86, 1863.11 ] )
+lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900, 600, 1400 ] ) / fluxscale
+lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 
 # ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15 (kg m^-2). It carries a vertical
 # coordinate and prognostic water vapour, so unlike HEXTOR it reports a column.
@@ -64,7 +64,7 @@ ANISO = {
     'ROCKE-3D':     7,
     'ExoPlaSim':    3,
     'Generic PCM':  15,
-    'LFRic':        15,
+    'LFRic':        10,
     'ExoColumn':    10,
 }
 

@@ -31,7 +31,7 @@ from matplotlib.patches import Patch
 #   ExoPlaSim    exoplasim/samosaNN.nc, area-weighted rst / rlut
 #   ROCKE-3D     rocke3d/rocke_NNq.nc, -trnf_toa_hemis[2] / srnf_toa_hemis[2]
 #   Generic PCM  genericpcm/OHT_off/case-N/samosa_gcm_output_case-N_OHT_off.dat
-#   LFRic        lfric/samosa_global_diagnostics_lfric_2026-09-04.txt
+#   LFRic        lfric/samosa_global_diagnostics_lfric_2026-09-10.txt
 #   PlaHab       plahab/simulations/sampleN/global_samosa_plahab_*
 #                (the simulations/ copies are authoritative; the top-level
 #                 seq1sam4 file is a stale duplicate that disagrees by ~3 K)
@@ -50,7 +50,7 @@ imbalance = {
     'ExoCAM':      np.array( [  2.00,    nan,    nan,   0.31,    nan,    nan,  -5.23,   0.68,   0.38,   2.19,   1.35,   0.97,    nan,   0.55,   1.30,   0.20 ] ),
     'ROCKE-3D':    np.array( [  0.53,  -8.94,    nan,   0.11,   0.00, -16.21,   0.09,   0.41,   0.01,   6.32,   0.07,  -3.12,  -0.06,  -0.10,   0.00,  -0.10 ] ),
     'Generic PCM': np.array( [ 16.81, -23.95, -36.01,   1.83, -24.56, -31.78, -20.63,   2.18,   3.27,  19.66,  13.26, -12.10, -28.24,   2.41,   7.70, -10.70 ] ),
-    'LFRic':       np.array( [  0.66,    nan,    nan,  -0.37,    nan,    nan,  29.09,    nan,  -0.12,    nan,    nan,  -0.11,    nan,  -0.33,   0.98,   0.16 ] ),
+    'LFRic':       np.array( [  0.66,    nan,    nan,  -0.37,    nan,    nan,  29.09,  -1.28,  -0.12,  -1.65,   2.12,  -0.11,    nan,  -0.33,   0.98,   0.16 ] ),
     'PlaHab':      np.array( [ -0.19,    nan,    nan,   0.76,  -0.54,    nan,  -0.57,   2.04,   1.06,  -9.65,  -0.25,  -0.50,  -0.36,   2.79,  -0.07,  -0.42 ] ),
     'HEXTOR':      np.array( [ -0.52,    nan,    nan,  -0.73,    nan,    nan,    nan,  -0.66,  -0.72,    nan,  -0.64,    nan,    nan,  -0.66,  -0.52,    nan ] ),
     'ExoColumn':   np.array( [ -0.05,    nan,    nan,  -0.29,    nan,    nan,    nan,   0.06,  -0.20,   0.11,  -0.04,    nan,    nan,  -0.21,  -0.15,    nan ] ),
@@ -64,9 +64,17 @@ imbalance = {
 # rejected runs are quoted in the text where they bear on a group's own
 # classification.
 #
+# LFRic Cases 8, 10 and 11 (submitted 2026-09-10) are the first LFRic cases
+# other than Case 7 to sit above the 1% rule, at -1.28, -1.65 and +2.12%. That
+# is the same band as ExoCAM Cases 1 and 10 and PlaHab Cases 8 and 14, all
+# carried. On a Planck-only estimate the residual is worth at most ~2 K of
+# further drift in the global mean (Case 11, 4.8 W/m^2 over 4*sigma*T^3 at
+# 227.5 K), far inside the 30-60 K inter-model spread at those points. They are
+# accepted without further query.
+#
 # LFRic Case 7 (submitted 2026-09-04) is accepted, and is by a wide margin the
-# largest imbalance carried anywhere in this figure: +29.09%, against -0.37 to
-# +0.98% over every other LFRic case. It was queried with the LFRic group
+# largest imbalance carried anywhere in this figure: +29.09%, against -1.65 to
+# +2.12% over every other LFRic case. It was queried with the LFRic group
 # rather than assumed to be a spin-up artifact, and Sergeev confirmed the
 # imbalance is persistent rather than decaying, attributing it to a cloud layer
 # that becomes stuck at the top of the model domain. It is therefore a property
@@ -74,8 +82,9 @@ imbalance = {
 # unequilibrated run, and it is carried on the same footing as every other
 # submitted case. The accompanying diagnostics are consistent with that
 # reading and equally extreme: planetary albedo 3.4% against 21-36% elsewhere
-# in the model, stratospheric specific humidity 3.04e-01 kg/kg against
-# <=1.8e-06 for every other case, and an OLR of 502.6 W/m^2 over a 1735 kg/m^2
+# in the model, stratospheric specific humidity 3.04e-01 kg/kg, over 500 times
+# the next wettest LFRic case (5.44e-04 at Case 11, whose model top is only
+# 1.4 hPa over a 0.1 bar surface), and an OLR of 502.6 W/m^2 over a 1735 kg/m^2
 # water column, far above the ~276-288 W/m^2 at which LFRic's own Cases 12 and
 # 16 settle. Its 400.52 K global mean is 107.5 K above the warmest other model
 # at this sample point (PlaHab 293.0 K; ExoPlaSim 279.7, ROCKE-3D 267.7), so it
@@ -85,7 +94,7 @@ accepted = {
     'ExoCAM':      np.array( [ True, False, False, True, False, False, False, True, True, True, True, True, False, True, True, True ] ),
     'ROCKE-3D':    np.array( [ True, False, False, True, True, False, True, True, True, True, True, True, True, True, True, True ] ),
     'Generic PCM': np.array( [ True, False, False, True, False, False, False, True, True, True, False, False, False, True, True, False ] ),
-    'LFRic':       np.array( [ True, False, False, True, False, False, True, False, True, False, False, True, False, True, True, True ] ),
+    'LFRic':       np.array( [ True, False, False, True, False, False, True, True, True, True, True, True, False, True, True, True ] ),
     'PlaHab':      np.array( [ True, False, False, True, True, False, True, True, True, True, True, True, True, True, True, True ] ),
     'HEXTOR':      np.array( [ True, False, False, True, False, False, False, True, True, False, True, False, False, True, True, False ] ),
     'ExoColumn':   np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, False ] ),
@@ -109,8 +118,11 @@ style = {
 # (ExoPlaSim, ExoCAM, ROCKE-3D, PlaHab) fail; otherwise 'frozen' if every model
 # with data there puts the global mean below 273.16 K, 'warm' if every model
 # puts it above, and 'mixed' if they disagree on the sign.
+# Case 9 is 'mixed' because HEXTOR puts it at 277.2 K against 239.9-269.7 K in
+# every other model; it read 'frozen' from HEXTOR's arrival (2026-09-01) until
+# 2026-09-10, when the sample-point cross-check against fig_summary.py caught it.
 regime = [ 'frozen', 'runaway', 'runaway', 'mixed', 'mixed', 'runaway', 'mixed', 'frozen',
-           'frozen', 'frozen', 'frozen', 'warm', 'mixed', 'frozen', 'frozen', 'warm' ]
+           'mixed', 'frozen', 'frozen', 'warm', 'mixed', 'frozen', 'frozen', 'warm' ]
 
 # Colors are taken from fig_summary.py so the two figures read as one scheme
 regime_color = { 'frozen':  '#d6e6f4',     # every model below 273.16 K

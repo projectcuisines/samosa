@@ -50,9 +50,9 @@ pcm     = np.array( [ 25.57, 14.42, 22.69, 17.72, 28.53, 19.54, 21.31 ] )
 pcm_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 600 ] ) / fluxscale
 pcm_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
 
-lfric       = np.array( [ 26.03, 35.74, 3.44, 34.16, 23.22, 34.41, 28.25, 21.35 ] )
-lfric_flux1 = np.array( [ 500, 1200, 1600, 1100, 1500, 900, 600, 1400 ] ) / fluxscale
-lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 0.70, 2.98, 1.44, 0.43, 10.00 ] )
+lfric       = np.array( [ 26.03, 35.74, 3.44, 33.84, 34.16, 23.99, 30.39, 23.22, 34.41, 28.25, 21.35 ] )
+lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900, 600, 1400 ] ) / fluxscale
+lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 
 # HEXTOR, cases 1, 4, 8, 9, 11, 14, 15. Clear-sky by construction: HEXTOR has no
 # clouds, so these are surface-plus-Rayleigh albedos and sit well below the rest
@@ -82,15 +82,16 @@ plahab_flux1  = flux1[ plahab_mask ];  plahab_pres1  = pres1[ plahab_mask ];  pl
 # instellation counts s times a unit of normalized log-pressure. Isotropic
 # kriging (s = 1) asserts the two axes are equally informative, which is false
 # for albedo: rerun fit_anisotropy.py after any resubmission.
-# LFRic is pinned at 1 for the same reason: its albedo fit resolves no
-# surface at any ratio, so anisotropy would only flatten it further.
+# LFRic resolved no surface at any ratio on its first seven cases and was
+# pinned at 1. The dark Case 7 (3.44%) made it resolvable from 1.5 upward, and
+# with Cases 8, 10 and 11 (2026-09-10) the LOO minimum moved to 3.
 ANISO = {
     'ExoCAM':       15,
     'ROCKE-3D':     1.5,
     'ExoPlaSim':    1.5,
     'Generic PCM':  5,
     'PlaHab':       4,
-    'LFRic':        1.5,
+    'LFRic':        3,
     'HEXTOR':       15,
     'ExoColumn':    5,
 }

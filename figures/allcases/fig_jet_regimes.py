@@ -41,12 +41,12 @@ rocke3d_tsmin = np.array( [ 143.8, 208.5, 239.8, 246.2, 221.3, 202.7, 175.8, 187
 rocke3d_ratio = np.array( [ 0.454, 0.497, 0.546, 0.408, 0.525, 0.529, 0.477, 0.573, 0.198, 0.458, 0.519, 0.464, 0.246 ] )
 
 # LFRic
-lfric_case  = np.array( [ 1, 4, 7, 9, 12, 14, 15, 16 ] )
-lfric_jet   = ['SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'SJ', 'DJ']
-lfric_jetlat= np.array( [ 1.0, 43.0, 1.0, 1.0, 61.0, 1.0, 1.0, 69.0 ] )
-lfric_umax  = np.array( [ 25.2, 28.2, 21.4, 23.9, 8.8, 26.5, 28.4, -9.4 ] )
-lfric_tsmin = np.array( [ 137.2, 204.5, 389.8, 180.4, 330.4, 170.1, 143.9, 356.1 ] )
-lfric_ratio = np.array( [ 0.704, 0.522, 0.441, 0.614, 0.812, 0.645, 0.705, 0.430 ] )
+lfric_case  = np.array( [ 1, 4, 7, 8, 9, 10, 11, 12, 14, 15, 16 ] )
+lfric_jet   = ['SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'SJ', 'DJ', 'SJ', 'SJ', 'DJ']
+lfric_jetlat= np.array( [ 1.0, 43.0, 1.0, 39.0, 1.0, 1.0, 5.0, 61.0, 1.0, 1.0, 69.0 ] )
+lfric_umax  = np.array( [ 25.2, 28.2, 21.4, 21.9, 23.9, 18.0, 48.7, 8.8, 26.5, 28.4, -9.4 ] )
+lfric_tsmin = np.array( [ 137.2, 204.5, 389.8, 199.9, 180.4, 165.8, 168.0, 330.4, 170.1, 143.9, 356.1 ] )
+lfric_ratio = np.array( [ 0.704, 0.522, 0.441, 0.726, 0.614, 0.817, 0.717, 0.812, 0.645, 0.705, 0.430 ] )
 
 # Generic PCM
 pcm_case  = np.array( [ 1, 4, 8, 9, 10, 14, 15 ] )
@@ -119,7 +119,9 @@ ax.set_ylim( -6, 78 )
 ax.set_xlabel( 'Maximum zonal wind within $10\\degree$ of the equator '
                'at $\\sigma = 0.30$ (m s$^{-1}$)', fontsize=12 )
 ax.set_ylabel( 'Latitude of the tropospheric jet ($\\degree$)', fontsize=12 )
-ax.text( 0.98, 0.12, 'equatorial jet', transform=ax.transAxes, fontsize=10,
+# Kept in the upper part of the shaded band: LFRic Case 11 sits at 48.7 m/s and
+# 5 degrees, at the right-hand end of the single-jet row.
+ax.text( 0.98, 0.22, 'equatorial jet', transform=ax.transAxes, fontsize=10,
          style='italic', color=c_label, ha='right' )
 ax.legend( handles=[ Line2D( [], [], ls='', marker='o', mfc=style[ m ], mec='k',
                              ms=9, label=m ) for m in models ],

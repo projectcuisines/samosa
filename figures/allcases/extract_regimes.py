@@ -74,8 +74,8 @@ Two deliberate departures from the 2018 paper, both forced by this ensemble:
   inversion: the coldest level in the global mean profile is frequently the
   model lid itself, which makes a cold-point tropopause an artifact of where
   each group chose to stop. sigma = 0.30 is inside the domain of all five
-  models. The classification is sensitive to this choice -- of the 66 model-case
-  combinations in the archive, including the ones the paper rejects, only 30
+  models. The classification is sensitive to this choice -- of the 69 model-case
+  combinations in the archive, including the ones the paper rejects, only 32
   keep the same label across sigma = 0.5, 0.3, 0.15, the cold point and an
   upper-tropospheric mean -- so the level has to be stated wherever the figure
   is discussed, and the margin printed below says how close each call was.
@@ -94,7 +94,11 @@ Removing a reference static energy to correct for it brings most models to
 within 20% of the value below, but leaves ExoCAM Cases 8 and 10, Generic PCM
 Cases 8 and 10, and LFRic Case 7 wrong by factors of two to five, in some cases
 with the wrong sign. Only ROCKE-3D, whose residual mass flux is an order of
-magnitude smaller than the rest, agrees throughout. The cause is that the
+magnitude smaller than the rest, agrees throughout. That check predates LFRic
+Cases 8, 10 and 11 (2026-09-10) and has not been repeated for them: the
+reference-energy correction was never saved, and neither a contour-mean nor a
+per-column reference reproduces the failure list above, so it cannot be
+extended without redoing it from scratch. The cause is that the
 protocol asks for time-mean u and time-mean T separately rather than the
 time-mean flux, so the transient eddy contribution is not recoverable at all.
 
@@ -199,7 +203,7 @@ ACCEPTED = {
     'ExoCAM':      [ 1, 4, 8, 9, 10, 11, 12, 14, 15, 16 ],
     'ExoPlaSim':   list( range( 1, 17 ) ),
     'ROCKE-3D':    [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
-    'LFRic':       [ 1, 4, 7, 9, 12, 14, 15, 16 ],
+    'LFRic':       [ 1, 4, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
     'Generic PCM': [ 1, 4, 8, 9, 10, 14, 15 ],
     'PlaHab':      [ 1, 4, 16 ],
 }
@@ -216,8 +220,9 @@ TGLOB = {
                      8: 245.91597, 9: 241.83368, 10: 207.4544, 11: 228.07162,
                      12: 313.99902, 13: 271.92654, 14: 236.30406, 15: 210.50339,
                      16: 319.25085 },
-    'LFRic':       { 1: 195.37, 4: 251.48, 7: 400.52, 9: 241.35, 12: 333.20,
-                     14: 228.84, 15: 203.64, 16: 361.70 },
+    'LFRic':       { 1: 195.37, 4: 251.48, 7: 400.52, 8: 231.83, 9: 241.35,
+                     10: 197.81, 11: 227.52, 12: 333.20, 14: 228.84, 15: 203.64,
+                     16: 361.70 },
     'Generic PCM': { 1: 210.9195445942203, 4: 286.7294656230531,
                      8: 246.76730657647218, 9: 266.5987224285321,
                      10: 210.69131033681012, 14: 246.04296230476365,
