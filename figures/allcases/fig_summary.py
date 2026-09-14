@@ -9,7 +9,7 @@ splay of the individual contours.
 
 Consensus shading uses all eight models, but each model's influence fades with
 distance from the cases it actually ran, and the four partial submissions
-(Generic PCM and HEXTOR with 7 cases each, ExoColumn with 8, LFRic with 11) are
+(Generic PCM with 7 cases, ExoColumn with 8, HEXTOR with 9, LFRic with 11) are
 silenced outside the convex hull of their own cases.  Their isotherms are clipped to that same region, so they read
 as short segments rather than as curves spanning the whole domain.  The
 runaway wash and the per-model agreement count use only the four models that
@@ -39,8 +39,8 @@ pcm_flux1   = np.array( [ 500, 1200,  800, 1100, 400,  900, 600 ] ) / fluxscale
 pcm_pres1   = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 1.44, 0.43 ] )
 lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900,  600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
-hextor_flux1 = np.array( [ 500, 1200,  800, 1100,  900,  900,  600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.0 ] )
 exocolumn_flux1 = np.array( [ 500, 1200,  800, 1100,  400,  900,  900,  600 ] ) / fluxscale
 exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
 
@@ -61,7 +61,7 @@ ts_pcm     = np.array( [ 210.9195445942203, 286.7294656230531, 246.7673065764721
                          266.5987224285321, 210.69131033681012, 246.04296230476365,
                          217.2519558970929 ] )
 ts_lfric   = np.array( [ 195.37, 251.48, 400.52, 231.83, 241.35, 197.81, 227.52, 333.20, 228.84, 203.64, 361.70 ] )
-ts_hextor  = np.array( [ 173.92, 312.24, 225.08, 277.17, 228.72, 242.30, 189.11 ] )
+ts_hextor  = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40, 465.18 ] )
 ts_exocolumn = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 
 
@@ -98,7 +98,7 @@ def norm_flux( f ):
 # fig_interpolation_temp.py panels use. A value of s means one unit of normalized
 # instellation counts s times a unit of normalized log-pressure.
 ANISO = { 'ExoPlaSim': 2, 'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
-          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 7, 'ExoColumn': 7 }
+          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 15, 'ExoColumn': 7 }
 
 def krige( p, f, z, scaling=1.0 ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,
@@ -125,8 +125,8 @@ consensus_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab' ]
 # and nothing above 1600 W m^-2.  Their isotherms are therefore drawn only inside the convex hull
 # of the cases each model actually ran, so that they appear as short segments
 # rather than as curves spanning the whole domain.
-# HEXTOR ran 7 of the 16 cases and nothing above 1200 W m^-2, so it is drawn on
-# the same footing. It is also the only 1-D model in the ensemble and the only
+# HEXTOR converged 9 of the 16 cases and nothing above 1400 W m^-2, so it is
+# drawn on the same footing. It is also the only 1-D model in the ensemble and the only
 # one without clouds, so its isotherms are not a like-for-like comparison with
 # the GCMs even inside its hull; the dashed style marks that.
 # Set to False to omit them entirely.

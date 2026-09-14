@@ -46,11 +46,12 @@ lfric       = np.array( [ 195.37, 251.48, 400.52, 231.83, 241.35, 197.81, 227.52
 lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 
-# HEXTOR, cases 1, 4, 8, 9, 11, 14, 15. The other nine are excluded: eight are
-# runaways beyond the radiative lookup table and Case 10 is CO2 condensing.
-hextor       = np.array( [ 173.92, 312.24, 225.08, 277.17, 228.72, 242.30, 189.11 ] )
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 900, 900, 600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15, 16. The other seven are runaways
+# beyond the radiative lookup table. Resubmitted 2026-09-14 with CO2 at the
+# protocol's 400 ubar partial pressure rather than 400 ppm.
+hextor       = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40, 465.18 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.0 ] )
 
 # ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15. The other eight are incipient
 # runaways: no steady state exists at that (S, p), so the RCE loop never closes.
@@ -71,7 +72,7 @@ ANISO = {
     'PlaHab':       3,
     'LFRic':        15,
     'Generic PCM':  5,
-    'HEXTOR':       7,
+    'HEXTOR':       15,
     'ExoColumn':    7,
 }
 

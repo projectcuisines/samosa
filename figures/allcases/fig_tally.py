@@ -40,12 +40,13 @@ plahab_mask  = np.array( [True,  False, False, True,  True,  False, True,  True,
                            True,  True,  True,  True,  True,  True,  True,  True ] )
 lfric_mask   = np.array( [True,  False, False, True,  False, False, True,  True,
                            True,  True,  True,  True,  False, True,  True,  True ] )
-# HEXTOR: eight of the nine gaps are runaways beyond its radiative lookup
-# table; Case 10 is excluded separately for CO2 condensation.
+# HEXTOR: all seven gaps are runaways beyond its radiative lookup table. Cases
+# 10 and 16 were a CO2-condensation exclusion and a runaway until its CO2 was
+# corrected to the protocol's 400 ubar partial pressure (2026-09-14).
 hextor_mask  = np.array( [True,  False, False, True,  False, False, False, True,
-                           True,  False, True,  False, False, True,  True,  False] )
+                           True,  True,  True,  False, False, True,  True,  True ] )
 # ExoColumn: all eight gaps are incipient runaways with no steady state at that
-# (S, p). Unlike HEXTOR it converges Case 10, having no CO2 condensation.
+# (S, p). It shares HEXTOR's runaway set plus Case 16, which HEXTOR converges.
 exocolumn_mask = np.array( [True,  False, False, True,  False, False, False, True,
                             True,  True,  True,  False, False, True,  True,  False] )
 

@@ -54,12 +54,12 @@ lfric       = np.array( [ 26.03, 35.74, 3.44, 33.84, 34.16, 23.99, 30.39, 23.22,
 lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 
-# HEXTOR, cases 1, 4, 8, 9, 11, 14, 15. Clear-sky by construction: HEXTOR has no
+# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15, 16. Clear-sky by construction: HEXTOR has no
 # clouds, so these are surface-plus-Rayleigh albedos and sit well below the rest
 # of the ensemble wherever the surface is ice-free.
-hextor       = np.array( [ 20.18, 2.24, 14.54, 2.21, 11.36, 7.42, 19.62 ] )
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 900, 900, 600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 0.10, 1.44, 0.43 ] )
+hextor       = np.array( [ 20.09, 2.32, 17.02, 2.16, 21.80, 10.05, 7.64, 19.43, 2.12 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.0 ] )
 
 # ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15. Cloud-free, but its fixed surface
 # albedo of 0.2736 stands in for the shortwave effect of clouds, so unlike

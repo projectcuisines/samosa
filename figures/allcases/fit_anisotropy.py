@@ -4,10 +4,10 @@ The SAMOSA parameter space has two axes with no common unit: instellation and
 log surface pressure. Kriging them with an isotropic distance metric silently
 asserts that one normalized unit of each is equally informative, and for this
 ensemble that is false -- surface temperature and albedo vary far more sharply
-with instellation than with pressure. Left isotropic, HEXTOR degenerates
-completely: its two most widely separated sample points (Case 8 at 6.16 bar and
-Case 11 at 0.10 bar) differ by only 3.6 K, so the fitted variogram slope
-collapses to zero and the panel becomes the sample mean.
+with instellation than with pressure. Left isotropic, HEXTOR's first
+submission degenerated completely: its two most widely separated sample points
+(Case 8 at 6.16 bar and Case 11 at 0.10 bar) differed by only 3.6 K, so the
+fitted variogram slope collapsed to zero and the panel became the sample mean.
 
 pykrige's anisotropy_scaling multiplies the second coordinate, which in every
 SAMOSA call is normalized instellation. A scaling of s therefore means one unit
