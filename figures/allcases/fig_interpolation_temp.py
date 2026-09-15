@@ -1,7 +1,9 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import cmocean
 
+from matplotlib.transforms import offset_copy
 from pykrige.ok import OrdinaryKriging
 
 # ─── Variable configuration ──────────────────────────────────────────────────
@@ -46,18 +48,116 @@ lfric       = np.array( [ 195.37, 251.48, 400.52, 231.83, 241.35, 197.81, 227.52
 lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 
-# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15, 16. The other seven are runaways
-# beyond the radiative lookup table. Resubmitted 2026-09-14 with CO2 at the
-# protocol's 400 ubar partial pressure rather than 400 ppm.
-hextor       = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40, 465.18 ] )
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.0 ] )
+# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15. The other eight are runaways: seven
+# beyond the radiative lookup table, and Case 16, which the corrected submission
+# (2026-09-14, CO2 at the protocol's 400 ubar partial pressure) converges at
+# 465.18 K but which is treated as a runaway here. Its day side sits on the
+# runaway plateau of the outgoing longwave, the archive README says its
+# temperature should not be quoted firmly, and it lies ~100 K above every
+# other model at that sample point.
+hextor       = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
 
 # ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15. The other eight are incipient
 # runaways: no steady state exists at that (S, p), so the RCE loop never closes.
 exocolumn       = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
 exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+
+# Each model's stable samples as ( instellation, pressure, temperature ), in
+# panel order: by model class, ending with the two one-dimensional models.
+MODELS = {
+    'ExoPlaSim':   ( flux1,           pres1,           plasim         ),
+    'ExoCAM':      ( exocam_flux1,    exocam_pres1,    exocam_stable  ),
+    'ROCKE-3D':    ( rocke3d_flux1,   rocke3d_pres1,   rocke3d_stable ),
+    'Generic PCM': ( pcm_flux1,       pcm_pres1,       pcm            ),
+    'LFRic':       ( lfric_flux1,     lfric_pres1,     lfric          ),
+    'PlaHab':      ( plahab_flux1,    plahab_pres1,    plahab_stable  ),
+    'HEXTOR':      ( hextor_flux1,    hextor_pres1,    hextor         ),
+    'ExoColumn':   ( exocolumn_flux1, exocolumn_pres1, exocolumn      ),
+}
+
+# With --gcm, only the four full-complexity GCMs are drawn, dropping ExoPlaSim,
+# PlaHab and the two one-dimensional models.
+GCM = '--gcm' in sys.argv
+if GCM:
+    MODELS = { name: m for name, m in MODELS.items() if name in ( 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic' ) }
+
+# With --common, every model is kriged from only the sample points at which all
+# models shown reached a steady state, so the panels differ in the models and
+# not in where each one was sampled. The set is computed rather than listed, so
+# it follows the arrays above; for all eight models, and for the GCMs alone, it
+# is Cases 1, 4, 8, 9, 10, 14 and 15. The anisotropy ratios are left at the
+# values fitted on each model's full set of cases.
+#
+# With --stacked, the full figure is drawn above the common-case one, each set
+# under its own header and with its own colorbar, the common cases on a color
+# range fitted to their samples.
+COMMON  = '--common' in sys.argv
+STACKED = '--stacked' in sys.argv
+outname = 'fig_interpolation_temp' + ( '_gcm' if GCM else '' ) + ( '_stacked' if STACKED else '_common' if COMMON else '' )
+
+def _at( f, p, fs, ps ):
+    return np.isclose( fs, f ) & np.isclose( ps, p )
+
+def restrict_to_common( models ):
+    common = np.array( [ all( _at( f, p, fs, ps ).any() for fs, ps, _ in models.values() )
+                         for f, p in zip( flux1, pres1 ) ] )
+    cases  = ( np.where( common )[ 0 ] + 1 ).tolist()
+    print( 'cases stable in every model shown:', cases )
+    restricted = {}
+    for name, ( fs, ps, vals ) in models.items():
+        m = np.array( [ common[ _at( f, p, flux1, pres1 ) ].any() for f, p in zip( fs, ps ) ] )
+        restricted[ name ] = ( fs[ m ], ps[ m ], vals[ m ] )
+    return restricted, cases
+
+# A view is the grid a set of panels is kriged on, its axis limits, its color
+# range, and whether it is hatched where the kriging σ is large. The full view
+# covers the whole parameter space. The zoomed view, used for the common cases,
+# is unhatched and spans only the instellation and pressure its samples cover,
+# padded by 50 W/m2 and 10% as the full axes are, since beyond that the kriging
+# merely carries the edge values outward. It is kriged on a finer grid so the
+# contours stay smooth; the normalization below still uses the full grid, which
+# the anisotropy ratios were fitted on.
+def full_view():
+    return dict( flux_grid=flux, pres_grid=pn2, hatch=True, plain_ticks=False,
+                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ],
+                 ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
+                 cmin=contourmin, cmax=contourmax, cticks=cbar_ticks )
+
+# A color range fitted to the samples shown, rounded out to 10 K and ticked
+# every 25 K, for a block that has a colorbar of its own
+def fitted_colors( models ):
+    vals_shown = np.concatenate( [ vals for _, _, vals in models.values() ] )
+    cmin = 10*np.floor( vals_shown.min()/10 )
+    cmax = 10*np.ceil( vals_shown.max()/10 )
+    return dict( cmin=cmin, cmax=cmax, cticks=np.arange( 25*np.ceil( cmin/25 ), cmax + 1, 25 ) )
+
+def zoomed_view( models ):
+    fs_shown  = np.concatenate( [ fs for fs, _, _ in models.values() ] )
+    ps_shown  = np.concatenate( [ ps for _, ps, _ in models.values() ] )
+    flux_grid = np.linspace( fs_shown.min() - 0.5, fs_shown.max() + 0.5, 41 )
+    pres_grid = np.geomspace( ps_shown.min()*0.9, ps_shown.max()*1.1, 41 )
+    return dict( flux_grid=flux_grid, pres_grid=pres_grid, hatch=False, plain_ticks=True,
+                 xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ],
+                 ylim=[ min( pres_grid ), max( pres_grid ) ],
+                 cmin=contourmin, cmax=contourmax, cticks=cbar_ticks )
+
+# Each block is ( header, models, view ), drawn as rows of four panels. Stacked,
+# each block has its own colorbar and the common cases get a narrower color
+# range; alone, they keep the full one so they compare directly with Figure 3.
+if STACKED or COMMON:
+    common_models, common_cases = restrict_to_common( MODELS )
+    common_block = ( 'Cases stable in every model (' + ', '.join( map( str, common_cases ) ) + ')',
+                     common_models, zoomed_view( common_models ) )
+if STACKED:
+    common_block[ 2 ].update( fitted_colors( common_models ) )
+    blocks = [ ( 'All stable cases in each model', MODELS, full_view() ), common_block ]
+elif COMMON:
+    blocks = [ common_block ]
+else:
+    blocks = [ ( None, MODELS, full_view() ) ]
 
 # Kriging anisotropy, fitted per model by leave-one-out cross-validation in
 # fit_anisotropy.py. pykrige scales the second coordinate, which here is
@@ -87,232 +187,85 @@ def norm_pres( p ):
 def norm_flux( f ):
     return ( f - flux_min ) / ( flux_max - flux_min )
 
-# Two rows of four, with the colorbar alongside rather than occupying a panel
-# slot. Panels are ordered by model class, ending with the two one-dimensional
-# models.
-fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
-                                 [ 'P5', 'P6', 'P7', 'P8' ]],
-                               figsize=(22, 9) )
+def krige( name, fs, ps, vals, view ):
+    OK = OrdinaryKriging(
+        norm_pres( ps ),
+        norm_flux( fs ),
+        vals,
+        anisotropy_scaling=ANISO[ name ],
+        variogram_model="linear",
+        verbose=False,
+        enable_plotting=False,
+        exact_values=True,
+    )
+    return OK.execute( "grid", norm_pres( view[ 'pres_grid' ] ), norm_flux( view[ 'flux_grid' ] ) )
 
-#--------------------------------------------------------------------
-# ExoCAM Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( exocam_pres1 ),
-    norm_flux( exocam_flux1 ),
-    exocam_stable,
-    anisotropy_scaling=ANISO[ 'ExoCAM' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-z1, z1_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-xv, yv = np.meshgrid( pn2, flux )
-
-#--------------------------------------------------------------------
-# ROCKE-3D Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( rocke3d_pres1 ),
-    norm_flux( rocke3d_flux1 ),
-    rocke3d_stable,
-    anisotropy_scaling=ANISO[ 'ROCKE-3D' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-R3_z1, R3_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-
-#--------------------------------------------------------------------
-# Generic PCM Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( pcm_pres1 ),
-    norm_flux( pcm_flux1 ),
-    pcm,
-    anisotropy_scaling=ANISO[ 'Generic PCM' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-pcm_z1, pcm_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-
-#--------------------------------------------------------------------
-# ExoPlaSim Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( pres1 ),
-    norm_flux( flux1 ),
-    plasim,
-    anisotropy_scaling=ANISO[ 'ExoPlaSim' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-PlaSim_z1, PlaSim_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-
-#--------------------------------------------------------------------
-# PlaHab Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( plahab_pres1 ),
-    norm_flux( plahab_flux1 ),
-    plahab_stable,
-    anisotropy_scaling=ANISO[ 'PlaHab' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-PlaHab_z1, PlaHab_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-
-#--------------------------------------------------------------------
-# LFRic Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( lfric_pres1 ),
-    norm_flux( lfric_flux1 ),
-    lfric,
-    anisotropy_scaling=ANISO[ 'LFRic' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-lfric_z1, lfric_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-
-#--------------------------------------------------------------------
-# HEXTOR Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( hextor_pres1 ),
-    norm_flux( hextor_flux1 ),
-    hextor,
-    anisotropy_scaling=ANISO[ 'HEXTOR' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-hextor_z1, hextor_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-
-#--------------------------------------------------------------------
-# ExoColumn Kriging
-
-OK = OrdinaryKriging(
-    norm_pres( exocolumn_pres1 ),
-    norm_flux( exocolumn_flux1 ),
-    exocolumn,
-    anisotropy_scaling=ANISO[ 'ExoColumn' ],
-    variogram_model="linear",
-    verbose=False,
-    enable_plotting=False,
-    exact_values=True,
-)
-
-exocolumn_z1, exocolumn_var = OK.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
-
-# Shared axis limits
-xlim = [ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ]
-ylim = [ min( pn2 )*0.9, max( pn2 )*1.1 ]
-contour_levels = np.linspace( contourmin, contourmax, cinterval )
 marker_edge = 'k'
 
-def setup_panel( ax, title ):
+def setup_panel( ax, title, view ):
     ax.set_title( title, fontsize=14 )
     ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
     ax.set_ylabel( 'Surface pressure (bar)', fontsize=12 )
     ax.tick_params( axis='x', labelsize=11 )
     ax.tick_params( axis='y', labelsize=11 )
     ax.set_yscale( 'log' )
-    ax.set_xlim( xlim )
-    ax.set_ylim( ylim )
+    ax.set_xlim( view[ 'xlim' ] )
+    ax.set_ylim( view[ 'ylim' ] )
+    if view[ 'plain_ticks' ]:
+        # Under a decade of pressure holds only one power of ten, so label plain values
+        ax.set_yticks( [ 0.5, 1, 2, 5 ], labels=[ '0.5', '1', '2', '5' ] )
+        ax.yaxis.set_minor_formatter( plt.NullFormatter() )
+
+def draw_panel( ax, name, fs, ps, vals, view ):
+    z, var = krige( name, fs, ps, vals, view )
+    xv, yv = np.meshgrid( view[ 'pres_grid' ], view[ 'flux_grid' ] )
+    levels = np.linspace( view[ 'cmin' ], view[ 'cmax' ], cinterval )
+    cf = ax.contourf( yv*fluxscale, xv, z, cmap=cm, levels=levels, extend='both' )
+    if view[ 'hatch' ]:
+        ax.contourf( yv*fluxscale, xv, np.sqrt(var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+    ax.scatter( fs*fluxscale, ps, c=vals, cmap=cm, vmin=view[ 'cmin' ], vmax=view[ 'cmax' ], marker='o', s=70, edgecolors=marker_edge )
+    setup_panel( ax, f'{name} (n={len(vals)})', view )
+    return cf
+
+def add_colorbar( fig, cf, rect, view ):
+    cax = fig.add_axes( rect )
+    cb = fig.colorbar( cf, cax=cax, extend='both', ticks=view[ 'cticks' ] )
+    cb.ax.tick_params( labelsize=11 )
+    cb.ax.get_yaxis().labelpad = 15
+    cb.set_label( cbar_label, rotation=270, fontsize=12 )
 
 #--------------------------------------------------------------------
-# Panel 1
+# Panels: rows of four, with the colorbar alongside rather than occupying a
+# panel slot. Each block is two rows for all eight models or one for the GCMs,
+# so panels keep the same size.
 
-cf1 = axd[ 'P1' ].contourf( yv*fluxscale, xv, PlaSim_z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P1' ].contourf( yv*fluxscale, xv, np.sqrt(PlaSim_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P1' ].scatter( flux1*fluxscale, pres1, c=plasim, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P1' ], f'ExoPlaSim (n={len(plasim)})' )
-
-#--------------------------------------------------------------------
-# Panel 2
-
-cf2 = axd[ 'P2' ].contourf( yv*fluxscale, xv, z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P2' ].contourf( yv*fluxscale, xv, np.sqrt(z1_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P2' ].scatter( exocam_flux1*fluxscale, exocam_pres1, c=exocam_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P2' ], f'ExoCAM (n={len(exocam_stable)})' )
-
-#--------------------------------------------------------------------
-# Panel 3
-
-cf3 = axd[ 'P3' ].contourf( yv*fluxscale, xv, R3_z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P3' ].contourf( yv*fluxscale, xv, np.sqrt(R3_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P3' ].scatter( rocke3d_flux1*fluxscale, rocke3d_pres1, c=rocke3d_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P3' ], f'ROCKE-3D (n={len(rocke3d_stable)})' )
-
-#--------------------------------------------------------------------
-# Panel 4
-
-cf4 = axd[ 'P4' ].contourf( yv*fluxscale, xv, pcm_z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P4' ].contourf( yv*fluxscale, xv, np.sqrt(pcm_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P4' ].scatter( pcm_flux1*fluxscale, pcm_pres1, c=pcm, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P4' ], f'Generic PCM (n={len(pcm)})' )
-
-#--------------------------------------------------------------------
-# Panel 5
-
-cf5 = axd[ 'P5' ].contourf( yv*fluxscale, xv, lfric_z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P5' ].contourf( yv*fluxscale, xv, np.sqrt(lfric_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P5' ].scatter( lfric_flux1*fluxscale, lfric_pres1, c=lfric, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P5' ], f'LFRic (n={len(lfric)})' )
-
-#--------------------------------------------------------------------
-# Panel 6
-
-cf6 = axd[ 'P6' ].contourf( yv*fluxscale, xv, PlaHab_z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P6' ].contourf( yv*fluxscale, xv, np.sqrt(PlaHab_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P6' ].scatter( plahab_flux1*fluxscale, plahab_pres1, c=plahab_stable, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P6' ], f'PlaHab (n={len(plahab_stable)})' )
-
-#--------------------------------------------------------------------
-# Panel 7
-
-cf7 = axd[ 'P7' ].contourf( yv*fluxscale, xv, hextor_z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P7' ].contourf( yv*fluxscale, xv, np.sqrt(hextor_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P7' ].scatter( hextor_flux1*fluxscale, hextor_pres1, c=hextor, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P7' ], f'HEXTOR (n={len(hextor)})' )
-
-#--------------------------------------------------------------------
-# Panel 8
-
-cf8 = axd[ 'P8' ].contourf( yv*fluxscale, xv, exocolumn_z1, cmap=cm, levels=contour_levels, extend='both' )
-axd[ 'P8' ].contourf( yv*fluxscale, xv, np.sqrt(exocolumn_var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-axd[ 'P8' ].scatter( exocolumn_flux1*fluxscale, exocolumn_pres1, c=exocolumn, cmap=cm, vmin=contourmin, vmax=contourmax, marker='o', s=70, edgecolors=marker_edge )
-setup_panel( axd[ 'P8' ], f'ExoColumn (n={len(exocolumn)})' )
+nrows = len( MODELS ) // 4
+if len( blocks ) == 1:
+    _, models, view = blocks[ 0 ]
+    fig, axs = plt.subplots( nrows, 4, figsize=(22, 4.5*nrows), squeeze=False )
+    for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
+        cf = draw_panel( ax, name, fs, ps, vals, view )
+    fig.subplots_adjust( wspace=0.3, hspace=0.4, right=0.88 )
+    add_colorbar( fig, cf, [ 0.905, 0.12, 0.013, 0.76 ], view )
+else:
+    # Blocks one above another, each under a bold header and with a colorbar
+    # of its own spanning its rows
+    fig   = plt.figure( figsize=(22, 10*nrows) )
+    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.25, right=0.88 )
+    above = offset_copy( fig.transFigure, fig=fig, y=32, units='points' )
+    for b, ( header, models, view ) in enumerate( blocks ):
+        axs = outer[ b ].subgridspec( nrows, 4, wspace=0.3, hspace=0.4 ).subplots( squeeze=False )
+        for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
+            cf = draw_panel( ax, name, fs, ps, vals, view )
+        top_left, top_right = axs[ 0, 0 ].get_position(), axs[ 0, -1 ].get_position()
+        fig.text( ( top_left.x0 + top_right.x1 )/2, top_left.y1, header, transform=above,
+                  ha='center', va='bottom', fontsize=18, fontweight='bold' )
+        bottom = axs[ -1, 0 ].get_position().y0
+        add_colorbar( fig, cf, [ 0.905, bottom, 0.013, top_left.y1 - bottom ], view )
 
 #--------------------------------------------------------------------
 # Finalize
 
-fig.subplots_adjust( wspace=0.3, hspace=0.4, right=0.88 )
-cax = fig.add_axes( [ 0.905, 0.12, 0.013, 0.76 ] )
-cb = fig.colorbar( cf1, cax=cax, extend='both', ticks=cbar_ticks )
-cb.ax.tick_params( labelsize=11 )
-cb.ax.get_yaxis().labelpad = 15
-cb.set_label( cbar_label, rotation=270, fontsize=12 )
-
-fig.savefig( "fig_interpolation_temp.png", bbox_inches='tight' )
-fig.savefig( "fig_interpolation_temp.eps", bbox_inches='tight' )
+fig.savefig( f"{outname}.png", bbox_inches='tight' )
+fig.savefig( f"{outname}.eps", bbox_inches='tight' )
 #plt.show()

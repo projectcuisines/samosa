@@ -74,7 +74,7 @@ ACCEPTED = {
     'Generic PCM': [ 1, 4, 8, 9, 10, 14, 15 ],
     'LFRic':       [ 1, 4, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
     'PlaHab':      [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
-    'HEXTOR':      [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ],
+    'HEXTOR':      [ 1, 4, 8, 9, 10, 11, 14, 15 ],      # 16 converges but is treated as a runaway
     'ExoColumn':   [ 1, 4, 8, 9, 10, 11, 14, 15 ],
 }
 
@@ -246,9 +246,11 @@ print( '\n=== fig_interpolation_albedo.py: albedo (%), 200.0 = runaway sentinel 
 for m in order:
     a = data[ m ][ 'alb' ]
     # Compact form for the models that cover a subset of the 16 sample points.
-    # HEXTOR is listed here with the partial models. Its seven gaps are all
-    # runaways; before its CO2 was corrected to the protocol's 400 ubar partial
-    # pressure (2026-09-14) Case 10 was a CO2-condensation exclusion instead.
+    # HEXTOR is listed here with the partial models. Its eight gaps are all
+    # treated as runaways, Case 16 included although it converges (see
+    # fig_interpolation_temp.py); before its CO2 was corrected to the protocol's
+    # 400 ubar partial pressure (2026-09-14) Case 10 was a CO2-condensation
+    # exclusion instead.
     if m in ( 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ):
         sel = [ a[ c-1 ] for c in ACCEPTED[ m ] ]
         print( f'  {m:12s} {fmt(sel)}   (cases {ACCEPTED[m]})' )

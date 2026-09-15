@@ -96,7 +96,7 @@ accepted = {
     'Generic PCM': np.array( [ True, False, False, True, False, False, False, True, True, True, False, False, False, True, True, False ] ),
     'LFRic':       np.array( [ True, False, False, True, False, False, True, True, True, True, True, True, False, True, True, True ] ),
     'PlaHab':      np.array( [ True, False, False, True, True, False, True, True, True, True, True, True, True, True, True, True ] ),
-    'HEXTOR':      np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, True ] ),
+    'HEXTOR':      np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, False ] ),  # 16 converges but is treated as a runaway
     'ExoColumn':   np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, False ] ),
 }
 

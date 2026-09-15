@@ -20,13 +20,14 @@
 # longitude, and its caseN_tsurf.out files exist for exactly the three selected
 # cases.
 #
-# HEXTOR is included at all three cases. It is one-dimensional in the tidally
+# HEXTOR is included at Cases 1 and 4. It is one-dimensional in the tidally
 # locked coordinate, so its 18 belts are indexed by theta, the angle from the
-# substellar point, which is very nearly the variable plotted here. Its first
-# submission had no steady state at Case 16; with CO2 corrected to the
-# protocol's 400 ubar partial pressure (2026-09-14) that case converges at a
-# 465 K global mean, its day side on the runaway plateau of the outgoing
-# longwave, and it sets the vertical scale of that panel.
+# substellar point, which is very nearly the variable plotted here. It is
+# absent from Case 16: its corrected submission (2026-09-14, CO2 at the
+# protocol's 400 ubar partial pressure) converges there at a 465 K global mean,
+# but with its day side on the runaway plateau of the outgoing longwave, and
+# the analysis treats that case as a runaway, as in every other figure in
+# which HEXTOR appears.
 #
 # ExoColumn is a single column and cannot appear at all.
 #
@@ -189,7 +190,8 @@ def read_hextor(case, lon_deg, nlat=721):
     return np.asarray(lon_deg, dtype=float), prof
 
 _hextor_lon = np.linspace(-180.0, 180.0, 361)
-hextor = [read_hextor(1, _hextor_lon), read_hextor(4, _hextor_lon), read_hextor(16, _hextor_lon)]
+# Case 16 is treated as a runaway for HEXTOR and is omitted; see above.
+hextor = [read_hextor(1, _hextor_lon), read_hextor(4, _hextor_lon), None]
 
 
 # -- Figure ----------------------------------------------------------
@@ -238,8 +240,8 @@ from matplotlib.lines import Line2D
 # models go above the panels, as in fig_energy_balance.py, and the reference
 # lines are keyed below. Two legends cannot share 'outside lower center':
 # constrained layout gives them the same slot and the second hides the first.
-# Case 16 carries six curves rather than seven, the Generic PCM having no
-# converged solution there.
+# Case 16 carries five curves rather than seven, the Generic PCM having no
+# converged solution there and HEXTOR's being treated as a runaway.
 model_handles = [Line2D([0], [0], ls='-', label=MODEL_LABELS[m], **MODEL_STYLES[m])
                  for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab', 'HEXTOR')]
 style_handles = [
