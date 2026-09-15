@@ -14,13 +14,20 @@ silenced outside the convex hull of their own cases.  Their isotherms are clippe
 as short segments rather than as curves spanning the whole domain.  The
 runaway wash and the per-model agreement count use only the four models that
 attempted all 16 cases (ExoPlaSim, ExoCAM, ROCKE-3D, PlaHab).
+
+With --common, every model is kriged from only the cases stable in all eight
+models (1, 4, 8, 9, 10, 14, 15), on a grid zoomed to the range those cases span.
+Every model then ran exactly the same cases, so none is partial: no model fades
+or is clipped, and every isotherm is drawn across the whole zoomed panel. With
+--stacked, the full panel and the common-case panel are drawn side by side.
 """
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
-from matplotlib.patches import Patch
 from matplotlib.path import Path
+from scipy.ndimage import distance_transform_edt
 from scipy.spatial import ConvexHull
 
 from pykrige.ok import OrdinaryKriging
@@ -72,6 +79,9 @@ ts_plahab_mask  = ts_plahab  != runawaytemp
 T_FREEZE     = 273.16
 sigma_thresh = 45.0      # K, matches fig_interpolation_temp.py
 
+COMMON  = '--common' in sys.argv
+STACKED = '--stacked' in sys.argv
+
 # ── Kriging onto a fine display grid ──────────────────────────────────────────
 fluxf = np.linspace( 400, 2600, 221 ) / fluxscale
 # The 20 protocol pressures are rounded to two decimals and so are not exactly
@@ -100,12 +110,12 @@ def norm_flux( f ):
 ANISO = { 'ExoPlaSim': 2, 'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
           'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 15, 'ExoColumn': 7 }
 
-def krige( p, f, z, scaling=1.0 ):
+def krige( p, f, z, scaling=1.0, pres_grid=pn2f, flux_grid=fluxf ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,
                           anisotropy_scaling=scaling,
                           variogram_model="linear", verbose=False,
                           enable_plotting=False, exact_values=True )
-    return ok.execute( "grid", norm_pres( pn2f ), norm_flux( fluxf ) )
+    return ok.execute( "grid", norm_pres( pres_grid ), norm_flux( flux_grid ) )
 
 # Model style, following fig_energy_balance.py
 style = { 'ExoPlaSim':   dict( color='#ff7f0e', ls='-'  ),
@@ -144,25 +154,17 @@ ts_in = {
     'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          ts_exocolumn ),
 }
 
-Z, WELL, SIG = {}, {}, {}
-for name, ( p, f, z ) in ts_in.items():
-    zz, vv    = krige( p, f, z, ANISO[ name ] )
-    Z[ name ] = np.asarray( zz )
-    SIG[ name ]  = np.sqrt( np.asarray( vv ) )
-    WELL[ name ] = SIG[ name ] < sigma_thresh
-
 
 # The plane is split by the sign of the global mean surface temperature:
 #
 #   blue    every model places the global mean below 273.16 K
 #   green   every model places it above 273.16 K
 #   white   the models disagree on the sign
-def sampled_region( p_pts, f_pts ):
+def sampled_region( p_pts, f_pts, PP, FF ):
     """Mask of the display grid lying inside the convex hull of a model's own
     sample points, taken in the same normalized coordinates used for kriging."""
     pts  = np.column_stack( [ norm_pres( p_pts ), norm_flux( f_pts ) ] )
     poly = Path( pts[ ConvexHull( pts ).vertices ] )
-    PP, FF = np.meshgrid( norm_pres( pn2f ), norm_flux( fluxf ) )
     return poly.contains_points( np.column_stack( [ PP.ravel(), FF.ravel() ] ) ).reshape( PP.shape )
 
 
@@ -189,16 +191,11 @@ d_full, d_none = 0.30, 0.55     # normalized (log p, flux) units
 # fade abrupt in effect however smooth it was in space.
 SLACK = 5.0
 
-_PP, _FF = np.meshgrid( norm_pres( pn2f ), norm_flux( fluxf ) )
-
-def influence( name ):
-    p, f, _ = ts_in[ name ]
-    d = np.min( np.hypot( _PP[ ..., None ] - norm_pres( p ),
-                          _FF[ ..., None ] - norm_flux( f ) ), axis=-1 )
+def influence( p, f, PP, FF ):
+    d = np.min( np.hypot( PP[ ..., None ] - norm_pres( p ),
+                          FF[ ..., None ] - norm_flux( f ) ), axis=-1 )
     a = np.clip( ( d_none - d ) / ( d_none - d_full ), 0.0, 1.0 )
     return a * a * ( 3.0 - 2.0 * a )        # smoothstep, C1 continuous
-
-alpha = { n: influence( n ) for n in mean_models }
 
 # A partial model is silenced entirely outside the convex hull of its own cases,
 # the same clipping already applied to its drawn isotherm. Without this the
@@ -214,50 +211,23 @@ alpha = { n: influence( n ) for n in mean_models }
 # with a small buffer around each sample point.
 HULL_W = 0.12         # normalized units over which a partial model fades out
 
-def hull_sdist( p_pts, f_pts ):
+def hull_sdist( p_pts, f_pts, PP, FF ):
     """Signed distance to the convex hull of a model's own cases, negative
     inside. Exact on the outward side of each edge, which is all that the
     taper needs."""
     pts = np.column_stack( [ norm_pres( p_pts ), norm_flux( f_pts ) ] )
     V   = pts[ ConvexHull( pts ).vertices ]
-    d   = np.full( _PP.shape, -1e9 )
+    d   = np.full( PP.shape, -1e9 )
     for k in range( len( V ) ):
         a, b = V[ k ], V[ ( k + 1 ) % len( V ) ]
         e = b - a
         L = np.hypot( *e )
-        d = np.maximum( d, ( e[1] / L ) * ( _PP - a[0] ) - ( e[0] / L ) * ( _FF - a[1] ) )
+        d = np.maximum( d, ( e[1] / L ) * ( PP - a[0] ) - ( e[0] / L ) * ( FF - a[1] ) )
     return d
 
 def smoothstep( x ):
     x = np.clip( x, 0.0, 1.0 )
     return x * x * ( 3.0 - 2.0 * x )
-
-# A hard 0/1 hull mask makes alpha discontinuous, and with it the consensus
-# margins, so the band edge jumps where the hull boundary crosses it. The mask
-# is therefore a taper over HULL_W rather than a step, and the margins below
-# blend toward a small positive slack rather than adding a large penalty, so
-# that a fading model hands over gradually to the next one.
-for n in partial_models:
-    p_pts, f_pts, _ = ts_in[ n ]
-    alpha[ n ] = alpha[ n ] * smoothstep( ( HULL_W - hull_sdist( p_pts, f_pts ) ) / HULL_W )
-
-# margin > 0 means the model places the global mean below freezing
-def consensus_bands( names ):
-    cold = [ alpha[ n ] * ( T_FREEZE - Z[ n ] ) + ( 1.0 - alpha[ n ] ) * SLACK for n in names ]
-    warm = [ alpha[ n ] * ( Z[ n ] - T_FREEZE ) + ( 1.0 - alpha[ n ] ) * SLACK for n in names ]
-    # At least one model must actually be constraining, or neither band is asserted
-    con  = np.max( [ alpha[ n ] for n in names ], axis=0 ) > 0.5
-    return ( ( np.min( cold, axis=0 ) >  0.0 ) & con,
-             ( np.min( warm, axis=0 ) >= 0.0 ) & con )
-
-band_blue, band_warm = consensus_bands( mean_models )
-
-# The contested band is split by whether PlaHab, the only 2-D model, is needed
-# to produce the disagreement. Adding a model can only shrink the two consensus
-# bands, so the 3-D contested region is a strict subset of the full one and the
-# difference is exactly the area PlaHab alone makes contested.
-mean_models_3d = [ n for n in mean_models if n != 'PlaHab' ]
-band_blue_3d, band_warm_3d = consensus_bands( mean_models_3d )
 
 # Silencing a partial model at its hull edge can punch an interior hole in the
 # contested band: just outside the Generic PCM hull near 2.6-2.8 bar it stops
@@ -277,38 +247,154 @@ def close_rows( M ):
             out[ w.min():w.max() + 1, j ] = True
     return out
 
-contested_all = close_rows( ~( band_blue    | band_warm    ) )
-contested_3d  = close_rows( ~( band_blue_3d | band_warm_3d ) )
-contested_all = contested_all | contested_3d          # keep white inside grey
-contested_plahab = contested_all & ~contested_3d
+def consensus( models, pres_grid, flux_grid, fade ):
+    """Kriged global means and consensus regions of one panel. With fade, each
+    model's weight falls with distance from its own cases and partial models are
+    silenced outside their hulls; without it, every model counts fully
+    everywhere, which is right only when all models ran the same cases."""
+    PP, FF = np.meshgrid( norm_pres( pres_grid ), norm_flux( flux_grid ) )
+    Z, WELL, SIG = {}, {}, {}
+    for name, ( p, f, z ) in models.items():
+        zz, vv    = krige( p, f, z, ANISO[ name ], pres_grid, flux_grid )
+        Z[ name ] = np.asarray( zz )
+        SIG[ name ]  = np.sqrt( np.asarray( vv ) )
+        WELL[ name ] = SIG[ name ] < sigma_thresh
 
-# The three regions must stay a partition of the plane
-band_blue = band_blue & ~contested_all
-band_warm = band_warm & ~contested_all
-# The mean-field WELL mask is not applied to the ice-free band: ExoCAM and
-# ROCKE-3D lose their hot cases to runaway, so that mask is false across most of
-# the region this band occupies.  The majority-runaway wash drawn on top already
-# marks where the hot end is unconstrained.
+    if fade:
+        alpha = { n: influence( *models[ n ][ :2 ], PP, FF ) for n in mean_models }
+        # A hard 0/1 hull mask makes alpha discontinuous, and with it the consensus
+        # margins, so the band edge jumps where the hull boundary crosses it. The mask
+        # is therefore a taper over HULL_W rather than a step, and the margins below
+        # blend toward a small positive slack rather than adding a large penalty, so
+        # that a fading model hands over gradually to the next one.
+        for n in partial_models:
+            p_pts, f_pts, _ = models[ n ]
+            alpha[ n ] = alpha[ n ] * smoothstep( ( HULL_W - hull_sdist( p_pts, f_pts, PP, FF ) ) / HULL_W )
+    else:
+        alpha = { n: np.ones( PP.shape ) for n in mean_models }
 
+    # margin > 0 means the model places the global mean below freezing
+    def consensus_bands( names ):
+        cold = [ alpha[ n ] * ( T_FREEZE - Z[ n ] ) + ( 1.0 - alpha[ n ] ) * SLACK for n in names ]
+        warm = [ alpha[ n ] * ( Z[ n ] - T_FREEZE ) + ( 1.0 - alpha[ n ] ) * SLACK for n in names ]
+        # At least one model must actually be constraining, or neither band is asserted
+        con  = np.max( [ alpha[ n ] for n in names ], axis=0 ) > 0.5
+        return ( ( np.min( cold, axis=0 ) >  0.0 ) & con,
+                 ( np.min( warm, axis=0 ) >= 0.0 ) & con )
 
-n_warm = np.array( [ ( Z[n] > T_FREEZE ) & WELL[n] for n in consensus_models ] ).sum( axis=0 )
-n_well = np.array( [ WELL[n]                       for n in consensus_models ] ).sum( axis=0 )
-frac_warm  = np.where( n_well > 0, n_warm / np.maximum( n_well, 1 ), np.nan )
+    band_blue, band_warm = consensus_bands( mean_models )
 
-# Runaway: fraction of the consensus models in runaway, from the kriged 0/1 indicator
-run_ind = { 'ExoPlaSim': np.zeros( 16 ),
-            'ExoCAM':    ( ~ts_exocam_mask  ).astype( float ),
-            'ROCKE-3D':  ( ~ts_rocke3d_mask ).astype( float ),
-            'PlaHab':    ( ~ts_plahab_mask  ).astype( float ) }
-R = {}
-for name, ind in run_ind.items():
-    R[ name ] = ( np.zeros_like( Z['ExoPlaSim'] ) if ind.sum() == 0
-                  else np.asarray( krige( pres1, flux1, ind )[0] ) )
-frac_run = np.array( [ R[n] > 0.5 for n in consensus_models ] ).mean( axis=0 )
+    # The contested band is split by whether PlaHab, the only 2-D model, is needed
+    # to produce the disagreement. Adding a model can only shrink the two consensus
+    # bands, so the 3-D contested region is a strict subset of the full one and the
+    # difference is exactly the area PlaHab alone makes contested.
+    mean_models_3d = [ n for n in mean_models if n != 'PlaHab' ]
+    band_blue_3d, band_warm_3d = consensus_bands( mean_models_3d )
+
+    contested_all = close_rows( ~( band_blue    | band_warm    ) )
+    contested_3d  = close_rows( ~( band_blue_3d | band_warm_3d ) )
+    contested_all = contested_all | contested_3d          # keep white inside grey
+    contested_plahab = contested_all & ~contested_3d
+
+    # The three regions must stay a partition of the plane
+    band_blue = band_blue & ~contested_all
+    band_warm = band_warm & ~contested_all
+    # The mean-field WELL mask is not applied to the ice-free band: ExoCAM and
+    # ROCKE-3D lose their hot cases to runaway, so that mask is false across most of
+    # the region this band occupies.  The majority-runaway wash drawn on top already
+    # marks where the hot end is unconstrained.
+
+    return dict( Z=Z, WELL=WELL, PP=PP, FF=FF, pres_grid=pres_grid, flux_grid=flux_grid,
+                 band_blue=band_blue, band_warm=band_warm, contested_all=contested_all,
+                 contested_3d=contested_3d, contested_plahab=contested_plahab )
+
+# Area fractions of the plane as drawn: flux is linear and pressure logarithmic.
+# The pressure grid is no longer uniform once the protocol pressures are merged
+# in, so cells are weighted by their width in log pressure.
+def report_areas( title, B ):
+    _wp = np.gradient( np.log( B[ 'pres_grid' ] ) )
+    _W  = np.broadcast_to( _wp, ( len( B[ 'flux_grid' ] ), len( B[ 'pres_grid' ] ) ) )
+    area = lambda M: float( np.sum( M * _W ) / np.sum( _W ) )
+    print( title )
+    for label, m in ( ( 'all models below freezing', B[ 'band_blue' ] ),
+                      ( 'all models above freezing', B[ 'band_warm' ] ),
+                      ( 'contested, 3-D models only', B[ 'contested_3d' ] ),
+                      ( 'contested, PlaHab only',     B[ 'contested_plahab' ] ),
+                      ( 'contested, total',           B[ 'contested_all' ] ) ):
+        print( f'  {label:28s} {100.0 * area( m ):5.1f}%' )
+
+# ── Panels ────────────────────────────────────────────────────────────────────
+panels = []
+
+if not COMMON or STACKED:
+    full = consensus( ts_in, pn2f, fluxf, fade=True )
+
+    n_warm = np.array( [ ( full['Z'][n] > T_FREEZE ) & full['WELL'][n] for n in consensus_models ] ).sum( axis=0 )
+    n_well = np.array( [ full['WELL'][n]                               for n in consensus_models ] ).sum( axis=0 )
+    frac_warm  = np.where( n_well > 0, n_warm / np.maximum( n_well, 1 ), np.nan )
+
+    # Runaway: fraction of the consensus models in runaway, from the kriged 0/1 indicator
+    run_ind = { 'ExoPlaSim': np.zeros( 16 ),
+                'ExoCAM':    ( ~ts_exocam_mask  ).astype( float ),
+                'ROCKE-3D':  ( ~ts_rocke3d_mask ).astype( float ),
+                'PlaHab':    ( ~ts_plahab_mask  ).astype( float ) }
+    R = {}
+    for name, ind in run_ind.items():
+        R[ name ] = ( np.zeros_like( full['Z']['ExoPlaSim'] ) if ind.sum() == 0
+                      else np.asarray( krige( pres1, flux1, ind )[0] ) )
+    full[ 'frac_run' ] = np.array( [ R[n] > 0.5 for n in consensus_models ] ).mean( axis=0 )
+
+    # QMC sample points: filled where all consensus models are stable, open cross where
+    # two or more report a runaway
+    runaway_count = np.array( [ ( ~ts_exocam_mask ).astype( int ),
+                                ( ~ts_rocke3d_mask ).astype( int ),
+                                ( ~ts_plahab_mask ).astype( int ) ] ).sum( axis=0 )
+    # Case 10 sits against the right-hand edge and Case 16 against the top, so their
+    # labels are placed inboard rather than with the default offset.
+    full.update( header='All stable cases in each model',
+                 cases=list( range( 16 ) ), crossed=runaway_count >= 2,
+                 label_offset={ 10: ( -17, 5 ), 16: ( 7, -14 ) },
+                 isotherm_mask=lambda name: full[ 'WELL' ][ name ] & (
+                     sampled_region( *ts_in[ name ][ :2 ], full[ 'PP' ], full[ 'FF' ] )
+                     if name in partial_models else True ),
+                 # Label positions chosen from the widest, emptiest part of each shaded region
+                 region_labels=[ ( 'all models\nglobal mean\nbelow freezing', ( 950, 0.30 ) ),
+                                 ( 'all models\nglobal mean\nabove freezing', ( 1575, 1.67 ) ) ],
+                 xlim=( 2650, 350 ), ylim=( 0.09, 11 ), plain_ticks=False, legend=True )
+    report_areas( '=== fraction of the plane ===', full )
+    panels.append( full )
+
+if COMMON or STACKED:
+    def _at( f, p, fs, ps ):
+        return np.isclose( fs, f ) & np.isclose( ps, p )
+    keep  = np.array( [ all( _at( f, p, fs, ps ).any() for ps, fs, _ in ts_in.values() )
+                        for f, p in zip( flux1, pres1 ) ] )
+    cases = np.where( keep )[ 0 ]
+    print( 'cases stable in every model:', ( cases + 1 ).tolist() )
+    common_in = {}
+    for name, ( ps, fs, vals ) in ts_in.items():
+        m = np.array( [ keep[ _at( f, p, flux1, pres1 ) ].any() for f, p in zip( fs, ps ) ] )
+        common_in[ name ] = ( ps[ m ], fs[ m ], vals[ m ] )
+
+    # Zoomed to the instellation and pressure the common cases span, padded by
+    # 50 W m^-2 and 10% as the per-model figures are. Instellation every 10 W m^-2
+    # and the protocol pressures merged in, so every sample point is a node.
+    lo, hi   = pres1[ keep ].min()*0.9, pres1[ keep ].max()*1.1
+    fluxf_c  = np.linspace( flux1[ keep ].min() - 0.5, flux1[ keep ].max() + 0.5, 91 )
+    pn2f_c   = np.unique( np.concatenate( [ np.geomspace( lo, hi, 121 ), pn2[ ( pn2 > lo ) & ( pn2 < hi ) ] ] ) )
+    common = consensus( common_in, pn2f_c, fluxf_c, fade=False )
+    common.update( header='Cases stable in every model (' + ', '.join( map( str, ( cases + 1 ).tolist() ) ) + ')',
+                   cases=cases.tolist(), crossed=np.zeros( 16, dtype=bool ),
+                   label_offset={ 8: ( 7, -14 ), 10: ( -17, 5 ) },
+                   isotherm_mask=lambda name: True, region_labels='auto',
+                   xlim=( fluxf_c.max()*fluxscale, fluxf_c.min()*fluxscale ), ylim=( lo, hi ),
+                   plain_ticks=True, legend=not STACKED )
+    report_areas( '=== fraction of the common-case panel ===', common )
+    # The same rectangle from each model's full set of cases, faded as in the full panel
+    report_areas( '=== same rectangle, all cases ===', consensus( ts_in, pn2f_c, fluxf_c, fade=True ) )
+    panels.append( common )
 
 # ── Plot ──────────────────────────────────────────────────────────────────────
-X, Y = np.meshgrid( pn2f, fluxf * fluxscale )   # X = pressure, Y = instellation
-
 c_frozen = '#d6e6f4'    # every 3-D model: global mean below freezing
 c_warm   = '#dcefdb'    # every model: global mean above freezing
 c_mixed  = '#ffffff'    # the 3-D models disagree, left white
@@ -316,87 +402,101 @@ c_mixed_2d = '#e6e6e6'  # contested only once PlaHab, the 2-D model, is included
 c_run    = '#f2d6d8'    # pre-blended: EPS does not support transparency
 marker_edge = 'k'
 
-fig, ax = plt.subplots( figsize=( 9.5, 7.5 ) )
-
-# Consensus regions, then the majority-runaway subset of the unfrozen region on
-# top of it, then the contested band, which is the subject of the figure.
-ax.contourf( Y, X, band_blue.astype( float ),  levels=[ 0.5, 1.5 ], colors=[ c_frozen ], zorder=0 )
-ax.contourf( Y, X, band_warm.astype( float ),  levels=[ 0.5, 1.5 ], colors=[ c_warm   ], zorder=0 )
-
-# Majority-runaway region, as a soft wash rather than a contour, so that it is not
-# confused with the individual model isotherms
-ax.contourf( Y, X, frac_run, levels=[ 0.49, 1.01 ], colors=[ c_run ], zorder=3 )
-
-# Grey first, then the 3-D-only contested band in white on top of it
-ax.contourf( Y, X, contested_all.astype( float ),
-             levels=[ 0.5, 1.5 ], colors=[ c_mixed_2d ], zorder=2 )
-ax.contourf( Y, X, contested_3d.astype( float ),
-             levels=[ 0.5, 1.5 ], colors=[ c_mixed ], zorder=2.2 )
-
 drawn = consensus_models + ( partial_models if SHOW_PARTIAL else [] )
-for name in drawn:
-    mask = WELL[ name ]
-    if name in partial_models:
-        p_pts, f_pts, _ = ts_in[ name ]
-        mask = mask & sampled_region( p_pts, f_pts )
-    ax.contour( Y, X, np.where( mask, Z[ name ], np.nan ), levels=[ T_FREEZE ],
-                colors=[ style[ name ][ 'color' ] ], linewidths=2.2,
-                linestyles=style[ name ][ 'ls' ], zorder=4 )
 
-# Case 10 sits against the right-hand edge and Case 16 against the top, so their
-# labels are placed inboard rather than with the default offset.
-label_offset = { 10: ( -17, 5 ), 16: ( 7, -14 ) }
+def auto_label_position( B, M ):
+    """The node of a region farthest from its edge, in display units, or None
+    for a region too thin to hold a label."""
+    fx = ( B[ 'flux_grid' ] - B[ 'flux_grid' ].min() ) / np.ptp( B[ 'flux_grid' ] )
+    lp = np.log( B[ 'pres_grid' ] )
+    py = ( lp - lp.min() ) / np.ptp( lp )
+    d  = distance_transform_edt( np.pad( M, 1 ), sampling=( fx[ 1 ] - fx[ 0 ], np.median( np.diff( py ) ) ) )[ 1:-1, 1:-1 ]
+    if d.max() < 0.12:
+        return None
+    i, j = np.unravel_index( np.argmax( d ), d.shape )
+    return ( B[ 'flux_grid' ][ i ]*fluxscale, B[ 'pres_grid' ][ j ] )
 
-# QMC sample points: filled where all consensus models are stable, open cross where
-# two or more report a runaway
-runaway_count = np.array( [ ( ~ts_exocam_mask ).astype( int ),
-                            ( ~ts_rocke3d_mask ).astype( int ),
-                            ( ~ts_plahab_mask ).astype( int ) ] ).sum( axis=0 )
-for i, ( f, p ) in enumerate( zip( flux1 * fluxscale, pres1 ) ):
-    if runaway_count[ i ] >= 2:
-        ax.plot( f, p, marker='X', color='k', ms=11, mew=0.0, zorder=6 )
+def draw_panel( ax, B ):
+    X, Y = np.meshgrid( B[ 'pres_grid' ], B[ 'flux_grid' ] * fluxscale )   # X = pressure, Y = instellation
+
+    # Consensus regions, then the majority-runaway subset of the unfrozen region on
+    # top of it, then the contested band, which is the subject of the figure.
+    ax.contourf( Y, X, B[ 'band_blue' ].astype( float ),  levels=[ 0.5, 1.5 ], colors=[ c_frozen ], zorder=0 )
+    ax.contourf( Y, X, B[ 'band_warm' ].astype( float ),  levels=[ 0.5, 1.5 ], colors=[ c_warm   ], zorder=0 )
+
+    # Majority-runaway region, as a soft wash rather than a contour, so that it is not
+    # confused with the individual model isotherms
+    if 'frac_run' in B:
+        ax.contourf( Y, X, B[ 'frac_run' ], levels=[ 0.49, 1.01 ], colors=[ c_run ], zorder=3 )
+
+    # Grey first, then the 3-D-only contested band in white on top of it
+    ax.contourf( Y, X, B[ 'contested_all' ].astype( float ),
+                 levels=[ 0.5, 1.5 ], colors=[ c_mixed_2d ], zorder=2 )
+    ax.contourf( Y, X, B[ 'contested_3d' ].astype( float ),
+                 levels=[ 0.5, 1.5 ], colors=[ c_mixed ], zorder=2.2 )
+
+    for name in drawn:
+        mask = B[ 'isotherm_mask' ]( name )
+        ax.contour( Y, X, np.where( mask, B[ 'Z' ][ name ], np.nan ), levels=[ T_FREEZE ],
+                    colors=[ style[ name ][ 'color' ] ], linewidths=2.2,
+                    linestyles=style[ name ][ 'ls' ], zorder=4 )
+
+    for i in B[ 'cases' ]:
+        f, p = flux1[ i ] * fluxscale, pres1[ i ]
+        if B[ 'crossed' ][ i ]:
+            ax.plot( f, p, marker='X', color='k', ms=11, mew=0.0, zorder=6 )
+        else:
+            ax.scatter( f, p, marker='o', s=55, c='k', edgecolors=marker_edge, zorder=6 )
+        ax.annotate( str( i + 1 ), ( f, p ), textcoords='offset points',
+                     xytext=B[ 'label_offset' ].get( i + 1, ( 7, 5 ) ), fontsize=9, zorder=7 )
+
+    if B[ 'region_labels' ] == 'auto':
+        region_labels = [ ( text, auto_label_position( B, B[ key ] ) )
+                          for text, key in ( ( 'all models\nglobal mean\nbelow freezing', 'band_blue' ),
+                                             ( 'all models\nglobal mean\nabove freezing', 'band_warm' ) ) ]
     else:
-        ax.scatter( f, p, marker='o', s=55, c='k', edgecolors=marker_edge, zorder=6 )
-    ax.annotate( str( i + 1 ), ( f, p ), textcoords='offset points',
-                 xytext=label_offset.get( i + 1, ( 7, 5 ) ), fontsize=9, zorder=7 )
+        region_labels = B[ 'region_labels' ]
+    for text, xy in region_labels:
+        if xy is None:
+            continue
+        color = '#3a6f9c' if 'below' in text else '#6b9b62'
+        ax.annotate( text, xy=xy, fontsize=10.5,
+                     ha='center', va='center', style='italic', color=color, zorder=5 )
+    if 'frac_run' in B:
+        ax.annotate( 'runaway\n(all but ExoPlaSim)', xy=( 2320, 0.60 ), fontsize=11,
+                     ha='center', va='center', style='italic', color='#8a3a42', zorder=5 )
 
-# Label positions chosen from the widest, emptiest part of each shaded region
-ax.annotate( 'all models\nglobal mean\nbelow freezing', xy=( 950, 0.30 ), fontsize=10.5,
-             ha='center', va='center', style='italic', color='#3a6f9c', zorder=5 )
-ax.annotate( 'all models\nglobal mean\nabove freezing', xy=( 1575, 1.67 ), fontsize=10.5,
-             ha='center', va='center', style='italic', color='#6b9b62', zorder=5 )
-ax.annotate( 'runaway\n(all but ExoPlaSim)', xy=( 2320, 0.60 ), fontsize=11,
-             ha='center', va='center', style='italic', color='#8a3a42', zorder=5 )
+    ax.set_yscale( 'log' )
+    ax.set_xlim( *B[ 'xlim' ] )
+    ax.set_ylim( *B[ 'ylim' ] )
+    ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
+    ax.set_ylabel( 'N$_2$ surface pressure (bar)', fontsize=12 )
+    ax.tick_params( axis='both', labelsize=11 )
+    if B[ 'plain_ticks' ]:
+        # Under a decade of pressure holds only one power of ten, so label plain values
+        ax.set_yticks( [ 0.5, 1, 2, 5 ], labels=[ '0.5', '1', '2', '5' ] )
+        ax.yaxis.set_minor_formatter( plt.NullFormatter() )
 
-ax.set_yscale( 'log' )
-ax.set_xlim( 2650, 350 )
-ax.set_ylim( 0.09, 11 )
-ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
-ax.set_ylabel( 'N$_2$ surface pressure (bar)', fontsize=12 )
-ax.tick_params( axis='both', labelsize=11 )
+    if B[ 'legend' ]:
+        legend_order = [ n for n in drawn if n != 'PlaHab' ] + [ n for n in drawn if n == 'PlaHab' ]
+        handles  = [ Line2D( [], [], color=style[n][ 'color' ],
+                             lw=2.2, ls=style[n][ 'ls' ], label=n )
+                     for n in legend_order ]
+        ax.legend( handles=handles, loc='upper left', fontsize=10, ncol=1,
+                   framealpha=1, borderpad=0.7, labelspacing=0.5 )
 
-legend_order = [ n for n in drawn if n != 'PlaHab' ] + [ n for n in drawn if n == 'PlaHab' ]
-handles  = [ Line2D( [], [], color=style[n][ 'color' ],
-                     lw=2.2, ls=style[n][ 'ls' ], label=n )
-             for n in legend_order ]
-ax.legend( handles=handles, loc='upper left', fontsize=10, ncol=1,
-           framealpha=1, borderpad=0.7, labelspacing=0.5 )
+if len( panels ) == 1:
+    fig, ax = plt.subplots( figsize=( 9.5, 7.5 ) )
+    draw_panel( ax, panels[ 0 ] )
+else:
+    # Side by side rather than stacked: the single panel already fills most of a
+    # page with its caption. Each panel under a bold header; the legend, which
+    # applies to both, sits in the full panel.
+    fig, axs = plt.subplots( 1, len( panels ), figsize=( 9.5*len( panels ), 7.9 ), layout='constrained' )
+    for ax, B in zip( axs, panels ):
+        draw_panel( ax, B )
+        ax.set_title( B[ 'header' ], fontsize=14, fontweight='bold', pad=10 )
 
-# Area fractions of the plane as drawn: flux is linear and pressure logarithmic.
-# The pressure grid is no longer uniform once the protocol pressures are merged
-# in, so cells are weighted by their width in log pressure.
-_wp = np.gradient( np.log( pn2f ) )
-_W  = np.broadcast_to( _wp, ( len( fluxf ), len( pn2f ) ) )
-area = lambda M: float( np.sum( M * _W ) / np.sum( _W ) )
-
-print( '=== fraction of the plane ===' )
-for label, m in ( ( 'all models below freezing', band_blue ),
-                  ( 'all models above freezing', band_warm ),
-                  ( 'contested, 3-D models only', contested_3d ),
-                  ( 'contested, PlaHab only',     contested_plahab ),
-                  ( 'contested, total',           contested_all ) ):
-    print( f'  {label:28s} {100.0 * area( m ):5.1f}%' )
-
-suffix = "" if SHOW_PARTIAL else "_nopartial"
+suffix = ( "" if SHOW_PARTIAL else "_nopartial" ) + ( "_stacked" if STACKED else "_common" if COMMON else "" )
 fig.savefig( f"fig_summary{suffix}.png", bbox_inches='tight' )
 fig.savefig( f"fig_summary{suffix}.eps", bbox_inches='tight' )

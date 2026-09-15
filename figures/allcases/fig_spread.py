@@ -1,3 +1,4 @@
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
@@ -150,12 +151,12 @@ ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
 ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 3,
              'Generic PCM': 1, 'LFRic': 1 }
 
-def krige( p, f, z, scaling=1.0 ):
+def krige( p, f, z, scaling=1.0, pres_grid=pn2, flux_grid=flux ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,
                           anisotropy_scaling=scaling,
                           variogram_model="linear", verbose=False,
                           enable_plotting=False, exact_values=True )
-    z_pred, z_var = ok.execute( "grid", norm_pres( pn2 ), norm_flux( flux ) )
+    z_pred, z_var = ok.execute( "grid", norm_pres( pres_grid ), norm_flux( flux_grid ) )
     return z_pred, z_var
 
 def weighted_std( values, variances ):
@@ -170,103 +171,190 @@ def weighted_std( values, variances ):
     z_mean  = ( W * V ).sum( axis=0 ) / W_sum
     return np.sqrt( ( W * ( V - z_mean ) ** 2 ).sum( axis=0 ) / W_sum )
 
-# ── Kriging: Temperature ──────────────────────────────────────────────────────
-ts_krige = [
-    krige( pres1,                              flux1,                              ts_plasim,                      ANISO_TS[ 'ExoPlaSim'   ] ),
-    krige( pres1[ ts_exocam_mask  ],           flux1[ ts_exocam_mask  ],           ts_exocam[  ts_exocam_mask  ],  ANISO_TS[ 'ExoCAM'      ] ),
-    krige( pres1[ ts_rocke3d_mask ],           flux1[ ts_rocke3d_mask ],           ts_rocke3d[ ts_rocke3d_mask ],  ANISO_TS[ 'ROCKE-3D'    ] ),
-    krige( pres1[ ts_plahab_mask  ],           flux1[ ts_plahab_mask  ],           ts_plahab[  ts_plahab_mask  ],  ANISO_TS[ 'PlaHab'      ] ),
-    krige( pcm_pres1,                          pcm_flux1,                          ts_pcm,                         ANISO_TS[ 'Generic PCM' ] ),
-    krige( lfric_pres1,                        lfric_flux1,                        ts_lfric,                       ANISO_TS[ 'LFRic'       ] ),
-    krige( hextor_pres1,                       hextor_flux1,                       ts_hextor,                      ANISO_TS[ 'HEXTOR'      ] ),
-    krige( exocolumn_pres1,                    exocolumn_flux1,                    ts_exocolumn,                   ANISO_TS[ 'ExoColumn'   ] ),
-]
-z_ts,   var_ts = zip( *ts_krige )
-std_ts = weighted_std( z_ts, var_ts )
+# ── Models per variable ───────────────────────────────────────────────────────
+# Each model's stable samples as ( pressure, instellation, value ), untransformed,
+# in the order the spread is accumulated. A model that reports no value for a
+# variable is absent from its table.
+TS_MODELS = {
+    'ExoPlaSim':   ( pres1,                    flux1,                    ts_plasim ),
+    'ExoCAM':      ( pres1[ ts_exocam_mask  ], flux1[ ts_exocam_mask  ], ts_exocam[  ts_exocam_mask  ] ),
+    'ROCKE-3D':    ( pres1[ ts_rocke3d_mask ], flux1[ ts_rocke3d_mask ], ts_rocke3d[ ts_rocke3d_mask ] ),
+    'PlaHab':      ( pres1[ ts_plahab_mask  ], flux1[ ts_plahab_mask  ], ts_plahab[  ts_plahab_mask  ] ),
+    'Generic PCM': ( pcm_pres1,                pcm_flux1,                ts_pcm ),
+    'LFRic':       ( lfric_pres1,              lfric_flux1,              ts_lfric ),
+    'HEXTOR':      ( hextor_pres1,             hextor_flux1,             ts_hextor ),
+    'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          ts_exocolumn ),
+}
+WV_MODELS = {
+    'ExoPlaSim':   ( pres1,                    flux1,                    wv_plasim ),
+    'ExoCAM':      ( pres1[ wv_exocam_mask  ], flux1[ wv_exocam_mask  ], wv_exocam[  wv_exocam_mask  ] ),
+    'ROCKE-3D':    ( pres1[ wv_rocke3d_mask ], flux1[ wv_rocke3d_mask ], wv_rocke3d[ wv_rocke3d_mask ] ),
+    'Generic PCM': ( pcm_pres1,                pcm_flux1,                wv_pcm ),
+    'LFRic':       ( lfric_pres1,              lfric_flux1,              wv_lfric ),
+    'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          wv_exocolumn ),
+}
+CF_MODELS = {
+    'ExoPlaSim':   ( pres1,                    flux1,                    cf_plasim ),
+    'ExoCAM':      ( pres1[ cf_exocam_mask  ], flux1[ cf_exocam_mask  ], cf_exocam[  cf_exocam_mask  ] ),
+    'ROCKE-3D':    ( pres1[ cf_rocke3d_mask ], flux1[ cf_rocke3d_mask ], cf_rocke3d[ cf_rocke3d_mask ] ),
+    'PlaHab':      ( pres1[ cf_plahab_mask  ], flux1[ cf_plahab_mask  ], cf_plahab[  cf_plahab_mask  ] ),
+    'Generic PCM': ( pcm_pres1,                pcm_flux1,                cf_pcm ),
+    'LFRic':       ( lfric_pres1,              lfric_flux1,              cf_lfric ),
+}
 
-# ── Kriging: Water vapor (log-space; runaway excluded) ────────────────────────
-wv_krige = [
-    krige( pres1,                    flux1,                    np.log( wv_plasim ),                     ANISO_WV[ 'ExoPlaSim'   ] ),
-    krige( pres1[ wv_exocam_mask  ], flux1[ wv_exocam_mask  ], np.log( wv_exocam[  wv_exocam_mask  ] ), ANISO_WV[ 'ExoCAM'      ] ),
-    krige( pres1[ wv_rocke3d_mask ], flux1[ wv_rocke3d_mask ], np.log( wv_rocke3d[ wv_rocke3d_mask ] ), ANISO_WV[ 'ROCKE-3D'    ] ),
-    krige( pcm_pres1,                pcm_flux1,                np.log( wv_pcm ),                        ANISO_WV[ 'Generic PCM' ] ),
-    krige( lfric_pres1,              lfric_flux1,              np.log( wv_lfric ),                      ANISO_WV[ 'LFRic'       ] ),
-    krige( exocolumn_pres1,          exocolumn_flux1,          np.log( wv_exocolumn ),                  ANISO_WV[ 'ExoColumn'   ] ),
+# Each variable is kriged in its own transformed coordinate (forward) and its
+# spread taken after mapping back (back): K for temperature, dex for water vapor,
+# percentage points for cloud fraction. The full color range, levels and ticks
+# are those of the published figure; step and tick are the level spacing and
+# tick interval a fitted range keeps.
+ln10 = np.log( 10 )
+VARS = [
+    dict( key='ts', title='Surface Temperature', models=TS_MODELS, aniso=ANISO_TS, count=n_ts,
+          forward=lambda v: v, back=lambda z: z,
+          cm=cmocean.cm.thermal, label='σ(T$_s$) (K)',
+          cmax=35, nlev=71, ticks=np.arange( 0, 36, 5 ), step=0.5, tick=5 ),
+    dict( key='wv', title='Water Vapor Column', models=WV_MODELS, aniso=ANISO_WV, count=n_wv,
+          forward=np.log, back=lambda z: z / ln10,
+          cm=cmocean.cm.rain, label='σ(log$_{10}$ WV) (dex)',
+          cmax=1.0, nlev=41, ticks=[ 0, 0.25, 0.5, 0.75, 1.0 ], step=0.025, tick=0.25 ),
+    dict( key='cf', title='Cloud Fraction', models=CF_MODELS, aniso=ANISO_CF, count=n_cf,
+          forward=logit, back=sigmoid,
+          cm=cmocean.cm.ice_r, label='σ(CF) (%)',
+          cmax=35, nlev=71, ticks=np.arange( 0, 36, 5 ), step=0.5, tick=5 ),
 ]
-z_wv_log, var_wv = zip( *wv_krige )
-ln10    = np.log( 10 )
-std_wv  = weighted_std( [ z / ln10 for z in z_wv_log ], var_wv )
 
-# ── Kriging: Cloud fraction (logit-space) ─────────────────────────────────────
-cf_krige = [
-    krige( pres1,                              flux1,                              logit( cf_plasim ),                     ANISO_CF[ 'ExoPlaSim'   ] ),
-    krige( pres1[ cf_exocam_mask  ],           flux1[ cf_exocam_mask  ],           logit( cf_exocam[  cf_exocam_mask  ] ), ANISO_CF[ 'ExoCAM'      ] ),
-    krige( pres1[ cf_rocke3d_mask ],           flux1[ cf_rocke3d_mask ],           logit( cf_rocke3d[ cf_rocke3d_mask ] ), ANISO_CF[ 'ROCKE-3D'    ] ),
-    krige( pres1[ cf_plahab_mask  ],           flux1[ cf_plahab_mask  ],           logit( cf_plahab[  cf_plahab_mask  ] ), ANISO_CF[ 'PlaHab'      ] ),
-    krige( pcm_pres1,                          pcm_flux1,                          logit( cf_pcm ),                        ANISO_CF[ 'Generic PCM' ] ),
-    krige( lfric_pres1,                        lfric_flux1,                        logit( cf_lfric ),                      ANISO_CF[ 'LFRic'       ] ),
-]
-z_cf,   var_cf = zip( *cf_krige )
-std_cf  = weighted_std( [ sigmoid( z ) for z in z_cf ], var_cf )
+def spread( var, models, pres_grid=pn2, flux_grid=flux ):
+    results = [ krige( p, f, var[ 'forward' ]( v ), var[ 'aniso' ][ name ], pres_grid, flux_grid )
+                for name, ( p, f, v ) in models.items() ]
+    z, variances = zip( *results )
+    return weighted_std( [ var[ 'back' ]( zz ) for zz in z ], variances )
 
-# ── Krige model-count surfaces (for single-model masking) ────────────────────
-count_ts, _ = krige( pres1, flux1, n_ts )
-count_wv, _ = krige( pres1, flux1, n_wv )
-count_cf, _ = krige( pres1, flux1, n_cf )
+# With --common, every model is kriged from only the sample points at which all
+# models with data for that variable reached a steady state, on a grid zoomed to
+# the range those points span, so the spread measures disagreement between
+# models and not differences in where each was sampled. The set is computed per
+# variable; it is Cases 1, 4, 8, 9, 10, 14 and 15 for all three. The anisotropy
+# ratios are left at the values fitted on each model's full set of cases. Every
+# model has data at every point of the zoomed region, so nothing is hatched.
+#
+# With --stacked, the full figure is drawn above the common-case one, each row
+# under its own header, the common cases on color ranges fitted to their spread.
+COMMON  = '--common' in sys.argv
+STACKED = '--stacked' in sys.argv
+outname = 'fig_spread' + ( '_stacked' if STACKED else '_common' if COMMON else '' )
+
+def _at( f, p, fs, ps ):
+    return np.isclose( fs, f ) & np.isclose( ps, p )
+
+def common_cases( models ):
+    return np.array( [ all( _at( f, p, fs, ps ).any() for ps, fs, _ in models.values() )
+                       for f, p in zip( flux1, pres1 ) ] )
+
+def restrict( models, keep ):
+    out = {}
+    for name, ( ps, fs, vals ) in models.items():
+        m = np.array( [ keep[ _at( f, p, flux1, pres1 ) ].any() for f, p in zip( fs, ps ) ] )
+        out[ name ] = ( ps[ m ], fs[ m ], vals[ m ] )
+    return out
+
+def full_block():
+    single = ( n_ts == 1 )
+    return dict( header='All stable cases in each model', hatch=True, plain_ticks=False,
+                 pres_grid=pn2, flux_grid=flux,
+                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ],
+                 ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
+                 open_pts=~single, cross_pts=single,
+                 std={ v[ 'key' ]: spread( v, v[ 'models' ] ) for v in VARS },
+                 colors={ v[ 'key' ]: ( v[ 'cmax' ], v[ 'nlev' ], v[ 'ticks' ] ) for v in VARS } )
+
+def common_block():
+    keep = { v[ 'key' ]: common_cases( v[ 'models' ] ) for v in VARS }
+    for v in VARS:
+        print( f"{v[ 'title' ]}: cases stable in every model with data:",
+               ( np.where( keep[ v[ 'key' ] ] )[ 0 ] + 1 ).tolist() )
+    shown = np.logical_or.reduce( list( keep.values() ) )
+    flux_grid = np.linspace( flux1[ shown ].min() - 0.5, flux1[ shown ].max() + 0.5, 41 )
+    pres_grid = np.geomspace( pres1[ shown ].min()*0.9, pres1[ shown ].max()*1.1, 41 )
+    std, colors = {}, {}
+    for v in VARS:
+        k = v[ 'key' ]
+        std[ k ] = spread( v, restrict( v[ 'models' ], keep[ k ] ), pres_grid, flux_grid )
+        if STACKED:
+            # A range fitted to the common-case spread, rounded up to a tick
+            cmax = v[ 'tick' ]*np.ceil( std[ k ].max()/v[ 'tick' ] )
+            colors[ k ] = ( cmax, int( round( cmax/v[ 'step' ] ) ) + 1,
+                            np.arange( 0, cmax + v[ 'tick' ]/2, v[ 'tick' ] ) )
+        else:
+            colors[ k ] = ( v[ 'cmax' ], v[ 'nlev' ], v[ 'ticks' ] )
+        # The same region from each model's full set of cases, for comparison
+        full_here = spread( v, v[ 'models' ], pres_grid, flux_grid )
+        print( f"  median spread over the common-case region: {np.median( full_here ):.3g} "
+               f"from all cases, {np.median( std[ k ] ):.3g} from the common cases "
+               f"(max {std[ k ].max():.3g})" )
+    return dict( header='Cases stable in every model (' + ', '.join( map( str, ( np.where( shown )[ 0 ] + 1 ).tolist() ) ) + ')',
+                 hatch=False, plain_ticks=True, pres_grid=pres_grid, flux_grid=flux_grid,
+                 xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ],
+                 ylim=[ min( pres_grid ), max( pres_grid ) ],
+                 open_pts=shown, cross_pts=np.zeros( 16, dtype=bool ), std=std, colors=colors )
+
+if STACKED:
+    blocks = [ full_block(), common_block() ]
+elif COMMON:
+    blocks = [ common_block() ]
+else:
+    blocks = [ full_block() ]
+
+if not COMMON or STACKED:
+    for v in VARS:
+        print( f"{v[ 'title' ]}: median spread over the full plane {np.median( blocks[ 0 ][ 'std' ][ v[ 'key' ] ] ):.3g}" )
+
+# ── Model-count surfaces (for single-model masking) ───────────────────────────
+counts = { v[ 'key' ]: krige( pres1, flux1, v[ 'count' ] )[ 0 ] for v in VARS }
 
 # ── Plot ──────────────────────────────────────────────────────────────────────
-xv, yv = np.meshgrid( pn2, flux )
-xlim = [ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ]
-ylim = [ min( pn2 )*0.9, max( pn2 )*1.1 ]
-
-cm_ts = cmocean.cm.thermal
-cm_wv = cmocean.cm.rain
-cm_cf = cmocean.cm.ice_r
-
-fig, axes = plt.subplots( 1, 3, figsize=( 14, 4.5 ) )
-
-single_mask = ( n_ts == 1 )
-multi_mask  = ~single_mask
-
-def setup_panel( ax, title ):
+def setup_panel( ax, title, block ):
     ax.set_title( title, fontsize=13 )
     ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=11 )
     ax.set_ylabel( 'Surface pressure (bar)', fontsize=11 )
     ax.tick_params( axis='x', labelsize=10 )
     ax.tick_params( axis='y', labelsize=10 )
     ax.set_yscale( 'log' )
-    ax.set_xlim( xlim )
-    ax.set_ylim( ylim )
-    ax.scatter( flux1[ multi_mask  ]*fluxscale, pres1[ multi_mask  ],
+    ax.set_xlim( block[ 'xlim' ] )
+    ax.set_ylim( block[ 'ylim' ] )
+    if block[ 'plain_ticks' ]:
+        # Under a decade of pressure holds only one power of ten, so label plain values
+        ax.set_yticks( [ 0.5, 1, 2, 5 ], labels=[ '0.5', '1', '2', '5' ] )
+        ax.yaxis.set_minor_formatter( plt.NullFormatter() )
+    ax.scatter( flux1[ block[ 'open_pts' ]  ]*fluxscale, pres1[ block[ 'open_pts' ]  ],
                 color='none', edgecolors='k', s=40, linewidths=0.7, zorder=5 )
-    ax.scatter( flux1[ single_mask ]*fluxscale, pres1[ single_mask ],
+    ax.scatter( flux1[ block[ 'cross_pts' ] ]*fluxscale, pres1[ block[ 'cross_pts' ] ],
                 color='k', marker='x', s=40, linewidths=0.7, zorder=5 )
 
-# Panel 1: Temperature spread
-axes[0].contourf( yv*fluxscale, xv, std_ts, cmap=cm_ts, levels=np.linspace( 0, 35, 71 ), extend='neither' )
-axes[0].contourf( yv*fluxscale, xv, count_ts, levels=[-1e9, 1.5], hatches=['///'], colors='none', alpha=0 )
-sm1 = mcm.ScalarMappable( cmap=cm_ts, norm=mcolors.Normalize( vmin=0, vmax=35 ) )
-cb1 = fig.colorbar( sm1, ax=axes[0], label='σ(T$_s$) (K)', extend='neither' )
-cb1.set_ticks( np.arange( 0, 36, 5 ) )
-setup_panel( axes[0], 'Surface Temperature' )
+def draw_row( host, axes, block ):
+    xv, yv = np.meshgrid( block[ 'pres_grid' ], block[ 'flux_grid' ] )
+    for ax, v in zip( axes, VARS ):
+        k = v[ 'key' ]
+        cmax, nlev, ticks = block[ 'colors' ][ k ]
+        ax.contourf( yv*fluxscale, xv, block[ 'std' ][ k ], cmap=v[ 'cm' ], levels=np.linspace( 0, cmax, nlev ), extend='neither' )
+        if block[ 'hatch' ]:
+            ax.contourf( yv*fluxscale, xv, counts[ k ], levels=[-1e9, 1.5], hatches=['///'], colors='none', alpha=0 )
+        sm = mcm.ScalarMappable( cmap=v[ 'cm' ], norm=mcolors.Normalize( vmin=0, vmax=cmax ) )
+        cb = host.colorbar( sm, ax=ax, label=v[ 'label' ], extend='neither' )
+        cb.set_ticks( ticks )
+        setup_panel( ax, v[ 'title' ], block )
 
-# Panel 2: Water vapor spread
-axes[1].contourf( yv*fluxscale, xv, std_wv, cmap=cm_wv, levels=np.linspace( 0, 1.0, 41 ), extend='neither' )
-axes[1].contourf( yv*fluxscale, xv, count_wv, levels=[-1e9, 1.5], hatches=['///'], colors='none', alpha=0 )
-sm2 = mcm.ScalarMappable( cmap=cm_wv, norm=mcolors.Normalize( vmin=0, vmax=1.0 ) )
-cb2 = fig.colorbar( sm2, ax=axes[1], label='σ(log$_{10}$ WV) (dex)', extend='neither' )
-cb2.set_ticks( [ 0, 0.25, 0.5, 0.75, 1.0 ] )
-setup_panel( axes[1], 'Water Vapor Column' )
+if len( blocks ) == 1:
+    fig, axes = plt.subplots( 1, 3, figsize=( 14, 4.5 ) )
+    draw_row( fig, axes, blocks[ 0 ] )
+    fig.tight_layout()
+else:
+    # Rows one above another, each under a bold header
+    fig  = plt.figure( figsize=( 14, 9.8 ), layout='constrained' )
+    rows = fig.subfigures( len( blocks ), 1, hspace=0.06 )
+    for row, block in zip( rows, blocks ):
+        row.suptitle( block[ 'header' ], fontsize=14, fontweight='bold' )
+        draw_row( row, row.subplots( 1, 3 ), block )
 
-# Panel 3: Cloud fraction spread
-axes[2].contourf( yv*fluxscale, xv, std_cf, cmap=cm_cf, levels=np.linspace( 0, 35, 71 ), extend='neither' )
-axes[2].contourf( yv*fluxscale, xv, count_cf, levels=[-1e9, 1.5], hatches=['///'], colors='none', alpha=0 )
-sm3 = mcm.ScalarMappable( cmap=cm_cf, norm=mcolors.Normalize( vmin=0, vmax=35 ) )
-cb3 = fig.colorbar( sm3, ax=axes[2], label='σ(CF) (%)', extend='neither' )
-cb3.set_ticks( np.arange( 0, 36, 5 ) )
-setup_panel( axes[2], 'Cloud Fraction' )
-
-fig.tight_layout()
-fig.savefig( "fig_spread.png", bbox_inches='tight' )
-fig.savefig( "fig_spread.eps", bbox_inches='tight' )
+fig.savefig( f"{outname}.png", bbox_inches='tight' )
+fig.savefig( f"{outname}.eps", bbox_inches='tight' )
 #plt.show()
