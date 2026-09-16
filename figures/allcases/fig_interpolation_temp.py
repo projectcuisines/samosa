@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import cmocean
 
 from matplotlib.transforms import offset_copy
+from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
+from scipy import ndimage
 
 # ─── Variable configuration ──────────────────────────────────────────────────
 cm              = cmocean.cm.thermal
@@ -201,6 +203,33 @@ def krige( name, fs, ps, vals, view ):
 
 marker_edge = 'k'
 
+# Of the regions where σ exceeds the threshold, hatch only those reaching the
+# highest instellation on the grid. The rest are slivers along the other panel
+# edges, just past the outermost samples, where σ tops the threshold by at most
+# 12 K; they are largest in HEXTOR and LFRic, whose warmest cases sit beside much
+# cooler ones and so steepen the variogram, and hatched they read as holes in
+# the sampled region. The regions are 8-connected,
+# so a dropped one never shares a grid cell with a kept one and zeroing it leaves
+# the kept boundaries where they were.
+def warm_edge_sigma( sigma ):
+    regions, _ = ndimage.label( sigma > sigma_threshold, structure=np.ones( ( 3, 3 ) ) )
+    dropped    = np.setdiff1d( regions, np.append( regions[ -1, : ], 0 ) )
+    return np.where( np.isin( regions, dropped ), 0.0, sigma )
+
+# ExoPlaSim is stable at all sixteen cases, so its panels carry the case numbers.
+# Labels sit to the right of each marker, except where that would crowd a
+# neighbor or run off the panel.
+labeled_model = 'ExoPlaSim'
+label_left    = { 10, 13 }
+
+def label_cases( ax, fs, ps ):
+    for f, p in zip( fs, ps ):
+        case = np.where( _at( f, p, flux1, pres1 ) )[ 0 ][ 0 ] + 1
+        left = case in label_left
+        ax.annotate( str( case ), ( f*fluxscale, p ), xytext=( -6 if left else 6, 0 ), textcoords='offset points',
+                     ha='right' if left else 'left', va='center', fontsize=10,
+                     path_effects=[ patheffects.withStroke( linewidth=2.5, foreground='w' ) ] )
+
 def setup_panel( ax, title, view ):
     ax.set_title( title, fontsize=14 )
     ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
@@ -221,8 +250,10 @@ def draw_panel( ax, name, fs, ps, vals, view ):
     levels = np.linspace( view[ 'cmin' ], view[ 'cmax' ], cinterval )
     cf = ax.contourf( yv*fluxscale, xv, z, cmap=cm, levels=levels, extend='both' )
     if view[ 'hatch' ]:
-        ax.contourf( yv*fluxscale, xv, np.sqrt(var), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
+        ax.contourf( yv*fluxscale, xv, warm_edge_sigma( np.sqrt(var) ), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
     ax.scatter( fs*fluxscale, ps, c=vals, cmap=cm, vmin=view[ 'cmin' ], vmax=view[ 'cmax' ], marker='o', s=70, edgecolors=marker_edge )
+    if name == labeled_model:
+        label_cases( ax, fs, ps )
     setup_panel( ax, f'{name} (n={len(vals)})', view )
     return cf
 
