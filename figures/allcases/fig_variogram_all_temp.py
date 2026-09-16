@@ -26,9 +26,9 @@ lfric       = np.array( [ 195.37, 251.48, 400.52, 231.83, 241.35, 197.81, 227.52
 lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 
-hextor       = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40 ] )
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+hextor       = np.array( [ 173.10, 292.22, 224.40, 267.86, 152.42, 225.52, 241.46, 188.62, 376.07 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.00 ] )
 
 exocolumn       = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
@@ -77,7 +77,7 @@ models = [
 # comparable with the fig_interpolation_temp.py panels if the same ratios are
 # used here.
 ANISO = { 'ExoPlaSim': 2, 'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
-          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 15, 'ExoColumn': 7 }
+          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7 }
 
 for name, np_, nf, vals, color in models:
     OK = OrdinaryKriging(

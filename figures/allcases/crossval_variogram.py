@@ -36,11 +36,11 @@ exocolumn       = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 25
 exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
 exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
 
-# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15 (eight runaways are excluded, Case 16
-# among them although it converges; see fig_interpolation_temp.py).
-hextor       = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40 ] )
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15, 16 (seven runaways are excluded;
+# see fig_interpolation_temp.py).
+hextor       = np.array( [ 173.10, 292.22, 224.40, 267.86, 152.42, 225.52, 241.46, 188.62, 376.07 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.00 ] )
 
 
 pcm = np.array( [ 210.9195445942203, 286.7294656230531, 246.76730657647218, 266.5987224285321, 210.69131033681012, 246.04296230476365, 217.2519558970929 ] )

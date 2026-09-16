@@ -23,8 +23,8 @@ lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900,  600,
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 # HEXTOR contributes surface temperature only: it reports no water vapor column
 # and no cloud fraction, so it enters the temperature panel and not the others.
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.00 ] )
 # ExoColumn contributes surface temperature and water vapor; it is cloud-free,
 # so it does not enter the cloud fraction panel.
 exocolumn_flux1 = np.array( [ 500, 1200,  800, 1100,  400,  900,  900,  600 ] ) / fluxscale
@@ -47,7 +47,7 @@ ts_pcm     = np.array( [ 210.9195445942203, 286.7294656230531, 246.7673065764721
                          266.5987224285321, 210.69131033681012, 246.04296230476365,
                          217.2519558970929 ] )
 ts_lfric   = np.array( [ 195.37, 251.48, 400.52, 231.83, 241.35, 197.81, 227.52, 333.20, 228.84, 203.64, 361.70 ] )
-ts_hextor  = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40 ] )
+ts_hextor  = np.array( [ 173.10, 292.22, 224.40, 267.86, 152.42, 225.52, 241.46, 188.62, 376.07 ] )
 ts_exocolumn = np.array( [ 206.98, 293.26, 248.49, 269.66, 201.36, 242.60, 251.63, 216.92 ] )
 
 ts_exocam_mask  = ts_exocam  != runawaytemp
@@ -145,7 +145,7 @@ def sigmoid( y ):
 # log-pressure. Model-count surfaces stay isotropic: coverage is a property of
 # the sampling design, not of a physical field.
 ANISO_TS = { 'ExoPlaSim': 2,  'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
-             'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 15, 'ExoColumn': 7 }
+             'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7 }
 ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
              'Generic PCM': 15, 'LFRic': 10, 'ExoColumn': 10 }
 ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 3,

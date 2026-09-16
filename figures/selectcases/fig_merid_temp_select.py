@@ -20,14 +20,11 @@
 # longitude, and its caseN_tsurf.out files exist for exactly the three selected
 # cases.
 #
-# HEXTOR is included at Cases 1 and 4. It is one-dimensional in the tidally
+# HEXTOR is included at all three cases. It is one-dimensional in the tidally
 # locked coordinate, so its 18 belts are indexed by theta, the angle from the
-# substellar point, which is very nearly the variable plotted here. It is
-# absent from Case 16: its corrected submission (2026-09-14, CO2 at the
-# protocol's 400 ubar partial pressure) converges there at a 465 K global mean,
-# but with its day side on the runaway plateau of the outgoing longwave, and
-# the analysis treats that case as a runaway, as in every other figure in
-# which HEXTOR appears.
+# substellar point, which is very nearly the variable plotted here. Case 16 was
+# omitted while the analysis treated it as a runaway (465 K, above the lookup
+# table); the RH 0.8 resubmission (2026-09-16) converges it at 376 K.
 #
 # ExoColumn is a single column and cannot appear at all.
 #
@@ -169,7 +166,7 @@ for c, s in ((1, 'sample1'), (4, 'sample4'), (16, 'sample16')):
 # latitude as theta = arccos(cos(lat) cos(L)); only on the equator does theta
 # equal |L|. HEXTOR is therefore averaged over the same meridian so that it is
 # the same quantity as the rest of the ensemble. The mapping matters: it puts
-# the Case 1 substellar value at 195.9 K rather than the 202.9 K of the belt
+# the Case 1 substellar value at 201.3 K rather than the 210.5 K of the belt
 # itself, because the substellar meridian reaches to both poles.
 #
 # The belt files were added to the archive on 2026-09-09, alongside a
@@ -190,8 +187,7 @@ def read_hextor(case, lon_deg, nlat=721):
     return np.asarray(lon_deg, dtype=float), prof
 
 _hextor_lon = np.linspace(-180.0, 180.0, 361)
-# Case 16 is treated as a runaway for HEXTOR and is omitted; see above.
-hextor = [read_hextor(1, _hextor_lon), read_hextor(4, _hextor_lon), None]
+hextor = [read_hextor(1, _hextor_lon), read_hextor(4, _hextor_lon), read_hextor(16, _hextor_lon)]
 
 
 # -- Figure ----------------------------------------------------------
@@ -240,8 +236,8 @@ from matplotlib.lines import Line2D
 # models go above the panels, as in fig_energy_balance.py, and the reference
 # lines are keyed below. Two legends cannot share 'outside lower center':
 # constrained layout gives them the same slot and the second hides the first.
-# Case 16 carries five curves rather than seven, the Generic PCM having no
-# converged solution there and HEXTOR's being treated as a runaway.
+# Case 16 carries six curves rather than seven, the Generic PCM having no
+# converged solution there.
 model_handles = [Line2D([0], [0], ls='-', label=MODEL_LABELS[m], **MODEL_STYLES[m])
                  for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab', 'HEXTOR')]
 style_handles = [

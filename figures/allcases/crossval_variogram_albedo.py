@@ -31,12 +31,12 @@ exocolumn       = np.array( [ 26.01, 15.51, 23.11, 19.68, 27.26, 23.95, 21.97, 2
 exocolumn_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
 exocolumn_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
 
-# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15, Case 16 being treated as a runaway
-# although it converges (see fig_interpolation_temp.py). Clear-sky by construction, so these are
+# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15, 16 (see fig_interpolation_temp.py).
+# Clear-sky by construction, so these are
 # surface-plus-Rayleigh albedos with no cloud contribution.
-hextor       = np.array( [ 20.09, 2.32, 17.02, 2.16, 21.80, 10.05, 7.64, 19.43 ] )
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+hextor       = np.array( [ 19.96, 3.40, 12.92, 3.32, 21.80, 15.64, 6.49, 19.25, 3.79 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.00 ] )
 
 
 exocam_mask  = exocam  != runaway

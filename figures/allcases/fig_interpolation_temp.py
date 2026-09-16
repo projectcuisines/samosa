@@ -48,16 +48,15 @@ lfric       = np.array( [ 195.37, 251.48, 400.52, 231.83, 241.35, 197.81, 227.52
 lfric_flux1 = np.array( [ 500, 1200, 1600, 800, 1100, 400, 900, 1500, 900, 600, 1400 ] ) / fluxscale
 lfric_pres1 = np.array( [ 0.70, 2.34, 0.55, 6.16, 0.70, 4.83, 0.10, 2.98, 1.44, 0.43, 10.00 ] )
 
-# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15. The other eight are runaways: seven
-# beyond the radiative lookup table, and Case 16, which the corrected submission
-# (2026-09-14, CO2 at the protocol's 400 ubar partial pressure) converges at
-# 465.18 K but which is treated as a runaway here. Its day side sits on the
-# runaway plateau of the outgoing longwave, the archive README says its
-# temperature should not be quoted firmly, and it lies ~100 K above every
-# other model at that sample point.
-hextor       = np.array( [ 174.01, 308.34, 220.17, 278.17, 153.52, 232.00, 241.47, 189.40 ] )
-hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600 ] ) / fluxscale
-hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43 ] )
+# HEXTOR, cases 1, 4, 8, 9, 10, 11, 14, 15, 16, from its RH 0.8 resubmission
+# (2026-09-16). The other seven are runaways beyond the radiative lookup table.
+# Case 16 was treated as a runaway at 465.18 K, above the table and ~100 K over
+# every other model; it is now 376.07 K, inside the table and 14 K above the
+# warmest other model, though its day side is still near the runaway plateau of
+# the outgoing longwave and the archive README calls it less certain.
+hextor       = np.array( [ 173.10, 292.22, 224.40, 267.86, 152.42, 225.52, 241.46, 188.62, 376.07 ] )
+hextor_flux1 = np.array( [ 500, 1200, 800, 1100, 400, 900, 900, 600, 1400 ] ) / fluxscale
+hextor_pres1 = np.array( [ 0.70, 2.34, 6.16, 0.70, 4.83, 0.10, 1.44, 0.43, 10.00 ] )
 
 # ExoColumn, cases 1, 4, 8, 9, 10, 11, 14, 15. The other eight are incipient
 # runaways: no steady state exists at that (S, p), so the RCE loop never closes.
@@ -172,7 +171,7 @@ ANISO = {
     'PlaHab':       3,
     'LFRic':        15,
     'Generic PCM':  5,
-    'HEXTOR':       15,
+    'HEXTOR':       10,
     'ExoColumn':    7,
 }
 
