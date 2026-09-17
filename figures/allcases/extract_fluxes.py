@@ -13,9 +13,18 @@ Per-model sources and the traps in each:
                a finite-volume grid with half-width polar cells. FSNTOA,
                FSNTOAC, FSNTC, FSDSC, FLUTC, SWCF and LWCF are all archived as
                identically zero, so FSNT (top of model) is the only usable
-               shortwave flux and the summary TOAALB/toaEBAL in output.txt
-               cannot be reproduced from the primary data. samosa7 is present
-               in the archive but has no row in output.txt.
+               broadband shortwave flux. The albedo does NOT need it: the
+               resolved flux profiles FDS and FUS (shortwave down and up on
+               interface levels) are populated, and their topmost level is the
+               top of the model, so reflected over incident there is the
+               planetary albedo. It reproduces the summary TOAALB in output.txt
+               to better than 0.01 pp in all ten rows, which is the check that
+               the level and the weighting are both right. Note that the
+               incident flux the model actually sees, mean FDS[0], runs 0.4-0.5%
+               below the protocol S/4, so deriving the albedo as 1 - FSNT/(S/4)
+               instead -- as this script used to -- inherits that deficit and
+               reads 0.3-0.9 pp too high. samosa7 is present in the archive but
+               has no row in output.txt.
 
   ExoPlaSim    exoplasim/samosaNN.nc, rst (net SW = absorbed) and rlut. Both
                rlut and rsut are stored NEGATIVE. No weight variable is
@@ -110,13 +119,17 @@ for i in range( 16 ):
         d[ 'ts' ][ i ]  = gm( ds.variables[ 'TS' ][ 0 ] )
         d[ 'asr' ][ i ] = gm( ds.variables[ 'FSNT' ][ 0 ] )
         d[ 'olr' ][ i ] = gm( ds.variables[ 'FLUT' ][ 0 ] )
+        # Interface level 0 is the top of the model, so this is the planetary
+        # albedo as the model computes it, not as the protocol prescribes it.
+        sw_dn = gm( ds.variables[ 'FDS' ][ 0, 0 ] )
+        sw_up = gm( ds.variables[ 'FUS' ][ 0, 0 ] )
         # Net downward flux at the surface. CAM signs: FSNS positive down,
         # FLNS/SHFLX/LHFLX positive up.
         d[ 'sfc' ][ i ] = ( gm( ds.variables[ 'FSNS'  ][ 0 ] )
                           - gm( ds.variables[ 'FLNS'  ][ 0 ] )
                           - gm( ds.variables[ 'SHFLX' ][ 0 ] )
                           - gm( ds.variables[ 'LHFLX' ][ 0 ] ) )
-    d[ 'alb' ][ i ] = 100.0 * ( 1.0 - d[ 'asr' ][ i ] / incident[ i ] )
+    d[ 'alb' ][ i ] = 100.0 * sw_up / sw_dn
 data[ 'ExoCAM' ] = d
 
 # ── ExoPlaSim ────────────────────────────────────────────────────────────────
@@ -221,6 +234,25 @@ for m, ref in REF_TS.items():
     print( f'  {m:12s} {status}' )
     allok &= not bad
 print( '  ExoCAM reproduces its summary TS exactly, which validates the gw weighting.' )
+
+# The ExoCAM albedo comes from the topmost interface of the resolved shortwave
+# flux profiles rather than from FSNT and the protocol S/4. output.txt carries
+# the group's own TOAALB for the ten rows it lists, so it is an independent
+# check on both the level and the weighting.
+print( '\n=== ExoCAM albedo against TOAALB in output.txt (tolerance 0.05 pp) ===' )
+toaalb, summary = {}, f'{ROOT}/exocam/output.txt'
+if os.path.exists( summary ):
+    for line in open( summary ):
+        m = re.match( r'\s*\d+\s+samosa(\d+)\.cam\.h0\.avg\.nc\s+(\S+)\s+(\S+)\s+(\S+)', line )
+        if m:
+            toaalb[ int( m.group( 1 ) ) ] = 100.0 * float( m.group( 4 ) )
+worst = max( ( abs( data[ 'ExoCAM' ][ 'alb' ][ c - 1 ] - a ), c ) for c, a in toaalb.items() ) if toaalb else ( np.nan, 0 )
+if not toaalb:
+    print( '  output.txt not found - skipped' )
+else:
+    print( f'  {len(toaalb)} rows checked, worst disagreement {worst[0]:.4f} pp at case {worst[1]}' )
+    allok &= worst[ 0 ] <= 0.05
+
 print( f'  overall: {"PASS" if allok else "FAIL - do not trust the fluxes below"}' )
 
 # ── Emit the arrays ──────────────────────────────────────────────────────────

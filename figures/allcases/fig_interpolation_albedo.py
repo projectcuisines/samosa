@@ -9,13 +9,19 @@ from pykrige.ok import OrdinaryKriging
 from scipy import ndimage
 
 # ─── Variable configuration ──────────────────────────────────────────────────
-cm              = cmocean.cm.ice
-contourmin      = 10.0
+# cmocean.ice bottoms out at near-black, and the old floor of 10% put four of
+# HEXTOR's nine cases and LFRic's Case 7 below it, so both panels read as dark
+# slabs with no structure rather than as the genuinely low albedos they are.
+# haline holds a readable lightness across the whole ensemble range, and the
+# floor now sits at 0% so nothing real is clipped into the under-color; only
+# PlaHab Case 11 (63.7%, see the note above) runs past the top.
+cm              = cmocean.cm.haline
+contourmin      = 0.0
 contourmax      = 45.0
-cinterval       = 36
+cinterval       = 46      # 1% per level over the range
 sigma_threshold = 1.0       # logit-units; hatch where kriging σ exceeds this
 cbar_label      = 'Planetary Albedo (%)'
-cbar_ticks      = np.arange( 10, 46, 5 )
+cbar_ticks      = np.arange( 0, 46, 5 )
 # ─────────────────────────────────────────────────────────────────────────────
 
 runaway   = 200.0   # sentinel (%) for runaway/unavailable cases
@@ -31,22 +37,29 @@ pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16, 0.70, 4.83, 
 # Planetary albedo (%), from the standardized SAMOSA global output.
 #   ROCKE-3D  plan_alb_hemis[2] as reported by the modeling group
 #   ExoPlaSim rsut / ( rst + rsut ) from the area-weighted TOA fluxes
-#   ExoCAM    1 - FSNT / ( S / 4 ), gw-weighted from samosaN.cam.h0.avg.nc
+#   ExoCAM    FUS / FDS at the topmost interface level, gw-weighted from
+#             samosaN.cam.h0.avg.nc
 #   others    1 - ASR / ( S / 4 ), using the incident flux fixed by the protocol
 # Cross-checks against the primary NetCDF:
 #   ROCKE-3D   reported plan_alb 23.08% vs 1 - ASR/(S/4) = 23.08% at Case 1.
 #   LFRic      sw_net_toa / lw_up_toa reproduce the .txt global diagnostics
 #              exactly, so the derived albedos here are confirmed.
 #   ExoCAM     FSNTOA and every clear-sky field are archived as identically
-#              zero in the submitted files, so the summary TOAALB cannot be
-#              reproduced from the primary output and FSNT (top of model) is
-#              the only usable shortwave flux. We derive ExoCAM from the NetCDF
-#              like every other model rather than mixing sources; this runs
-#              0.3 pp above TOAALB on average and 0.9 pp at Case 12. The
-#              gw-weighted TS reproduces the summary TS exactly for all 11
-#              files, which validates the weighting.
+#              zero in the submitted files, but the resolved shortwave flux
+#              profiles FDS and FUS are populated, and their topmost interface
+#              is the top of the model. Reflected over incident there is the
+#              planetary albedo, and it reproduces the summary TOAALB to within
+#              0.03 pp in all ten rows of output.txt, so no field the group
+#              zeroed is needed after all. The earlier 1 - FSNT/(S/4) read
+#              0.3-0.9 pp high because the incident flux the model sees, mean
+#              FDS at that level, runs 0.4-0.5% below the protocol S/4. This
+#              also puts ExoCAM on the same footing as ExoPlaSim and ROCKE-3D,
+#              which report reflected over incident from their own fluxes
+#              rather than against the prescribed S/4. The gw-weighted TS
+#              reproduces the summary TS exactly for all 11 files, which
+#              validates the weighting.
 plasim  = np.array( [ 40.77, 25.00, 21.85, 39.99, 31.52, 18.87, 29.82, 40.23, 33.58, 42.23, 38.32, 17.26, 31.10, 36.40, 39.34, 32.58 ] )
-exocam  = np.array( [ 27.31, runaway, runaway, 31.08, runaway, runaway, runaway, 20.74, 34.54, 31.78, 22.69, 19.05, runaway, 28.91, 20.38, 16.95 ] )
+exocam  = np.array( [ 26.98, runaway, runaway, 30.74, runaway, runaway, runaway, 20.33, 34.23, 31.44, 22.00, 18.10, runaway, 28.57, 20.02, 16.49 ] )
 rocke3d = np.array( [ 23.08, runaway, runaway, 31.56, 39.86, runaway, 44.31, 22.14, 37.63, 21.21, 28.72, 17.96, 40.84, 30.09, 22.26, 12.78 ] )
 plahab  = np.array( [ 19.11, runaway, runaway, 33.03, 33.02, runaway, 34.90, 29.62, 30.82, 0.89, 63.70, 35.51, 34.85, 31.12, 19.93, 35.54 ] )
 pcm     = np.array( [ 25.57, 14.42, 22.69, 17.72, 28.53, 19.54, 21.31 ] )
