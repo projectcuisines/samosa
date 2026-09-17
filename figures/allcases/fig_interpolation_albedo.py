@@ -192,8 +192,27 @@ else:
 # LFRic resolved no surface at any ratio on its first seven cases and was
 # pinned at 1. The dark Case 7 (3.44%) made it resolvable from 1.5 upward, and
 # with Cases 8, 10 and 11 (2026-09-10) the LOO minimum moved to 3.
+# Variogram family. Linear everywhere, which is what cross-validation supports
+# on the ensemble mean, with one exception. ExoCAM albedo is the only fit in
+# this figure where linear fails outright: on the seven common cases it fits a
+# pure nugget, so the lower panel collapsed to a constant 27.15% and had to be
+# stippled, while the upper panel plainly resolved a surface -- the same model
+# and variable reading two contradictory ways. The failure is not the
+# anisotropy; swept from isotropic to a ratio of 50, linear never lifts those
+# seven points above a resolution of 0.064 against the 0.25 floor. It is the
+# family. Leave-one-out prefers spherical for ExoCAM in BOTH blocks
+# independently (0.288 against 0.341 on the full set, 0.278 against 0.325 on
+# the common set), and once the anisotropy is refitted under it the ratio is 15
+# -- an interior optimum rather than one pinned at the edge of the search range
+# -- giving LOO 0.258 on the full set, 24% better than the linear fit, and
+# resolutions of 0.60 and 0.88 in the two blocks. So this is not a patch to get
+# contours out of a bad fit; it is the family the data prefer, everywhere
+# ExoCAM albedo is kriged.
+VARIOGRAM = { 'ExoCAM': 'spherical' }
+DEFAULT_VARIOGRAM = 'linear'
+
 ANISO = {
-    'ExoCAM':       7,
+    'ExoCAM':       15,
     'ROCKE-3D':     1.5,
     'ExoPlaSim':    1.5,
     'Generic PCM':  5,
@@ -221,22 +240,24 @@ def logit( x ):
 def sigmoid( y ):
     return 100.0 / ( 1.0 + np.exp( -y ) )
 
-# A linear variogram whose fitted slope is zero is a pure nugget: ordinary
-# kriging then weights every sample point equally regardless of distance, so
-# the interpolated surface collapses to the sample mean and carries no spatial
+# A variogram whose structure term is zero is a pure nugget: ordinary kriging
+# then weights every sample point equally regardless of distance, so the
+# interpolated surface collapses to the sample mean and carries no spatial
 # information. Those panels are stippled to distinguish that case from a
-# genuinely flat but resolved field.
-slope_eps = 1.0e-8
+# genuinely flat but resolved field. variogram_model_parameters[0] is the
+# structure term for both families in use here -- the slope for linear, the
+# partial sill for spherical -- so the same test reads either.
+structure_eps = 1.0e-8
 
 # Albedo is bounded, so it is kriged on the logit and mapped back through the
-# inverse logit; the fitted variogram slope is returned for the stippling test
+# inverse logit; the fitted structure term is returned for the stippling test
 def krige( name, fs, ps, vals, view ):
     OK = OrdinaryKriging(
         norm_pres( ps ),
         norm_flux( fs ),
         logit( vals ),
         anisotropy_scaling=ANISO[ name ],
-        variogram_model="linear",
+        variogram_model=VARIOGRAM.get( name, DEFAULT_VARIOGRAM ),
         verbose=False,
         enable_plotting=False,
         exact_values=True,
@@ -272,13 +293,19 @@ def label_cases( ax, fs, ps ):
                      ha='right' if left else 'left', va='center', fontsize=10,
                      path_effects=[ patheffects.withStroke( linewidth=2.5, foreground='w' ) ] )
 
-def flag_degenerate( ax, slope, xv, yv ):
+# The label names the sample count because the degeneracy belongs to the fit in
+# front of the reader, not to the model or the variable. ExoCAM is the case in
+# point: its seven common cases resolve nothing, while the ten cases in the
+# upper block resolve a surface plainly enough to see. Saying "no resolvable
+# spatial structure" unqualified invited the two panels to be read as a
+# contradiction.
+def flag_degenerate( ax, structure, xv, yv, n ):
     """Stipple a panel whose variogram fit collapsed to a pure nugget."""
-    if slope > slope_eps:
+    if structure > structure_eps:
         return
     ax.contourf( yv*fluxscale, xv, np.ones_like( xv ), levels=[0.5, 1.5],
                  hatches=['....'], colors='none', alpha=0 )
-    ax.text( 0.5, 0.06, 'no resolvable spatial structure', transform=ax.transAxes,
+    ax.text( 0.5, 0.06, f'these {n} cases resolve no spatial structure', transform=ax.transAxes,
              ha='center', va='bottom', fontsize=10, style='italic', color='0.15',
              bbox=dict( facecolor='white', edgecolor='none', alpha=0.75, pad=2.0 ) )
 
@@ -297,8 +324,9 @@ def setup_panel( ax, title, view ):
         ax.yaxis.set_minor_formatter( plt.NullFormatter() )
 
 def draw_panel( ax, name, fs, ps, vals, view ):
-    z, var, slope = krige( name, fs, ps, vals, view )
-    print( f'  {name:<12} n={len(vals):<3} variogram slope {slope:.3g}' )
+    z, var, structure = krige( name, fs, ps, vals, view )
+    fam = VARIOGRAM.get( name, DEFAULT_VARIOGRAM )
+    print( f'  {name:<12} n={len(vals):<3} {fam} variogram, structure term {structure:.3g}' )
     xv, yv = np.meshgrid( view[ 'pres_grid' ], view[ 'flux_grid' ] )
     levels = np.linspace( view[ 'cmin' ], view[ 'cmax' ], cinterval )
     cf = ax.contourf( yv*fluxscale, xv, sigmoid(z), cmap=cm, levels=levels, vmin=view[ 'cmin' ], vmax=view[ 'cmax' ], extend='both' )
@@ -308,7 +336,7 @@ def draw_panel( ax, name, fs, ps, vals, view ):
     if name == labeled_model:
         label_cases( ax, fs, ps )
     setup_panel( ax, f'{name} (n={len(vals)})', view )
-    flag_degenerate( ax, slope, xv, yv )
+    flag_degenerate( ax, structure, xv, yv, len( vals ) )
     return cf
 
 def add_colorbar( fig, cf, rect, view ):

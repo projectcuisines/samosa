@@ -38,6 +38,15 @@ CAP = 15
 
 # Each crossval script already holds the arrays and the per-model registry, so
 # they are the single source of truth rather than a fourth copy of the data.
+# Variogram family per ( variable, model ), where the figure scripts depart from
+# linear. The ratio has to be fitted under the family the figure actually uses,
+# or a rerun after the next resubmission will quietly hand back the linear
+# answer. ExoCAM albedo is the one entry: linear fits a pure nugget on its seven
+# common cases, and leave-one-out prefers spherical on both its full and its
+# common set. See the VARIOGRAM block in fig_interpolation_albedo.py.
+FAMILY = { ( 'albedo', 'ExoCAM' ): 'spherical' }
+DEFAULT_FAMILY = 'linear'
+
 SOURCES = {
     'temperature':    ( 'crossval_variogram.py',         'dict' ),
     'water vapor':    ( 'crossval_variogram_watvap.py',  'wv'   ),
@@ -59,7 +68,7 @@ def registry( path, kind ):
     return g, { r[ 0 ]: ( r[ 1 ], r[ 2 ], r[ 3 ] ) for r in cm }
 
 
-def resolution( npres, nflux, pres, flux, vals, scaling, grid ):
+def resolution( npres, nflux, pres, flux, vals, scaling, grid, family=DEFAULT_FAMILY ):
     """Std of the kriged field over the std of the data.
 
     Leave-one-out error alone is not a sufficient criterion. A variogram can fit
@@ -72,7 +81,7 @@ def resolution( npres, nflux, pres, flux, vals, scaling, grid ):
     gp, gf = grid
     try:
         ok = OrdinaryKriging( npres( pres ), nflux( flux ), vals,
-                              variogram_model='linear', anisotropy_scaling=scaling,
+                              variogram_model=family, anisotropy_scaling=scaling,
                               verbose=False, enable_plotting=False, exact_values=True )
         z, _ = ok.execute( 'grid', npres( gp ), nflux( gf ) )
     except Exception:
@@ -84,13 +93,13 @@ def resolution( npres, nflux, pres, flux, vals, scaling, grid ):
 MIN_RESOLUTION = 0.25   # kriged field must vary at least this much relative to the data
 
 
-def loo_rmse( npres, nflux, pres, flux, vals, scaling ):
+def loo_rmse( npres, nflux, pres, flux, vals, scaling, family=DEFAULT_FAMILY ):
     res = np.full( len( vals ), np.nan )
     for i in range( len( vals ) ):
         m = np.ones( len( vals ), bool ); m[ i ] = False
         try:
             ok = OrdinaryKriging( npres( pres[ m ] ), nflux( flux[ m ] ), vals[ m ],
-                                  variogram_model='linear', anisotropy_scaling=scaling,
+                                  variogram_model=family, anisotropy_scaling=scaling,
                                   verbose=False, enable_plotting=False, exact_values=True )
             pred, _ = ok.execute( 'points', npres( pres[ [ i ] ] ), nflux( flux[ [ i ] ] ) )
             res[ i ] = vals[ i ] - pred[ 0 ]
@@ -108,8 +117,9 @@ for var, ( path, kind ) in SOURCES.items():
     print( f"{'model':<14}" + ''.join( f'{s:>8g}' for s in SCALINGS ) + '    pick  note' )
     for name, ( pres, flux, vals ) in models.items():
         pres, flux, vals = np.asarray( pres ), np.asarray( flux ), np.asarray( vals )
-        rm  = [ loo_rmse( npres, nflux, pres, flux, vals, s ) for s in SCALINGS ]
-        res = [ resolution( npres, nflux, pres, flux, vals, s, grid ) for s in SCALINGS ]
+        fam = FAMILY.get( ( var, name ), DEFAULT_FAMILY )
+        rm  = [ loo_rmse( npres, nflux, pres, flux, vals, s, fam ) for s in SCALINGS ]
+        res = [ resolution( npres, nflux, pres, flux, vals, s, grid, fam ) for s in SCALINGS ]
 
         # Only scalings that produce a genuinely varying surface are eligible.
         ok_i = [ i for i in range( len( SCALINGS ) ) if res[ i ] >= MIN_RESOLUTION
@@ -132,6 +142,8 @@ for var, ( path, kind ) in SOURCES.items():
         fitted[ ( var, name ) ] = pick
         row = ''.join( ( f'{v:>8.2f}' if res[ i ] >= MIN_RESOLUTION else f'{v:>7.2f}~' )
                        for i, v in enumerate( rm ) )
+        if fam != DEFAULT_FAMILY:
+            note = ( note + '; ' if note else '' ) + f'{fam} variogram'
         print( f'{name:<14}' + row + f'  {pick:>6g}  {note}' )
 
 print( '\n\n# ── Fitted anisotropy, for the figure scripts ──' )

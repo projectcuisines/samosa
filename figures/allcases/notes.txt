@@ -43,6 +43,24 @@ Energy Balance Figure (fig_energy_balance.py, added 2026-08-13):
   data sd of 2.19 for the PCM and 0.043 against 0.32 for ExoCAM. No manuscript number moves -- only the temperature and cloud-fraction ratios are
   quoted in the text, and neither changed.
 
+  ExoCAM albedo variogram family, 2026-09-17 (SUPERSEDES the paragraph below, which concluded the flatness was irreducible -- it was not).
+  The lower-block ExoCAM panel fitted a pure nugget on the seven common cases and was stippled, while the upper block resolved a surface. Jacob was
+  right that the two cannot both be true of the same model and variable. The anisotropy is NOT the culprit (swept 1-50, resolution never exceeds 0.064
+  against the 0.25 floor, best at isotropic, while every other model in that block reaches 0.58-0.96) -- the VARIOGRAM FAMILY is. LOO prefers
+  spherical for ExoCAM albedo on BOTH sets independently: 0.288 vs 0.341 (full) and 0.278 vs 0.325 (common). Refitting the anisotropy under spherical
+  gives 15, an interior optimum rather than a capped one, with LOO 0.258 on the full set (24% better than linear) and resolution 0.60 / 0.88 in the
+  two blocks. Both fits stay strictly inside the sample range (no overshoot) and sigma stays well under the hatch threshold. fig_interpolation_albedo.py
+  now carries a VARIOGRAM dict keyed by model, and fit_anisotropy.py a FAMILY dict keyed by (variable, model), so a rerun after the next resubmission
+  reproduces 15 instead of quietly handing back the linear answer of 7.
+
+  Also tried and rejected: universal kriging with a regional_linear drift (LOO 0.49, far worse than any OK variant); power (LOO 0.319 and barely
+  resolves at 0.07; note power gives resolution 2.9-3.3 for Generic PCM and ExoColumn, i.e. it swings well outside the data range -- the resolution
+  guard needs an UPPER bound before power is ever adopted); borrowing the full-set linear variogram parameters for the common block (works, LOO 0.300,
+  resolution 0.28, but it is a patch where a better-fitting family exists). Gaussian is a close second to spherical (0.281 common, 0.322 full).
+
+  General lesson: a degenerate ordinary-kriging fit means "wrong model", not "insufficient data". Check the variogram family before concluding that a
+  panel cannot resolve -- crossval_variogram_*.py already exists to answer exactly this, and the figure scripts had been hard-coding linear past it.
+
   ExoCAM albedo panel, on the low contrast of it: this is the DATA, not the fit. The kriged field's resolution (std of the surface over std of the
   samples) is 0.40 at the fitted ratio against a 0.25 eligibility floor, and peaks at only 0.414 anywhere in the search range, so no scaling makes
   that panel more structured. It looks flat because ExoCAM's albedo spans 16.5-34.2% on a 0-45% scale. The raw variogram slope (0.012) is misleading
