@@ -193,7 +193,7 @@ else:
 # pinned at 1. The dark Case 7 (3.44%) made it resolvable from 1.5 upward, and
 # with Cases 8, 10 and 11 (2026-09-10) the LOO minimum moved to 3.
 ANISO = {
-    'ExoCAM':       15,
+    'ExoCAM':       7,
     'ROCKE-3D':     1.5,
     'ExoPlaSim':    1.5,
     'Generic PCM':  5,

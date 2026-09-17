@@ -31,6 +31,9 @@ SCALINGS = [ 1, 1.5, 2, 3, 4, 5, 7, 10, 15, 20, 30, 50 ]
 # range the fit is asking to drop the pressure axis altogether; that is a
 # statement about coverage, not a resolved anisotropy, so it is capped and the
 # residual uncertainty is left to show through the kriging variance instead.
+# The ceiling applies to the tolerance pick below, not instead of it: an
+# unidentifiable fit is the last place to choose the most distorting ratio of a
+# set the data cannot tell apart.
 CAP = 15
 
 # Each crossval script already holds the arrays and the per-model registry, so
@@ -124,7 +127,8 @@ for var, ( path, kind ) in SOURCES.items():
             tol  = [ i for i in ok_i if rm[ i ] <= rm[ b ] * 1.02 ]
             pick = SCALINGS[ min( tol ) ]
             if b == len( SCALINGS ) - 1:
-                pick, note = CAP, 'LOO min at range edge, capped'
+                pick = min( pick, CAP )
+                note = f'LOO min at range edge, held at {pick:g}'
         fitted[ ( var, name ) ] = pick
         row = ''.join( ( f'{v:>8.2f}' if res[ i ] >= MIN_RESOLUTION else f'{v:>7.2f}~' )
                        for i, v in enumerate( rm ) )

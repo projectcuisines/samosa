@@ -35,6 +35,19 @@ Energy Balance Figure (fig_energy_balance.py, added 2026-08-13):
   weights, in the files) NOT cos(lat) -- gw-weighted TS reproduces the summary TS exactly for all 11 files, which is the check that validates the
   whole extraction.
 
+  Anisotropy cap fix (2026-09-17): fit_anisotropy.py computed the tolerance pick (smallest scaling within 2% of the best LOO, "a smaller ratio
+  distorts less") and then discarded it whenever the LOO minimum sat at the top of the search range, snapping to CAP=15 instead. That chose the most
+  distorting ratio of a set the data cannot tell apart -- the opposite of the rule everywhere else. The ceiling now applies TO the tolerance pick:
+  pick = min(tolerance pick, CAP). Three models hit that branch: LFRic temperature stays 15 (its LOO falls monotonically and the tolerance pick is 15
+  anyway), Generic PCM water vapor goes 15 -> 10, ExoCAM albedo goes 15 -> 7. Neither changes a panel visibly: max field difference is 0.33 against a
+  data sd of 2.19 for the PCM and 0.043 against 0.32 for ExoCAM. No manuscript number moves -- only the temperature and cloud-fraction ratios are
+  quoted in the text, and neither changed.
+
+  ExoCAM albedo panel, on the low contrast of it: this is the DATA, not the fit. The kriged field's resolution (std of the surface over std of the
+  samples) is 0.40 at the fitted ratio against a 0.25 eligibility floor, and peaks at only 0.414 anywhere in the search range, so no scaling makes
+  that panel more structured. It looks flat because ExoCAM's albedo spans 16.5-34.2% on a 0-45% scale. The raw variogram slope (0.012) is misleading
+  here -- it is in logit units under an anisotropic metric, which is exactly why fit_anisotropy.py has the resolution metric instead.
+
   ALBEDO PART RESOLVED 2026-09-17. The gap was never as wide as this note assumed: the RESOLVED flux profiles FDS and FUS (shortwave down and up on
   ilev) are fully populated, and ilev[0] is the top of the model. gw-weighted FUS[0]/FDS[0] is the planetary albedo and reproduces the summary TOAALB
   to <=0.03 pp in all ten rows of output.txt -- so the albedo needed none of the zeroed fields, and we get it from primary output AND agree with the

@@ -163,7 +163,7 @@ ANISO = {
     'ExoCAM':       10,
     'ROCKE-3D':     7,
     'ExoPlaSim':    3,
-    'Generic PCM':  15,
+    'Generic PCM':  10,
     'LFRic':        10,
     'ExoColumn':    10,
 }
