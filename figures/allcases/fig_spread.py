@@ -5,6 +5,7 @@ import matplotlib.colors as mcolors
 import matplotlib.cm as mcm
 import cmocean
 
+from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
 
 fluxscale = 100
@@ -259,7 +260,7 @@ def restrict( models, keep ):
 
 def full_block():
     single = ( n_ts == 1 )
-    return dict( header='All stable cases in each model', hatch=True, plain_ticks=False,
+    return dict( header='All stable cases', hatch=True, plain_ticks=False,
                  pres_grid=pn2, flux_grid=flux,
                  xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ],
                  ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
@@ -291,7 +292,7 @@ def common_block():
         print( f"  median spread over the common-case region: {np.median( full_here ):.3g} "
                f"from all cases, {np.median( std[ k ] ):.3g} from the common cases "
                f"(max {std[ k ].max():.3g})" )
-    return dict( header='Cases stable in every model (' + ', '.join( map( str, ( np.where( shown )[ 0 ] + 1 ).tolist() ) ) + ')',
+    return dict( header='Only cases stable in all models (' + ', '.join( map( str, ( np.where( shown )[ 0 ] + 1 ).tolist() ) ) + ')',
                  hatch=False, plain_ticks=True, pres_grid=pres_grid, flux_grid=flux_grid,
                  xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ],
                  ylim=[ min( pres_grid ), max( pres_grid ) ],
@@ -312,6 +313,11 @@ if not COMMON or STACKED:
 counts = { v[ 'key' ]: krige( pres1, flux1, v[ 'count' ] )[ 0 ] for v in VARS }
 
 # ── Plot ──────────────────────────────────────────────────────────────────────
+# Case numbers beside the sample points, as on the per-model figures. Labels sit
+# to the right of each marker, except where that would crowd a neighbor or run
+# off the panel.
+label_left = { 10, 13 }
+
 def setup_panel( ax, title, block ):
     ax.set_title( title, fontsize=13 )
     ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=11 )
@@ -329,6 +335,12 @@ def setup_panel( ax, title, block ):
                 color='none', edgecolors='k', s=40, linewidths=0.7, zorder=5 )
     ax.scatter( flux1[ block[ 'cross_pts' ] ]*fluxscale, pres1[ block[ 'cross_pts' ] ],
                 color='k', marker='x', s=40, linewidths=0.7, zorder=5 )
+    for i in np.where( block[ 'open_pts' ] | block[ 'cross_pts' ] )[ 0 ]:
+        left = ( i + 1 ) in label_left
+        ax.annotate( str( i + 1 ), ( flux1[ i ]*fluxscale, pres1[ i ] ),
+                     xytext=( -5 if left else 5, 0 ), textcoords='offset points',
+                     ha='right' if left else 'left', va='center', fontsize=8, zorder=6,
+                     path_effects=[ patheffects.withStroke( linewidth=2.0, foreground='w' ) ] )
 
 def draw_row( host, axes, block ):
     xv, yv = np.meshgrid( block[ 'pres_grid' ], block[ 'flux_grid' ] )

@@ -351,7 +351,7 @@ if not COMMON or STACKED:
                                 ( ~ts_plahab_mask ).astype( int ) ] ).sum( axis=0 )
     # Case 10 sits against the right-hand edge and Case 16 against the top, so their
     # labels are placed inboard rather than with the default offset.
-    full.update( header='All stable cases in each model',
+    full.update( header='All stable cases',
                  cases=list( range( 16 ) ), crossed=runaway_count >= 2,
                  label_offset={ 10: ( -17, 5 ), 16: ( 7, -14 ) },
                  isotherm_mask=lambda name: full[ 'WELL' ][ name ] & (
@@ -383,7 +383,7 @@ if COMMON or STACKED:
     fluxf_c  = np.linspace( flux1[ keep ].min() - 0.5, flux1[ keep ].max() + 0.5, 91 )
     pn2f_c   = np.unique( np.concatenate( [ np.geomspace( lo, hi, 121 ), pn2[ ( pn2 > lo ) & ( pn2 < hi ) ] ] ) )
     common = consensus( common_in, pn2f_c, fluxf_c, fade=False )
-    common.update( header='Cases stable in every model (' + ', '.join( map( str, ( cases + 1 ).tolist() ) ) + ')',
+    common.update( header='Only cases stable in all models (' + ', '.join( map( str, ( cases + 1 ).tolist() ) ) + ')',
                    cases=cases.tolist(), crossed=np.zeros( 16, dtype=bool ),
                    label_offset={ 8: ( 7, -14 ), 10: ( -17, 5 ) },
                    isotherm_mask=lambda name: True, region_labels='auto',
