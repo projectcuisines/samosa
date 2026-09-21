@@ -206,3 +206,26 @@ Standard Deviation Figure:
   Hatched regions indicate areas where only one model (ExoPlaSim) has valid sample data — specifically the three QMC sample points at (1900 W m⁻², 7.85 bar), (2400 W m⁻², 0.21 bar), and (2100 W m⁻², 1.83 bar),
   which are runaway cases for ExoCAM, ROCKE-3D, and PlaHab and outside the sampling subsets of Generic PCM and LFRic. The boundary was determined by kriging the per-point model count and masking where the        
   interpolated count falls below 1.5. Sample points are shown as open circles (multiple models) or × marks (single model only).
+
+
+Caption trim (2026-09-21):
+
+  The figure captions in main.tex were cut to what is plotted and how to read it, from 32.6k to 11.1k characters in
+  total. Method, results and caveats moved into the adjacent bracketed body paragraphs, and TO DOs into those
+  paragraphs' TO DO lists. The details below were dropped from the paper outright and are kept here instead.
+
+  Figure 2: the regime shading assigns seven cases to the frozen regime, two to the ice-free regime, four to the
+    contested band and three to the runaway region.
+  Figures 3 and 5: the unhatched slivers beyond the outermost samples exceed the sigma threshold by at most 12 K
+    (temperature) and 0.24 logit units (cloud fraction).
+  Figure 4: the lower block's color scale runs down to 1e-4 kg m^-2 to include ExoColumn at Case 10.
+  Figure 6: the upper color floor was 10% until 2026-09-17, which put four of HEXTOR's nine cases and LFRic Case 7
+    in the under-color and left both panels reading as featureless dark blocks. The lower block reaches the same
+    0% floor because PlaHab gives 0.9% at Case 10 and HEXTOR 3.4 and 3.3% at Cases 4 and 9.
+  Figure 13: HEXTOR's belts come from zonal_output_HEXTOR_caseNN.dat. The uniform-longitude average recovers the
+    submitted global mean to within 0.03 K for ROCKE-3D, LFRic and PlaHab and 0.39 K for the other resolved models
+    (the rounding of the reported values), and 0.01 K for the mapped HEXTOR curves.
+  Figure 16: colors identify the model rather than the regime, as they do in the source figure, because the regime
+    is already carried by the marker.
+  Figure 17: adding a model can only shrink the two consensus regions, so the white band is a subset of the full
+    contested band and the grey is exactly the area that PlaHab alone makes contested.
