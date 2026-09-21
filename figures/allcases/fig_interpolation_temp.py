@@ -149,12 +149,12 @@ def zoomed_view( models ):
 # each block has its own colorbar and the common cases get a narrower color
 # range; alone, they keep the full one so they compare directly with Figure 3.
 if STACKED or COMMON:
-    common_models, common_cases = restrict_to_common( MODELS )
-    common_block = ( 'Only cases stable in all models (' + ', '.join( map( str, common_cases ) ) + ')',
+    common_models, _ = restrict_to_common( MODELS )
+    common_block = ( 'Common Cases',
                      common_models, zoomed_view( common_models ) )
 if STACKED:
     common_block[ 2 ].update( fitted_colors( common_models ) )
-    blocks = [ ( 'All stable cases', MODELS, full_view() ), common_block ]
+    blocks = [ ( 'All Cases', MODELS, full_view() ), common_block ]
 elif COMMON:
     blocks = [ common_block ]
 else:

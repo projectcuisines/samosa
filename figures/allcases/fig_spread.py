@@ -260,7 +260,7 @@ def restrict( models, keep ):
 
 def full_block():
     single = ( n_ts == 1 )
-    return dict( header='All stable cases', hatch=True, plain_ticks=False,
+    return dict( header='All Cases', hatch=True, plain_ticks=False,
                  pres_grid=pn2, flux_grid=flux,
                  xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ],
                  ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
@@ -292,7 +292,7 @@ def common_block():
         print( f"  median spread over the common-case region: {np.median( full_here ):.3g} "
                f"from all cases, {np.median( std[ k ] ):.3g} from the common cases "
                f"(max {std[ k ].max():.3g})" )
-    return dict( header='Only cases stable in all models (' + ', '.join( map( str, ( np.where( shown )[ 0 ] + 1 ).tolist() ) ) + ')',
+    return dict( header='Common Cases',
                  hatch=False, plain_ticks=True, pres_grid=pres_grid, flux_grid=flux_grid,
                  xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ],
                  ylim=[ min( pres_grid ), max( pres_grid ) ],
