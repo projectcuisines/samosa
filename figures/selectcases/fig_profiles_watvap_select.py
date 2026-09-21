@@ -258,12 +258,12 @@ case_labels = ['Case 1\n500 W/m², 0.70 bar',
                'Case 16\n1400 W/m², 10.00 bar']
 
 NCASES    = 3
-FS_TITLE  = 10
-FS_LABEL  = 9
-FS_TICK   = 8
+FS_TITLE  = 12
+FS_LABEL  = 12
+FS_TICK   = 10
 FS_LEGEND = 10
 
-fig, axes = plt.subplots(1, NCASES, figsize=(11, 5), layout='constrained')
+fig, axes = plt.subplots(1, NCASES, figsize=(10, 4.6), layout='constrained')
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.06)
 
 for ci, ax in enumerate(axes):

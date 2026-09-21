@@ -350,17 +350,18 @@ if not COMMON or STACKED:
                                 ( ~ts_rocke3d_mask ).astype( int ),
                                 ( ~ts_plahab_mask ).astype( int ) ] ).sum( axis=0 )
     # Case 10 sits against the right-hand edge and Case 16 against the top, so their
-    # labels are placed inboard rather than with the default offset.
+    # labels are placed inboard rather than with the default offset, and Case 13's
+    # goes to the left of its marker, clear of Case 5 beside it.
     full.update( header='All Cases',
                  cases=list( range( 16 ) ), crossed=runaway_count >= 2,
-                 label_offset={ 10: ( -17, 5 ), 16: ( 7, -14 ) },
+                 label_offset={ 10: ( -17, 5 ), 13: ( -17, 5 ), 16: ( 7, -14 ) },
                  isotherm_mask=lambda name: full[ 'WELL' ][ name ] & (
                      sampled_region( *ts_in[ name ][ :2 ], full[ 'PP' ], full[ 'FF' ] )
                      if name in partial_models else True ),
                  # Label positions chosen from the widest, emptiest part of each shaded region
                  region_labels=[ ( 'all models\nglobal mean\nbelow freezing', ( 950, 0.30 ) ),
                                  ( 'all models\nglobal mean\nabove freezing', ( 1575, 1.67 ) ) ],
-                 xlim=( 2650, 350 ), ylim=( 0.09, 11 ), plain_ticks=False, legend=True )
+                 xlim=( 2650, 350 ), ylim=( 0.09, 11 ), plain_ticks=False, legend=not STACKED )
     report_areas( '=== fraction of the plane ===', full )
     panels.append( full )
 
@@ -404,6 +405,10 @@ marker_edge = 'k'
 
 drawn = consensus_models + ( partial_models if SHOW_PARTIAL else [] )
 
+def legend_handles():
+    order = [ n for n in drawn if n != 'PlaHab' ] + [ n for n in drawn if n == 'PlaHab' ]
+    return [ Line2D( [], [], color=style[n][ 'color' ], lw=1.6, ls=style[n][ 'ls' ], label=n ) for n in order ]
+
 def auto_label_position( B, M ):
     """The node of a region farthest from its edge, in display units, or None
     for a region too thin to hold a label."""
@@ -438,15 +443,15 @@ def draw_panel( ax, B ):
     for name in drawn:
         mask = B[ 'isotherm_mask' ]( name )
         ax.contour( Y, X, np.where( mask, B[ 'Z' ][ name ], np.nan ), levels=[ T_FREEZE ],
-                    colors=[ style[ name ][ 'color' ] ], linewidths=2.2,
+                    colors=[ style[ name ][ 'color' ] ], linewidths=1.6,
                     linestyles=style[ name ][ 'ls' ], zorder=4 )
 
     for i in B[ 'cases' ]:
         f, p = flux1[ i ] * fluxscale, pres1[ i ]
         if B[ 'crossed' ][ i ]:
-            ax.plot( f, p, marker='X', color='k', ms=11, mew=0.0, zorder=6 )
+            ax.plot( f, p, marker='X', color='k', ms=8, mew=0.0, zorder=6 )
         else:
-            ax.scatter( f, p, marker='o', s=55, c='k', edgecolors=marker_edge, zorder=6 )
+            ax.scatter( f, p, marker='o', s=35, c='k', edgecolors=marker_edge, zorder=6 )
         ax.annotate( str( i + 1 ), ( f, p ), textcoords='offset points',
                      xytext=B[ 'label_offset' ].get( i + 1, ( 7, 5 ) ), fontsize=9, zorder=7 )
 
@@ -460,10 +465,10 @@ def draw_panel( ax, B ):
         if xy is None:
             continue
         color = '#3a6f9c' if 'below' in text else '#6b9b62'
-        ax.annotate( text, xy=xy, fontsize=10.5,
+        ax.annotate( text, xy=xy, fontsize=10,
                      ha='center', va='center', style='italic', color=color, zorder=5 )
     if 'frac_run' in B:
-        ax.annotate( 'runaway\n(all but ExoPlaSim)', xy=( 2320, 0.60 ), fontsize=11,
+        ax.annotate( 'runaway\n(all but\nExoPlaSim)', xy=( 2320, 0.60 ), fontsize=10,
                      ha='center', va='center', style='italic', color='#8a3a42', zorder=5 )
 
     ax.set_yscale( 'log' )
@@ -471,31 +476,29 @@ def draw_panel( ax, B ):
     ax.set_ylim( *B[ 'ylim' ] )
     ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
     ax.set_ylabel( 'N$_2$ surface pressure (bar)', fontsize=12 )
-    ax.tick_params( axis='both', labelsize=11 )
+    ax.tick_params( axis='both', labelsize=10 )
     if B[ 'plain_ticks' ]:
         # Under a decade of pressure holds only one power of ten, so label plain values
         ax.set_yticks( [ 0.5, 1, 2, 5 ], labels=[ '0.5', '1', '2', '5' ] )
         ax.yaxis.set_minor_formatter( plt.NullFormatter() )
 
     if B[ 'legend' ]:
-        legend_order = [ n for n in drawn if n != 'PlaHab' ] + [ n for n in drawn if n == 'PlaHab' ]
-        handles  = [ Line2D( [], [], color=style[n][ 'color' ],
-                             lw=2.2, ls=style[n][ 'ls' ], label=n )
-                     for n in legend_order ]
-        ax.legend( handles=handles, loc='upper left', fontsize=10, ncol=1,
+        ax.legend( handles=legend_handles(), loc='upper left', fontsize=10, ncol=1,
                    framealpha=1, borderpad=0.7, labelspacing=0.5 )
 
 if len( panels ) == 1:
-    fig, ax = plt.subplots( figsize=( 9.5, 7.5 ) )
+    fig, ax = plt.subplots( figsize=( 5.5, 4.4 ) )
     draw_panel( ax, panels[ 0 ] )
 else:
     # Side by side rather than stacked: the single panel already fills most of a
     # page with its caption. Each panel under a bold header; the legend, which
-    # applies to both, sits in the full panel.
-    fig, axs = plt.subplots( 1, len( panels ), figsize=( 9.5*len( panels ), 7.9 ), layout='constrained' )
+    # applies to both, sits in one row beneath them.
+    fig, axs = plt.subplots( 1, len( panels ), figsize=( 5.5*len( panels ), 4.9 ), layout='constrained' )
     for ax, B in zip( axs, panels ):
         draw_panel( ax, B )
-        ax.set_title( B[ 'header' ], fontsize=14, fontweight='bold', pad=10 )
+        ax.set_title( B[ 'header' ], fontsize=14, fontweight='bold', pad=8 )
+    fig.legend( handles=legend_handles(), loc='outside lower center', ncol=len( drawn ), fontsize=10,
+                frameon=False, columnspacing=1.4, handlelength=2.2 )
 
 suffix = ( "" if SHOW_PARTIAL else "_nopartial" ) + ( "_stacked" if STACKED else "_common" if COMMON else "" )
 fig.savefig( f"fig_summary{suffix}.png", bbox_inches='tight' )

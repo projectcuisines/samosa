@@ -116,13 +116,13 @@ panels = [
     [(lon_lfric_s,  lat_lfric,   wv_lfric1),   (lon_lfric_s,  lat_lfric,   wv_lfric4),   (lon_lfric_s,  lat_lfric,   wv_lfric16)     ],
 ]
 
-TITLE_FS = 11
-LABEL_FS = 9
-MEAN_FS  = 8
-NA_FS    = 10
-CB_FS    = 9
+TITLE_FS = 12
+LABEL_FS = 11
+MEAN_FS  = 10
+NA_FS    = 11
+CB_FS    = 11
 
-fig = plt.figure(layout='constrained', figsize=(13, 5))
+fig = plt.figure(layout='constrained', figsize=(10.2, 3.9))
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.03, hspace=0.08)
 ax_array = fig.subplots(3, 5, squeeze=False)
 

@@ -92,7 +92,7 @@ data = {
 T_FREEZE = 273.16
 c_label  = '0.35'
 
-fig, axes = plt.subplots( 1, 2, figsize=(15, 6.4) )
+fig, axes = plt.subplots( 1, 2, figsize=(11.2, 4.6), layout='constrained' )
 
 
 def draw( ax, xkey, ykey ):
@@ -101,10 +101,10 @@ def draw( ax, xkey, ykey ):
         d = data[ name ]
         for x, y, j in zip( d[ xkey ], d[ ykey ], d[ 'jet' ] ):
             single = ( j == 'SJ' )
-            ax.scatter( x, y, s=95, marker='o' if single else 's',
+            ax.scatter( x, y, s=45, marker='o' if single else 's',
                         facecolor=style[ name ] if single else 'none',
                         edgecolors='k' if single else style[ name ],
-                        linewidths=0.7 if single else 1.7, zorder=5 )
+                        linewidths=0.7 if single else 1.2, zorder=5 )
 
 
 #--------------------------------------------------------------------
@@ -116,17 +116,14 @@ ax.axvline( 0.0, color='k', ls=':', lw=1.0, zorder=1 )
 draw( ax, 'umax', 'jetlat' )
 
 ax.set_ylim( -6, 78 )
-ax.set_xlabel( 'Maximum zonal wind within $10\\degree$ of the equator '
+ax.set_xlabel( 'Maximum zonal wind within $10\\degree$ of the equator\n'
                'at $\\sigma = 0.30$ (m s$^{-1}$)', fontsize=12 )
 ax.set_ylabel( 'Latitude of the tropospheric jet ($\\degree$)', fontsize=12 )
 # Kept in the upper part of the shaded band: LFRic Case 11 sits at 48.7 m/s and
 # 5 degrees, at the right-hand end of the single-jet row.
-ax.text( 0.98, 0.22, 'equatorial jet', transform=ax.transAxes, fontsize=10,
+ax.text( 0.98, 0.22, 'equatorial jet', transform=ax.transAxes, fontsize=9,
          style='italic', color=c_label, ha='right' )
-ax.legend( handles=[ Line2D( [], [], ls='', marker='o', mfc=style[ m ], mec='k',
-                             ms=9, label=m ) for m in models ],
-           loc='upper right', fontsize=10, framealpha=1 )
-ax.set_title( '(a) Jet latitude against equatorial wind', fontsize=13 )
+ax.set_title( '(a) Jet latitude against equatorial wind', fontsize=12 )
 
 #--------------------------------------------------------------------
 # Panel (b) — minimum surface temperature against the contrast ratio
@@ -135,19 +132,27 @@ ax = axes[1]
 ax.axhline( T_FREEZE, color='k', ls='--', lw=1.0, zorder=1 )
 draw( ax, 'ratio', 'tsmin' )
 
-ax.set_xlabel( 'Ratio of the day-night to equator-pole temperature difference',
+ax.set_xlabel( 'Ratio of the day-night to\nequator-pole temperature difference',
                fontsize=12 )
 ax.set_ylabel( 'Minimum surface temperature (K)', fontsize=12 )
-ax.text( 0.02, T_FREEZE + 6, '273.16 K', fontsize=10, color=c_label,
+# At the right-hand end of the line, clear of ROCKE-3D at 272 K on the left
+ax.text( 0.98, T_FREEZE + 6, '273.16 K', fontsize=9, color=c_label, ha='right',
          transform=ax.get_yaxis_transform() )
-ax.legend( handles=[ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=9,
-                             label='single (equatorial) jet' ),
-                     Line2D( [], [], ls='', marker='s', mfc='none', mec='0.4',
-                             mew=1.7, ms=9, label='double (midlatitude) jet' ) ],
-           loc='upper right', fontsize=10, framealpha=1 )
-ax.set_title( '(b) Minimum surface temperature against contrast ratio', fontsize=13 )
+ax.set_title( '(b) Minimum surface temperature against contrast ratio', fontsize=12 )
 
-fig.tight_layout()
+for ax in axes:
+    ax.tick_params( axis='both', labelsize=10 )
+
+# One legend row above the panels, for the model colors and the jet symbols,
+# on the layout of Figure 15
+fig.legend( handles=[ Line2D( [], [], ls='', marker='o', mfc=style[ m ], mec='k', ms=7, label=m )
+                      for m in models ] +
+                    [ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=7,
+                              label='single (equatorial) jet' ),
+                      Line2D( [], [], ls='', marker='s', mfc='none', mec='0.4',
+                              mew=1.2, ms=7, label='double (midlatitude) jet' ) ],
+            loc='outside upper center', ncol=7, fontsize=10,
+            frameon=False, columnspacing=1.2, handletextpad=0.3 )
 fig.savefig( 'fig_jet_regimes.png', bbox_inches='tight' )
 fig.savefig( 'fig_jet_regimes.eps', bbox_inches='tight' )
 

@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.transforms import offset_copy
 from scipy.stats import qmc
 
 #--------------------------------------------------------------------
@@ -59,99 +60,101 @@ color_grid    = '#aaaaaa'
 # one-dimensional models.
 fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
                                   [ 'P5', 'P6', 'P7', 'P8' ]],
-                                figsize=(22, 9) )
+                                figsize=(10.5, 4.6) )
 
 xlim = [ max( flux ) + 50, min( flux ) - 50 ]
 ylim = [ min( pn2 ) * 0.9, max( pn2 ) * 1.1 ]
 
 def setup_panel( ax, title ):
-    ax.set_title( title, fontsize=14 )
-    ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
-    ax.set_ylabel( 'Surface pressure (bar)', fontsize=12 )
-    ax.tick_params( axis='x', labelsize=11 )
-    ax.tick_params( axis='y', labelsize=11 )
+    ax.set_title( title, fontsize=12 )
+    ax.tick_params( axis='both', labelsize=10 )
     ax.set_yscale( 'log' )
     ax.set_xlim( xlim )
+    ax.set_xticks( [ 2000, 1500, 1000, 500 ] )
     ax.set_ylim( ylim )
 
 #--------------------------------------------------------------------
 # Panel 1 — ExoPlaSim (all 16 stable; labels identify QMC point numbers)
 
-axd[ 'P1' ].scatter( grid[:,0], grid[:,1], s=4, color=color_grid, zorder=0 )
-axd[ 'P1' ].scatter( flux_all, pres_all, color=color_stable, marker='o', s=50 )
+axd[ 'P1' ].scatter( grid[:,0], grid[:,1], s=1.5, color=color_grid, zorder=0 )
+axd[ 'P1' ].scatter( flux_all, pres_all, color=color_stable, marker='o', s=40 )
 
-axd[ 'P1' ].text( flux1[0]+80, pres1[0],       1,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux1[1]+80, pres1[1],       2,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux1[2]+80, pres1[2],       3,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux1[3]+80, pres1[3],       4,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux1[4]+80, pres1[4],       5,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux1[5]+80, pres1[5],       6,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux1[6]+80, pres1[6],       7,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux1[7]+80, pres1[7],       8,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[0]+80,  pres2[0],      9,  fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[1]+140, pres2[1],      10, fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[2]+140, pres2[2]*1.03, 11, fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[3]+140, pres2[3],      12, fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[4]+140, pres2[4],      13, fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[5]+140, pres2[5],      14, fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[6]+140, pres2[6],      15, fontsize=10, color=color_stable )
-axd[ 'P1' ].text( flux2[7]+140, pres2[7]*0.81, 16, fontsize=10, color=color_stable )
+# Case numbers placed as in Figures 3-6: to the right of each marker, except
+# where that would crowd a neighbor or run off the panel
+label_left = { 1, 8, 10, 13, 15 }
+for case, ( f, p ) in enumerate( zip( flux_all, pres_all ), start=1 ):
+    left = case in label_left
+    axd[ 'P1' ].annotate( str( case ), ( f, p ), xytext=( -5 if left else 5, 0 ), textcoords='offset points',
+                          ha='right' if left else 'left', va='center', fontsize=9, color=color_stable )
 
 setup_panel( axd[ 'P1' ], f'ExoPlaSim (n=16)' )
 
 #--------------------------------------------------------------------
 # Panel 2 — ExoCAM
 
-axd[ 'P2' ].scatter( flux_all[  exocam_mask ], pres_all[  exocam_mask ], color=color_stable,  marker='o', s=50 )
-axd[ 'P2' ].scatter( flux_all[ ~exocam_mask ], pres_all[ ~exocam_mask ], color=color_unavail, marker='x', s=50 )
+axd[ 'P2' ].scatter( flux_all[  exocam_mask ], pres_all[  exocam_mask ], color=color_stable,  marker='o', s=40 )
+axd[ 'P2' ].scatter( flux_all[ ~exocam_mask ], pres_all[ ~exocam_mask ], color=color_unavail, marker='x', s=40 )
 setup_panel( axd[ 'P2' ], f'ExoCAM (n={exocam_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 3 — ROCKE-3D
 
-axd[ 'P3' ].scatter( flux_all[  rocke3d_mask ], pres_all[  rocke3d_mask ], color=color_stable,  marker='o', s=50 )
-axd[ 'P3' ].scatter( flux_all[ ~rocke3d_mask ], pres_all[ ~rocke3d_mask ], color=color_unavail, marker='x', s=50 )
+axd[ 'P3' ].scatter( flux_all[  rocke3d_mask ], pres_all[  rocke3d_mask ], color=color_stable,  marker='o', s=40 )
+axd[ 'P3' ].scatter( flux_all[ ~rocke3d_mask ], pres_all[ ~rocke3d_mask ], color=color_unavail, marker='x', s=40 )
 setup_panel( axd[ 'P3' ], f'ROCKE-3D (n={rocke3d_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 4 — Generic PCM
 
-axd[ 'P4' ].scatter( flux_all[  pcm_mask ], pres_all[  pcm_mask ], color=color_stable,  marker='o', s=50 )
-axd[ 'P4' ].scatter( flux_all[ ~pcm_mask ], pres_all[ ~pcm_mask ], color=color_unavail, marker='x', s=50 )
+axd[ 'P4' ].scatter( flux_all[  pcm_mask ], pres_all[  pcm_mask ], color=color_stable,  marker='o', s=40 )
+axd[ 'P4' ].scatter( flux_all[ ~pcm_mask ], pres_all[ ~pcm_mask ], color=color_unavail, marker='x', s=40 )
 setup_panel( axd[ 'P4' ], f'Generic PCM (n={pcm_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 5 — LFRic
 
-axd[ 'P5' ].scatter( flux_all[  lfric_mask ], pres_all[  lfric_mask ], color=color_stable,  marker='o', s=50 )
-axd[ 'P5' ].scatter( flux_all[ ~lfric_mask ], pres_all[ ~lfric_mask ], color=color_unavail, marker='x', s=50 )
+axd[ 'P5' ].scatter( flux_all[  lfric_mask ], pres_all[  lfric_mask ], color=color_stable,  marker='o', s=40 )
+axd[ 'P5' ].scatter( flux_all[ ~lfric_mask ], pres_all[ ~lfric_mask ], color=color_unavail, marker='x', s=40 )
 setup_panel( axd[ 'P5' ], f'LFRic (n={lfric_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 6 — PlaHab
 
-axd[ 'P6' ].scatter( flux_all[  plahab_mask ], pres_all[  plahab_mask ], color=color_stable,  marker='o', s=50 )
-axd[ 'P6' ].scatter( flux_all[ ~plahab_mask ], pres_all[ ~plahab_mask ], color=color_unavail, marker='x', s=50 )
+axd[ 'P6' ].scatter( flux_all[  plahab_mask ], pres_all[  plahab_mask ], color=color_stable,  marker='o', s=40 )
+axd[ 'P6' ].scatter( flux_all[ ~plahab_mask ], pres_all[ ~plahab_mask ], color=color_unavail, marker='x', s=40 )
 setup_panel( axd[ 'P6' ], f'PlaHab (n={plahab_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 7 - HEXTOR
 
-axd[ 'P7' ].scatter( flux_all[  hextor_mask ], pres_all[  hextor_mask ], color=color_stable,  marker='o', s=50 )
-axd[ 'P7' ].scatter( flux_all[ ~hextor_mask ], pres_all[ ~hextor_mask ], color=color_unavail, marker='x', s=50 )
+axd[ 'P7' ].scatter( flux_all[  hextor_mask ], pres_all[  hextor_mask ], color=color_stable,  marker='o', s=40 )
+axd[ 'P7' ].scatter( flux_all[ ~hextor_mask ], pres_all[ ~hextor_mask ], color=color_unavail, marker='x', s=40 )
 setup_panel( axd[ 'P7' ], f'HEXTOR (n={hextor_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 8 - ExoColumn
 
-axd[ 'P8' ].scatter( flux_all[  exocolumn_mask ], pres_all[  exocolumn_mask ], color=color_stable,  marker='o', s=50 )
-axd[ 'P8' ].scatter( flux_all[ ~exocolumn_mask ], pres_all[ ~exocolumn_mask ], color=color_unavail, marker='x', s=50 )
+axd[ 'P8' ].scatter( flux_all[  exocolumn_mask ], pres_all[  exocolumn_mask ], color=color_stable,  marker='o', s=40 )
+axd[ 'P8' ].scatter( flux_all[ ~exocolumn_mask ], pres_all[ ~exocolumn_mask ], color=color_unavail, marker='x', s=40 )
 setup_panel( axd[ 'P8' ], f'ExoColumn (n={exocolumn_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Finalize
 
-fig.subplots_adjust( wspace=0.3, hspace=0.4 )
+fig.subplots_adjust( wspace=0.08, hspace=0.22 )
+
+# Every panel shares one view, so the axes are labeled once: pressure to the
+# left, instellation under the bottom row, tick labels along the outer edges
+axs = np.array( [ [ axd[ f'P{4*r + c + 1}' ] for c in range( 4 ) ] for r in range( 2 ) ] )
+for ( r, c ), ax in np.ndenumerate( axs ):
+    ax.tick_params( labelleft=( c == 0 ), labelbottom=( r == 1 ) )
+top_left, bottom_right = axs[ 0, 0 ].get_position(), axs[ -1, -1 ].get_position()
+fig.text( top_left.x0, ( top_left.y1 + bottom_right.y0 )/2, 'Surface pressure (bar)',
+          rotation=90, ha='right', va='center', fontsize=12,
+          transform=offset_copy( fig.transFigure, fig=fig, x=-30, units='points' ) )
+fig.text( ( top_left.x0 + bottom_right.x1 )/2, bottom_right.y0, 'Instellation (W m$^{-2}$)',
+          ha='center', va='top', fontsize=12,
+          transform=offset_copy( fig.transFigure, fig=fig, y=-18, units='points' ) )
 
 fig.savefig( "fig_tally.png", bbox_inches='tight' )
 fig.savefig( "fig_tally.eps", bbox_inches='tight' )

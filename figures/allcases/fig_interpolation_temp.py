@@ -123,7 +123,7 @@ def restrict_to_common( models ):
 # the anisotropy ratios were fitted on.
 def full_view():
     return dict( flux_grid=flux, pres_grid=pn2, hatch=True, plain_ticks=False,
-                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ],
+                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ], xticks=[ 2000, 1500, 1000, 500 ],
                  ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
                  cmin=contourmin, cmax=contourmax, cticks=cbar_ticks )
 
@@ -141,7 +141,7 @@ def zoomed_view( models ):
     flux_grid = np.linspace( fs_shown.min() - 0.5, fs_shown.max() + 0.5, 41 )
     pres_grid = np.geomspace( ps_shown.min()*0.9, ps_shown.max()*1.1, 41 )
     return dict( flux_grid=flux_grid, pres_grid=pres_grid, hatch=False, plain_ticks=True,
-                 xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ],
+                 xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ], xticks=[ 1100, 900, 700, 500 ],
                  ylim=[ min( pres_grid ), max( pres_grid ) ],
                  cmin=contourmin, cmax=contourmax, cticks=cbar_ticks )
 
@@ -220,24 +220,22 @@ def warm_edge_sigma( sigma ):
 # Labels sit to the right of each marker, except where that would crowd a
 # neighbor or run off the panel.
 labeled_model = 'ExoPlaSim'
-label_left    = { 10, 13 }
+label_left    = { 1, 8, 10, 13, 15 }
 
 def label_cases( ax, fs, ps ):
     for f, p in zip( fs, ps ):
         case = np.where( _at( f, p, flux1, pres1 ) )[ 0 ][ 0 ] + 1
         left = case in label_left
         ax.annotate( str( case ), ( f*fluxscale, p ), xytext=( -6 if left else 6, 0 ), textcoords='offset points',
-                     ha='right' if left else 'left', va='center', fontsize=10,
-                     path_effects=[ patheffects.withStroke( linewidth=2.5, foreground='w' ) ] )
+                     ha='right' if left else 'left', va='center', fontsize=9,
+                     path_effects=[ patheffects.withStroke( linewidth=2, foreground='w' ) ] )
 
 def setup_panel( ax, title, view ):
-    ax.set_title( title, fontsize=14 )
-    ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
-    ax.set_ylabel( 'Surface pressure (bar)', fontsize=12 )
-    ax.tick_params( axis='x', labelsize=11 )
-    ax.tick_params( axis='y', labelsize=11 )
+    ax.set_title( title, fontsize=12 )
+    ax.tick_params( axis='both', labelsize=10 )
     ax.set_yscale( 'log' )
     ax.set_xlim( view[ 'xlim' ] )
+    ax.set_xticks( view[ 'xticks' ] )
     ax.set_ylim( view[ 'ylim' ] )
     if view[ 'plain_ticks' ]:
         # Under a decade of pressure holds only one power of ten, so label plain values
@@ -251,17 +249,35 @@ def draw_panel( ax, name, fs, ps, vals, view ):
     cf = ax.contourf( yv*fluxscale, xv, z, cmap=cm, levels=levels, extend='both' )
     if view[ 'hatch' ]:
         ax.contourf( yv*fluxscale, xv, warm_edge_sigma( np.sqrt(var) ), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-    ax.scatter( fs*fluxscale, ps, c=vals, cmap=cm, vmin=view[ 'cmin' ], vmax=view[ 'cmax' ], marker='o', s=70, edgecolors=marker_edge )
+    ax.scatter( fs*fluxscale, ps, c=vals, cmap=cm, vmin=view[ 'cmin' ], vmax=view[ 'cmax' ], marker='o', s=45, edgecolors=marker_edge )
     if name == labeled_model:
         label_cases( ax, fs, ps )
     setup_panel( ax, f'{name} (n={len(vals)})', view )
     return cf
 
+# Every panel in a block shares one view, so the axes are labeled once per
+# block: pressure to the left of it, instellation under its bottom row, and
+# tick labels only along its outer edges. A panel keeps its instellation tick
+# labels when the one below it is an empty "No data" slot.
+def label_block( fig, axs ):
+    for ( r, c ), ax in np.ndenumerate( axs ):
+        if c > 0:
+            ax.tick_params( labelleft=False )
+        if r < axs.shape[ 0 ] - 1 and axs[ r + 1, c ].axison:
+            ax.tick_params( labelbottom=False )
+    top_left, bottom_right = axs[ 0, 0 ].get_position(), axs[ -1, -1 ].get_position()
+    fig.text( top_left.x0, ( top_left.y1 + bottom_right.y0 )/2, 'Surface pressure (bar)',
+              rotation=90, ha='right', va='center', fontsize=12,
+              transform=offset_copy( fig.transFigure, fig=fig, x=-30, units='points' ) )
+    fig.text( ( top_left.x0 + bottom_right.x1 )/2, bottom_right.y0, 'Instellation (W m$^{-2}$)',
+              ha='center', va='top', fontsize=12,
+              transform=offset_copy( fig.transFigure, fig=fig, y=-18, units='points' ) )
+
 def add_colorbar( fig, cf, rect, view ):
     cax = fig.add_axes( rect )
     cb = fig.colorbar( cf, cax=cax, extend='both', ticks=view[ 'cticks' ] )
-    cb.ax.tick_params( labelsize=11 )
-    cb.ax.get_yaxis().labelpad = 15
+    cb.ax.tick_params( labelsize=10 )
+    cb.ax.get_yaxis().labelpad = 12
     cb.set_label( cbar_label, rotation=270, fontsize=12 )
 
 #--------------------------------------------------------------------
@@ -272,24 +288,26 @@ def add_colorbar( fig, cf, rect, view ):
 nrows = len( MODELS ) // 4
 if len( blocks ) == 1:
     _, models, view = blocks[ 0 ]
-    fig, axs = plt.subplots( nrows, 4, figsize=(22, 4.5*nrows), squeeze=False )
+    fig, axs = plt.subplots( nrows, 4, figsize=(11, 2.4*nrows), squeeze=False )
     for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
         cf = draw_panel( ax, name, fs, ps, vals, view )
-    fig.subplots_adjust( wspace=0.3, hspace=0.4, right=0.88 )
+    fig.subplots_adjust( wspace=0.08, hspace=0.22, right=0.88 )
+    label_block( fig, axs )
     add_colorbar( fig, cf, [ 0.905, 0.12, 0.013, 0.76 ], view )
 else:
     # Blocks one above another, each under a bold header and with a colorbar
     # of its own spanning its rows
-    fig   = plt.figure( figsize=(22, 10*nrows) )
-    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.25, right=0.88 )
-    above = offset_copy( fig.transFigure, fig=fig, y=32, units='points' )
+    fig   = plt.figure( figsize=(11, 5*nrows) )
+    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.36, right=0.88 )
+    above = offset_copy( fig.transFigure, fig=fig, y=23, units='points' )
     for b, ( header, models, view ) in enumerate( blocks ):
-        axs = outer[ b ].subgridspec( nrows, 4, wspace=0.3, hspace=0.4 ).subplots( squeeze=False )
+        axs = outer[ b ].subgridspec( nrows, 4, wspace=0.08, hspace=0.22 ).subplots( squeeze=False )
         for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
             cf = draw_panel( ax, name, fs, ps, vals, view )
         top_left, top_right = axs[ 0, 0 ].get_position(), axs[ 0, -1 ].get_position()
         fig.text( ( top_left.x0 + top_right.x1 )/2, top_left.y1, header, transform=above,
-                  ha='center', va='bottom', fontsize=18, fontweight='bold' )
+                  ha='center', va='bottom', fontsize=14, fontweight='bold' )
+        label_block( fig, axs )
         bottom = axs[ -1, 0 ].get_position().y0
         add_colorbar( fig, cf, [ 0.905, bottom, 0.013, top_left.y1 - bottom ], view )
 

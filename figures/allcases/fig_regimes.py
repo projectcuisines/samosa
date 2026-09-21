@@ -115,7 +115,7 @@ c_rhines = '#faf3ec'
 c_label  = '0.35'
 
 npanel = 3 if SHOW_TRANSPORT else 2
-fig, axes = plt.subplots( 1, npanel, figsize=( 7.2 * npanel, 6.4 ) )
+fig, axes = plt.subplots( 1, npanel, figsize=( 3.75 * npanel, 4.2 ), layout='constrained' )
 
 #--------------------------------------------------------------------
 # Panel (a) — Rhines length against Rossby deformation radius
@@ -135,19 +135,18 @@ ax.axvline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 
 for name in wind_models:
     d = data[ name ]
-    ax.scatter( d[ 'lamr' ], d[ 'lr' ], s=95, color=style[ name ], edgecolors='k',
+    ax.scatter( d[ 'lamr' ], d[ 'lr' ], s=45, color=style[ name ], edgecolors='k',
                 linewidths=0.7, label=name, zorder=5 )
 
 ax.set_xlim( 0.92, 1.78 )
 ax.set_ylim( 0.15, 1.80 )
-ax.set_xlabel( 'Non-dimensional Rossby deformation radius, $\\lambda_R/a$', fontsize=12 )
-ax.set_ylabel( 'Non-dimensional Rhines length, $L_R/a$', fontsize=12 )
-ax.text( 0.945, 0.30, 'rapid\nrotators', fontsize=10, style='italic',
+ax.set_xlabel( 'Non-dimensional Rossby\ndeformation radius, $\\lambda_R/a$', fontsize=12 )
+ax.set_ylabel( 'Non-dimensional Rhines\nlength, $L_R/a$', fontsize=12 )
+ax.text( 0.96, 0.45, 'rapid rotators', fontsize=9, style='italic',
          color=c_label, ha='center', va='center', rotation=90 )
-ax.text( 1.75, 1.73, 'slow rotators',   fontsize=11, style='italic', color=c_label, ha='right' )
-ax.text( 1.75, 0.20, 'Rhines rotators', fontsize=11, style='italic', color=c_label, ha='right' )
-ax.legend( loc='upper left', fontsize=10, framealpha=1 )
-ax.set_title( '(a) Circulation regime', fontsize=13 )
+ax.text( 1.75, 1.73, 'slow rotators',   fontsize=10, style='italic', color=c_label, ha='right' )
+ax.text( 1.75, 0.20, 'Rhines rotators', fontsize=10, style='italic', color=c_label, ha='right' )
+ax.set_title( '(a) Circulation regime', fontsize=12 )
 
 #--------------------------------------------------------------------
 # Panel (b) — jet structure across the parameter space
@@ -165,24 +164,24 @@ for name in wind_models:
     d = data[ name ]
     for c, jl, j in zip( d[ 'case' ], d[ 'jetlat' ], d[ 'jet' ] ):
         single = ( j == 'SJ' )
-        ax.scatter( c + fan( name ), jl, s=95,
+        ax.scatter( c + fan( name ), jl, s=45,
                     marker='o' if single else 's',
                     facecolor=style[ name ] if single else 'none',
                     edgecolors='k' if single else style[ name ],
-                    linewidths=0.7 if single else 1.7, zorder=5 )
+                    linewidths=0.7 if single else 1.2, zorder=5 )
 
 ax.set_xlim( 0.4, 16.6 )
 ax.set_ylim( -4, 78 )
-ax.set_xticks( range( 1, 17 ) )
+ax.set_xticks( [ 1, 4, 7, 10, 13, 16 ] )
+ax.set_xticks( range( 1, 17 ), minor=True )
 ax.set_xlabel( 'Case', fontsize=12 )
-ax.set_ylabel( 'Latitude of the tropospheric jet ($\\degree$)', fontsize=12 )
-ax.text( 16.3, 8, 'equatorial jet', fontsize=10, style='italic', color=c_label, ha='right' )
-ax.legend( handles=[ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=9,
-                             label='single (equatorial) jet' ),
-                     Line2D( [], [], ls='', marker='s', mfc='none', mec='0.4',
-                             mew=1.7, ms=9, label='double (midlatitude) jet' ) ],
-           loc='upper left', fontsize=10, framealpha=1 )
-ax.set_title( '(b) Jet structure at $\\sigma = 0.30$', fontsize=13 )
+ax.set_ylabel( 'Latitude of the\ntropospheric jet ($\\degree$)', fontsize=12 )
+ax.text( 16.3, 8, 'equatorial jet', fontsize=9, style='italic', color=c_label, ha='right' )
+jet_handles = [ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=7,
+                        label='single (equatorial) jet' ),
+                Line2D( [], [], ls='', marker='s', mfc='none', mec='0.4',
+                        mew=1.2, ms=7, label='double (midlatitude) jet' ) ]
+ax.set_title( '(b) Jet structure at $\\sigma = 0.30$', fontsize=12 )
 
 #--------------------------------------------------------------------
 # Panel (c) — day-night against equator-pole heat transport
@@ -194,17 +193,25 @@ if SHOW_TRANSPORT:
 
     for name in wind_models:
         d = data[ name ]
-        ax.scatter( d[ 'case' ] + fan( name ), d[ 'conv' ], s=95,
+        ax.scatter( d[ 'case' ] + fan( name ), d[ 'conv' ], s=45,
                     color=style[ name ], edgecolors='k', linewidths=0.7,
                     label=name, zorder=5 )
 
     ax.set_xlim( 0.4, 16.6 )
-    ax.set_xticks( range( 1, 17 ) )
+    ax.set_xticks( [ 1, 4, 7, 10, 13, 16 ] )
+    ax.set_xticks( range( 1, 17 ), minor=True )
     ax.set_xlabel( 'Case', fontsize=12 )
-    ax.set_ylabel( 'Night-side static energy flux convergence (W m$^{-2}$)', fontsize=12 )
-    ax.set_title( '(c) Night-side energy transport', fontsize=13 )
+    ax.set_ylabel( 'Night-side static energy flux\nconvergence (W m$^{-2}$)', fontsize=12 )
+    ax.set_title( '(c) Night-side energy transport', fontsize=12 )
 
-fig.tight_layout()
+for ax in axes:
+    ax.tick_params( axis='both', labelsize=10 )
+
+# One legend row above the panels, for the model colors of all three and the
+# jet symbols of (b); inside the panels it hid points at this size
+model_handles, _ = axes[0].get_legend_handles_labels()
+fig.legend( handles=model_handles + jet_handles, loc='outside upper center', ncol=7, fontsize=10,
+            frameon=False, columnspacing=1.2, handletextpad=0.3 )
 fig.savefig( 'fig_regimes.png', bbox_inches='tight' )
 fig.savefig( 'fig_regimes.eps', bbox_inches='tight' )
 

@@ -195,9 +195,9 @@ case_labels = ['Case 1\n500 W/m², 0.70 bar',
                'Case 4\n1200 W/m², 2.34 bar',
                'Case 16\n1400 W/m², 10.00 bar']
 
-FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND = 10, 9, 8, 10
+FS_TITLE, FS_LABEL, FS_TICK, FS_LEGEND = 12, 12, 10, 10
 
-fig, axes = plt.subplots(1, 3, figsize=(11, 5), layout='constrained')
+fig, axes = plt.subplots(1, 3, figsize=(10, 4.6), layout='constrained')
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.06)
 
 for ci, ax in enumerate(axes):
@@ -229,7 +229,8 @@ for ci, ax in enumerate(axes):
 
     ax.set_title(case_labels[ci], fontsize=FS_TITLE, linespacing=1.5)
     ax.set_xlabel('Longitude from substellar point (°)', fontsize=FS_LABEL)
-    ax.set_ylabel('Meridional mean surface temperature (K)', fontsize=FS_LABEL)
+    if ci == 0:
+        ax.set_ylabel('Meridional mean surface temperature (K)', fontsize=FS_LABEL)
 
 from matplotlib.lines import Line2D
 # A six-entry legend inside a panel covers the curves it is labelling, so the

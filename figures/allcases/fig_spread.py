@@ -262,7 +262,7 @@ def full_block():
     single = ( n_ts == 1 )
     return dict( header='All Cases', hatch=True, plain_ticks=False,
                  pres_grid=pn2, flux_grid=flux,
-                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ],
+                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ], xticks=[ 2000, 1500, 1000, 500 ],
                  ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
                  open_pts=~single, cross_pts=single,
                  std={ v[ 'key' ]: spread( v, v[ 'models' ] ) for v in VARS },
@@ -294,7 +294,7 @@ def common_block():
                f"(max {std[ k ].max():.3g})" )
     return dict( header='Common Cases',
                  hatch=False, plain_ticks=True, pres_grid=pres_grid, flux_grid=flux_grid,
-                 xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ],
+                 xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ], xticks=[ 1100, 900, 700, 500 ],
                  ylim=[ min( pres_grid ), max( pres_grid ) ],
                  open_pts=shown, cross_pts=np.zeros( 16, dtype=bool ), std=std, colors=colors )
 
@@ -316,16 +316,14 @@ counts = { v[ 'key' ]: krige( pres1, flux1, v[ 'count' ] )[ 0 ] for v in VARS }
 # Case numbers beside the sample points, as on the per-model figures. Labels sit
 # to the right of each marker, except where that would crowd a neighbor or run
 # off the panel.
-label_left = { 10, 13 }
+label_left = { 1, 8, 10, 13, 15 }
 
 def setup_panel( ax, title, block ):
-    ax.set_title( title, fontsize=13 )
-    ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=11 )
-    ax.set_ylabel( 'Surface pressure (bar)', fontsize=11 )
-    ax.tick_params( axis='x', labelsize=10 )
-    ax.tick_params( axis='y', labelsize=10 )
+    ax.set_title( title, fontsize=12 )
+    ax.tick_params( axis='both', labelsize=10 )
     ax.set_yscale( 'log' )
     ax.set_xlim( block[ 'xlim' ] )
+    ax.set_xticks( block[ 'xticks' ] )
     ax.set_ylim( block[ 'ylim' ] )
     if block[ 'plain_ticks' ]:
         # Under a decade of pressure holds only one power of ten, so label plain values
@@ -339,7 +337,7 @@ def setup_panel( ax, title, block ):
         left = ( i + 1 ) in label_left
         ax.annotate( str( i + 1 ), ( flux1[ i ]*fluxscale, pres1[ i ] ),
                      xytext=( -5 if left else 5, 0 ), textcoords='offset points',
-                     ha='right' if left else 'left', va='center', fontsize=8, zorder=6,
+                     ha='right' if left else 'left', va='center', fontsize=9, zorder=6,
                      path_effects=[ patheffects.withStroke( linewidth=2.0, foreground='w' ) ] )
 
 def draw_row( host, axes, block ):
@@ -351,17 +349,21 @@ def draw_row( host, axes, block ):
         if block[ 'hatch' ]:
             ax.contourf( yv*fluxscale, xv, counts[ k ], levels=[-1e9, 1.5], hatches=['///'], colors='none', alpha=0 )
         sm = mcm.ScalarMappable( cmap=v[ 'cm' ], norm=mcolors.Normalize( vmin=0, vmax=cmax ) )
-        cb = host.colorbar( sm, ax=ax, label=v[ 'label' ], extend='neither' )
+        cb = host.colorbar( sm, ax=ax, extend='neither' )
         cb.set_ticks( ticks )
+        cb.ax.tick_params( labelsize=10 )
+        cb.set_label( v[ 'label' ], fontsize=12 )
         setup_panel( ax, v[ 'title' ], block )
+    # The panels of a row share their axes, so each is labeled once per row
+    host.supxlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
+    host.supylabel( 'Surface pressure (bar)', fontsize=12 )
 
 if len( blocks ) == 1:
-    fig, axes = plt.subplots( 1, 3, figsize=( 14, 4.5 ) )
+    fig, axes = plt.subplots( 1, 3, figsize=( 10.3, 3.5 ), layout='constrained' )
     draw_row( fig, axes, blocks[ 0 ] )
-    fig.tight_layout()
 else:
     # Rows one above another, each under a bold header
-    fig  = plt.figure( figsize=( 14, 9.8 ), layout='constrained' )
+    fig  = plt.figure( figsize=( 10.3, 7.2 ), layout='constrained' )
     rows = fig.subfigures( len( blocks ), 1, hspace=0.06 )
     for row, block in zip( rows, blocks ):
         row.suptitle( block[ 'header' ], fontsize=14, fontweight='bold' )

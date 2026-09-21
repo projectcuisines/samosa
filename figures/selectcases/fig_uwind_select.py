@@ -137,18 +137,18 @@ UMIN, UMAX = -80.0, 80.0
 levels     = np.linspace(UMIN, UMAX, 27)
 cm         = cmocean.cm.balance
 
-TITLE_FS = 11
-LABEL_FS = 9
-TICK_FS  = 8
-NA_FS    = 10
-CB_FS    = 9
+TITLE_FS = 12
+LABEL_FS = 11
+TICK_FS  = 10
+NA_FS    = 11
+CB_FS    = 11
 
 def lat_fmt(x, _):
     if x == 0:
         return '0°'
     return f'{int(abs(x))}°{"S" if x < 0 else "N"}'
 
-fig = plt.figure(layout='constrained', figsize=(13, 7))
+fig = plt.figure(layout='constrained', figsize=(10.2, 5.6))
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.04, hspace=0.08)
 ax_array = fig.subplots(3, 5, squeeze=False)
 
@@ -171,7 +171,7 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
             ax.set_yscale('log')
             ax.set_ylim(row_Pmax[row], row_Pmin[row])
             ax.set_xlim(-90, 90)
-            ax.set_xticks([-60, -30, 0, 30, 60])
+            ax.set_xticks([-60, 0, 60])
             ax.xaxis.set_major_formatter(ticker.FuncFormatter(lat_fmt))
             ax.yaxis.set_major_locator(ticker.LogLocator(base=10, numticks=8))
             ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext(base=10, labelOnlyBase=True))
@@ -185,7 +185,7 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
         if col == 0 and panel is not None:
             ax.set_ylabel('Pressure (hPa)', fontsize=LABEL_FS)
         if col == 0:
-            ax.text(-0.30, 0.5, case_labels[row], transform=ax.transAxes,
+            ax.text(-0.58, 0.5, case_labels[row], transform=ax.transAxes,
                     ha='right', va='center', fontsize=LABEL_FS, linespacing=1.5)
 
 cb = fig.colorbar(im, ax=ax_array, extend='both',

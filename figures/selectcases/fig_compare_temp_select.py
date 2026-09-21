@@ -128,13 +128,13 @@ panels = [
     [(lon_plahab,   lat_plahab,  Ts_plahab1),  (lon_plahab,   lat_plahab,  Ts_plahab4),  (lon_plahab,   lat_plahab,  Ts_plahab16) ],
 ]
 
-TITLE_FS  = 11   # column headers
-LABEL_FS  = 9    # row case labels
-MEAN_FS   = 8    # per-panel ⟨Ts⟩ xlabel
-NA_FS     = 10   # N/A placeholder text
-CB_FS     = 9    # colorbar tick and axis label
+TITLE_FS  = 12   # column headers
+LABEL_FS  = 11    # row case labels
+MEAN_FS   = 10    # per-panel ⟨Ts⟩ xlabel
+NA_FS     = 11   # N/A placeholder text
+CB_FS     = 11    # colorbar tick and axis label
 
-fig = plt.figure(layout='constrained', figsize=(15, 5))
+fig = plt.figure(layout='constrained', figsize=(10.2, 3.5))
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.03, hspace=0.08)
 ax_array = fig.subplots(3, 6, squeeze=False)
 
