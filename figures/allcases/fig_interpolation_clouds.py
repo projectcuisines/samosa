@@ -68,7 +68,7 @@ MODELS = {
     'Generic PCM': ( pcm_flux1,     pcm_pres1,     pcm            ),
     'LFRic':       ( lfric_flux1,   lfric_pres1,   lfric          ),
     'PlaHab':      ( plahab_flux1,  plahab_pres1,  plahab_stable  ),
-    'HEXTOR':      'No data\n(clear-sky model)',
+    'HEXTOR':      'No data\n(cloud-free model)',
     'ExoColumn':   'No data\n(cloud-free model)',
 }
 
