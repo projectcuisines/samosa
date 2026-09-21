@@ -101,11 +101,11 @@ levels = np.logspace(np.log10(contourmin), np.log10(contourmax), numcontours)
 norm   = colors.LogNorm(vmin=contourmin, vmax=contourmax)
 cm     = cmocean.cm.rain
 
-# panels[col][row] = (lon, lat, data) or None for unavailable cases; col = model, row = case
-col_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic']
-case_labels = ['Case 1\n500 W/m²\n0.70 bar',
-               'Case 4\n1200 W/m²\n2.34 bar',
-               'Case 16\n1400 W/m²\n10.00 bar']
+# panels[row][col] = (lon, lat, data) or None for unavailable cases; row = model, col = case
+row_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic']
+case_labels = ['Case 1\n500 W/m², 0.70 bar',
+               'Case 4\n1200 W/m², 2.34 bar',
+               'Case 16\n1400 W/m², 10.00 bar']
 
 panels = [
     # ExoPlaSim
@@ -120,19 +120,37 @@ panels = [
     [(lon_lfric_s,  lat_lfric,   wv_lfric1),   (lon_lfric_s,  lat_lfric,   wv_lfric4),   (lon_lfric_s,  lat_lfric,   wv_lfric16)     ],
 ]
 
-TITLE_FS = 12
-LABEL_FS = 11
-MEAN_FS  = 10
-NA_FS    = 11
-CB_FS    = 11
+TITLE_FS = 12   # case headers and model labels
+MEAN_FS  = 10   # per-panel global mean xlabel
+NA_FS    = 12   # N/A placeholder text
+CB_FS    = 10   # colorbar ticks; its label is set at TITLE_FS
 
-fig = plt.figure(layout='constrained', figsize=(11.3, 4.3))
-fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.03, hspace=0.08)
-ax_array = fig.subplots(3, 5, squeeze=False)
+# Models in rows and cases in columns, as in Figures 11-13, so each map gets a
+# third of the width rather than a sixth. Placed by hand in inches, at about
+# print size, with the colorbar on its own axes at right as in Figures 3-7.
+# The boxes are 2:1, so each map fills its box rather than taking equal
+# aspect: grids that stop at cell centres (PlaHab, ExoCAM) would otherwise
+# shrink out of line, and the stretch is at most 3%.
+MAP_W, MAP_H     = 2.8, 1.4
+COL_GAP, ROW_GAP = 0.12, 0.40
+LEFT, TOP, BOT   = 1.2, 0.6, 0.35
+CB_GAP, CB_W     = 0.2, 0.16
+nrows, ncols     = len(panels), len(case_labels)
+fig_w = LEFT + ncols * MAP_W + (ncols - 1) * COL_GAP + CB_GAP + CB_W + 1.0
+fig_h = TOP + nrows * MAP_H + (nrows - 1) * ROW_GAP + BOT
+
+def rect(x, y, w, h):
+    """Figure-fraction rectangle from inches, with y measured down from the top."""
+    return [x / fig_w, 1.0 - (y + h) / fig_h, w / fig_w, h / fig_h]
+
+fig = plt.figure(figsize=(fig_w, fig_h))
+ax_array = np.array([[fig.add_axes(rect(LEFT + col * (MAP_W + COL_GAP),
+                                        TOP + row * (MAP_H + ROW_GAP), MAP_W, MAP_H))
+                      for col in range(ncols)] for row in range(nrows)])
 
 im = None
-for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
-    for row, panel in enumerate(col_panels):
+for row, (row_panels, title) in enumerate(zip(panels, row_titles)):
+    for col, panel in enumerate(row_panels):
         ax = ax_array[row, col]
         if panel is None:
             ax.set_facecolor('#cccccc')
@@ -145,26 +163,27 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
             ssp_lon = panel[3] if len(panel) > 3 else 0.0
             im = ax.contourf(lon, lat, data, cmap=cm, norm=norm,
                              levels=levels, extend='both')
-            ax.plot(ssp_lon, 0, marker='*', color='white', markersize=6,
+            ax.plot(ssp_lon, 0, marker='*', color='white', markersize=9,
                     markeredgecolor='gray', markeredgewidth=0.5)
             weights = np.cos(np.radians(lat))
             wv_mean = np.average(np.mean(data, axis=1), weights=weights)
             ax.set_xlabel(_fmt_wv(wv_mean), fontsize=MEAN_FS, fontweight='normal', labelpad=4)
-        ax.set_aspect('equal')
         ax.set_xticks([])
         ax.set_yticks([])
         if row == 0:
-            ax.set_title(title, fontsize=TITLE_FS)
+            ax.set_title(case_labels[col], fontsize=TITLE_FS, linespacing=1.5)
         if col == 0:
-            ax.text(-0.12, 0.5, case_labels[row], transform=ax.transAxes,
-                    ha='right', va='center', fontsize=LABEL_FS, linespacing=1.5)
+            ax.text(-0.04, 0.5, title, transform=ax.transAxes,
+                    ha='right', va='center', fontsize=TITLE_FS)
 
-cb = fig.colorbar(im, ax=ax_array, extend='both',
+cax = fig.add_axes(rect(LEFT + ncols * MAP_W + (ncols - 1) * COL_GAP + CB_GAP, TOP,
+                        CB_W, nrows * MAP_H + (nrows - 1) * ROW_GAP))
+cb = fig.colorbar(im, cax=cax, extend='both',
                   ticks=np.logspace(np.log10(contourmin), np.log10(contourmax),
-                                    int(np.log10(contourmax/contourmin)) + 1),
-                  orientation='horizontal', shrink=0.6, pad=0.04)
+                                    int(np.log10(contourmax/contourmin)) + 1))
 cb.ax.tick_params(labelsize=CB_FS)
-cb.set_label('Water Vapor Column (kg m$^{-2}$)', fontsize=CB_FS)
+cb.ax.get_yaxis().labelpad = 16
+cb.set_label('Water Vapor Column (kg m$^{-2}$)', rotation=270, fontsize=TITLE_FS)
 
 fig.savefig('fig_compare_watvap_select.png', bbox_inches='tight')
 fig.savefig('fig_compare_watvap_select.eps', bbox_inches='tight')
