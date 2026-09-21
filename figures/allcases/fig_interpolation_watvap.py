@@ -305,19 +305,19 @@ def add_colorbar( fig, cf, rect, view ):
 nrows = len( MODELS ) // 4
 if len( blocks ) == 1:
     _, models, view = blocks[ 0 ]
-    fig, axs = plt.subplots( nrows, 4, figsize=(12.2, 3.05*nrows), squeeze=False )
+    fig, axs = plt.subplots( nrows, 4, figsize=(12.2, 2.95*nrows), squeeze=False )
     cf = draw_block( axs, models, view )
-    fig.subplots_adjust( wspace=0.08, hspace=0.15, right=0.88 )
+    fig.subplots_adjust( wspace=0.12, hspace=0.15, right=0.88 )
     label_block( fig, axs )
     add_colorbar( fig, cf, [ 0.905, 0.12, 0.013, 0.76 ], view )
 else:
     # Blocks one above another, each under a bold header and with a colorbar
     # of its own spanning its rows
-    fig   = plt.figure( figsize=(12.2, 6.85*nrows) )
-    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.26, right=0.88 )
+    fig   = plt.figure( figsize=(12.2, 6.87*nrows) )
+    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.33, right=0.88 )
     above = offset_copy( fig.transFigure, fig=fig, y=23, units='points' )
     for b, ( header, models, view ) in enumerate( blocks ):
-        axs = outer[ b ].subgridspec( nrows, 4, wspace=0.08, hspace=0.15 ).subplots( squeeze=False )
+        axs = outer[ b ].subgridspec( nrows, 4, wspace=0.12, hspace=0.15 ).subplots( squeeze=False )
         cf = draw_block( axs, models, view )
         top_left, top_right = axs[ 0, 0 ].get_position(), axs[ 0, -1 ].get_position()
         fig.text( ( top_left.x0 + top_right.x1 )/2, top_left.y1, header, transform=above,
