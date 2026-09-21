@@ -8,6 +8,10 @@ import cmocean
 from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams[ 'axes.labelweight' ] = 'bold'
+plt.rcParams[ 'axes.labelpad' ]    = 8
+
 fluxscale = 100
 
 flux  = np.arange( 400, 2700, 100 ) / fluxscale
@@ -356,8 +360,8 @@ def draw_row( host, axes, block ):
         cb.set_label( v[ 'label' ], fontsize=12 )
         setup_panel( ax, v[ 'title' ], block )
     # The panels of a row share their axes, so each is labeled once per row
-    host.supxlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
-    host.supylabel( 'Surface pressure (bar)', fontsize=12 )
+    host.supxlabel( 'Instellation (W m$^{-2}$)', fontsize=12, fontweight='bold' )
+    host.supylabel( 'Surface pressure (bar)', fontsize=12, fontweight='bold' )
 
 if len( blocks ) == 1:
     fig, axes = plt.subplots( 1, 3, figsize=( 11.4, 3.7 ), layout='constrained' )

@@ -15,6 +15,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams[ 'axes.labelweight' ] = 'bold'
+plt.rcParams[ 'axes.labelpad' ]    = 8
+
 # ─── Regime diagnostics, from extract_regimes.py ───────────────────────────
 # ExoCAM
 exocam_case  = np.array( [ 1, 4, 8, 9, 10, 11, 12, 14, 15, 16 ] )

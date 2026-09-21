@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from matplotlib.patches import Patch
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams[ 'axes.labelweight' ] = 'bold'
+plt.rcParams[ 'axes.labelpad' ]    = 8
+
 # ─── Top-of-atmosphere energy balance for all SAMOSA cases ───────────────────
 #
 # Plotted quantity is the magnitude of the residual TOA radiative imbalance

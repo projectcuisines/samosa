@@ -9,6 +9,10 @@ from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
 from scipy import ndimage
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams[ 'axes.labelweight' ] = 'bold'
+plt.rcParams[ 'axes.labelpad' ]    = 8
+
 # ─── Variable configuration ──────────────────────────────────────────────────
 cm              = cmocean.cm.rain
 contourmin      = 1.e-3
@@ -281,17 +285,17 @@ def label_block( fig, axs ):
             ax.tick_params( labelbottom=False )
     top_left, bottom_right = axs[ 0, 0 ].get_position(), axs[ -1, -1 ].get_position()
     fig.text( top_left.x0, ( top_left.y1 + bottom_right.y0 )/2, 'Surface pressure (bar)',
-              rotation=90, ha='right', va='center', fontsize=12,
-              transform=offset_copy( fig.transFigure, fig=fig, x=-30, units='points' ) )
+              rotation=90, ha='right', va='center', fontsize=12, fontweight='bold',
+              transform=offset_copy( fig.transFigure, fig=fig, x=-38, units='points' ) )
     fig.text( ( top_left.x0 + bottom_right.x1 )/2, bottom_right.y0, 'Instellation (W m$^{-2}$)',
-              ha='center', va='top', fontsize=12,
-              transform=offset_copy( fig.transFigure, fig=fig, y=-18, units='points' ) )
+              ha='center', va='top', fontsize=12, fontweight='bold',
+              transform=offset_copy( fig.transFigure, fig=fig, y=-25, units='points' ) )
 
 def add_colorbar( fig, cf, rect, view ):
     cax = fig.add_axes( rect )
     cb = fig.colorbar( cf, cax=cax, extend='both', ticks=view[ 'cticks' ] )
     cb.ax.tick_params( labelsize=10 )
-    cb.ax.get_yaxis().labelpad = 12
+    cb.ax.get_yaxis().labelpad = 16
     cb.set_label( cbar_label, rotation=270, fontsize=12 )
 
 #--------------------------------------------------------------------
@@ -309,8 +313,8 @@ if len( blocks ) == 1:
 else:
     # Blocks one above another, each under a bold header and with a colorbar
     # of its own spanning its rows
-    fig   = plt.figure( figsize=(12.2, 6.73*nrows) )
-    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.22, right=0.88 )
+    fig   = plt.figure( figsize=(12.2, 6.85*nrows) )
+    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.26, right=0.88 )
     above = offset_copy( fig.transFigure, fig=fig, y=23, units='points' )
     for b, ( header, models, view ) in enumerate( blocks ):
         axs = outer[ b ].subgridspec( nrows, 4, wspace=0.08, hspace=0.15 ).subplots( squeeze=False )

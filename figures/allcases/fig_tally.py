@@ -3,6 +3,10 @@ import matplotlib.pyplot as plt
 from matplotlib.transforms import offset_copy
 from scipy.stats import qmc
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams[ 'axes.labelweight' ] = 'bold'
+plt.rcParams[ 'axes.labelpad' ]    = 8
+
 #--------------------------------------------------------------------
 # Sparse sample grid
 
@@ -152,11 +156,11 @@ for ( r, c ), ax in np.ndenumerate( axs ):
     ax.tick_params( labelleft=( c == 0 ), labelbottom=( r == 1 ) )
 top_left, bottom_right = axs[ 0, 0 ].get_position(), axs[ -1, -1 ].get_position()
 fig.text( top_left.x0, ( top_left.y1 + bottom_right.y0 )/2, 'Surface pressure (bar)',
-          rotation=90, ha='right', va='center', fontsize=12,
-          transform=offset_copy( fig.transFigure, fig=fig, x=-30, units='points' ) )
+          rotation=90, ha='right', va='center', fontsize=12, fontweight='bold',
+          transform=offset_copy( fig.transFigure, fig=fig, x=-38, units='points' ) )
 fig.text( ( top_left.x0 + bottom_right.x1 )/2, bottom_right.y0, 'Instellation (W m$^{-2}$)',
-          ha='center', va='top', fontsize=12,
-          transform=offset_copy( fig.transFigure, fig=fig, y=-18, units='points' ) )
+          ha='center', va='top', fontsize=12, fontweight='bold',
+          transform=offset_copy( fig.transFigure, fig=fig, y=-25, units='points' ) )
 
 fig.savefig( "fig_tally.png", bbox_inches='tight' )
 fig.savefig( "fig_tally.eps", bbox_inches='tight' )

@@ -11,6 +11,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams['axes.labelweight'] = 'bold'
+plt.rcParams['axes.labelpad'] = 8
+
 tfreeze  = 273.16
 M_N2     = 0.028   # kg/mol
 R_gas    = 8.314   # J/(mol·K)

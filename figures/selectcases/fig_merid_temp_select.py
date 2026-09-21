@@ -35,6 +35,10 @@ import netCDF4
 import numpy as np
 import matplotlib.pyplot as plt
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams['axes.labelweight'] = 'bold'
+plt.rcParams['axes.labelpad'] = 8
+
 tfreeze = 273.16
 
 # Checked against the reported global means: averaging each curve uniformly in

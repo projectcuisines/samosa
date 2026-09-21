@@ -6,6 +6,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cmocean
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams['axes.labelweight'] = 'bold'
+plt.rcParams['axes.labelpad'] = 8
+
 tfreeze = 273.16
 
 
@@ -160,7 +164,7 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
                     markeredgecolor='gray', markeredgewidth=0.5)
             weights = np.cos(np.radians(lat))
             ts_mean = np.average(np.mean(data, axis=1), weights=weights)
-            ax.set_xlabel(f'{ts_mean:.1f} K', fontsize=MEAN_FS)
+            ax.set_xlabel(f'{ts_mean:.1f} K', fontsize=MEAN_FS, fontweight='normal', labelpad=4)
         ax.set_aspect('equal')
         ax.set_xticks([])
         ax.set_yticks([])

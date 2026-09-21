@@ -12,6 +12,10 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import cmocean
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams['axes.labelweight'] = 'bold'
+plt.rcParams['axes.labelpad'] = 8
+
 
 def area_mean(arr2d, lat):
     """Area-weighted mean of a (lat,) or (nlev, lat) array over the lat axis."""

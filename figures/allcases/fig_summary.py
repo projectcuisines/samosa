@@ -32,6 +32,10 @@ from scipy.spatial import ConvexHull
 
 from pykrige.ok import OrdinaryKriging
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams[ 'axes.labelweight' ] = 'bold'
+plt.rcParams[ 'axes.labelpad' ]    = 8
+
 fluxscale = 100
 
 flux  = np.arange( 400, 2700, 100 ) / fluxscale

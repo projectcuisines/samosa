@@ -16,6 +16,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 
+# Axis labels in bold, and set a little clear of the tick labels
+plt.rcParams[ 'axes.labelweight' ] = 'bold'
+plt.rcParams[ 'axes.labelpad' ]    = 8
+
 SHOW_TRANSPORT = True     # set False to drop panel (c)
 
 # ─── QMC sample points, replicated from fig_interpolation_temp.py ────────────
