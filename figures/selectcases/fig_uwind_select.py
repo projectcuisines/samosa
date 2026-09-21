@@ -148,7 +148,7 @@ def lat_fmt(x, _):
         return '0°'
     return f'{int(abs(x))}°{"S" if x < 0 else "N"}'
 
-fig = plt.figure(layout='constrained', figsize=(10.2, 5.6))
+fig = plt.figure(layout='constrained', figsize=(11.3, 6.2))
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.04, hspace=0.08)
 ax_array = fig.subplots(3, 5, squeeze=False)
 

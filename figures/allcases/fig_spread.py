@@ -262,7 +262,7 @@ def full_block():
     single = ( n_ts == 1 )
     return dict( header='All Cases', hatch=True, plain_ticks=False,
                  pres_grid=pn2, flux_grid=flux,
-                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ], xticks=[ 2000, 1500, 1000, 500 ],
+                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ], xticks=[ 2500, 2000, 1500, 1000, 500 ],
                  ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
                  open_pts=~single, cross_pts=single,
                  std={ v[ 'key' ]: spread( v, v[ 'models' ] ) for v in VARS },
@@ -359,11 +359,11 @@ def draw_row( host, axes, block ):
     host.supylabel( 'Surface pressure (bar)', fontsize=12 )
 
 if len( blocks ) == 1:
-    fig, axes = plt.subplots( 1, 3, figsize=( 10.3, 3.5 ), layout='constrained' )
+    fig, axes = plt.subplots( 1, 3, figsize=( 11.4, 3.7 ), layout='constrained' )
     draw_row( fig, axes, blocks[ 0 ] )
 else:
     # Rows one above another, each under a bold header
-    fig  = plt.figure( figsize=( 10.3, 7.2 ), layout='constrained' )
+    fig  = plt.figure( figsize=( 11.4, 7.6 ), layout='constrained' )
     rows = fig.subfigures( len( blocks ), 1, hspace=0.06 )
     for row, block in zip( rows, blocks ):
         row.suptitle( block[ 'header' ], fontsize=14, fontweight='bold' )

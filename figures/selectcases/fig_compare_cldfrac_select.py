@@ -121,7 +121,7 @@ MEAN_FS  = 10
 NA_FS    = 11
 CB_FS    = 11
 
-fig = plt.figure(layout='constrained', figsize=(10.2, 3.9))
+fig = plt.figure(layout='constrained', figsize=(11.3, 4.3))
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.03, hspace=0.08)
 ax_array = fig.subplots(3, 5, squeeze=False)
 

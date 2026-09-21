@@ -123,7 +123,7 @@ def restrict_to_common( models ):
 # the anisotropy ratios were fitted on.
 def full_view():
     return dict( flux_grid=flux, pres_grid=pn2, hatch=True, plain_ticks=False,
-                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ], xticks=[ 2000, 1500, 1000, 500 ],
+                 xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ], xticks=[ 2500, 2000, 1500, 1000, 500 ],
                  ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
                  cmin=contourmin, cmax=contourmax, cticks=cbar_ticks )
 
@@ -288,7 +288,7 @@ def add_colorbar( fig, cf, rect, view ):
 nrows = len( MODELS ) // 4
 if len( blocks ) == 1:
     _, models, view = blocks[ 0 ]
-    fig, axs = plt.subplots( nrows, 4, figsize=(11, 2.4*nrows), squeeze=False )
+    fig, axs = plt.subplots( nrows, 4, figsize=(12.2, 2.4*nrows), squeeze=False )
     for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
         cf = draw_panel( ax, name, fs, ps, vals, view )
     fig.subplots_adjust( wspace=0.08, hspace=0.22, right=0.88 )
@@ -297,7 +297,7 @@ if len( blocks ) == 1:
 else:
     # Blocks one above another, each under a bold header and with a colorbar
     # of its own spanning its rows
-    fig   = plt.figure( figsize=(11, 5*nrows) )
+    fig   = plt.figure( figsize=(12.2, 5*nrows) )
     outer = fig.add_gridspec( len( blocks ), 1, hspace=0.36, right=0.88 )
     above = offset_copy( fig.transFigure, fig=fig, y=23, units='points' )
     for b, ( header, models, view ) in enumerate( blocks ):

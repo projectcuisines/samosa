@@ -60,7 +60,7 @@ color_grid    = '#aaaaaa'
 # one-dimensional models.
 fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
                                   [ 'P5', 'P6', 'P7', 'P8' ]],
-                                figsize=(10.5, 4.6) )
+                                figsize=(13.1, 4.7) )
 
 xlim = [ max( flux ) + 50, min( flux ) - 50 ]
 ylim = [ min( pn2 ) * 0.9, max( pn2 ) * 1.1 ]
@@ -70,7 +70,7 @@ def setup_panel( ax, title ):
     ax.tick_params( axis='both', labelsize=10 )
     ax.set_yscale( 'log' )
     ax.set_xlim( xlim )
-    ax.set_xticks( [ 2000, 1500, 1000, 500 ] )
+    ax.set_xticks( [ 2500, 2000, 1500, 1000, 500 ] )
     ax.set_ylim( ylim )
 
 #--------------------------------------------------------------------

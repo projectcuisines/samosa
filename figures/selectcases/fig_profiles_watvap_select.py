@@ -263,7 +263,7 @@ FS_LABEL  = 12
 FS_TICK   = 10
 FS_LEGEND = 10
 
-fig, axes = plt.subplots(1, NCASES, figsize=(10, 4.6), layout='constrained')
+fig, axes = plt.subplots(1, NCASES, figsize=(11.1, 4.8), layout='constrained')
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.06)
 
 for ci, ax in enumerate(axes):

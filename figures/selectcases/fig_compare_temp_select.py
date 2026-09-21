@@ -134,7 +134,7 @@ MEAN_FS   = 10    # per-panel ⟨Ts⟩ xlabel
 NA_FS     = 11   # N/A placeholder text
 CB_FS     = 11    # colorbar tick and axis label
 
-fig = plt.figure(layout='constrained', figsize=(10.2, 3.5))
+fig = plt.figure(layout='constrained', figsize=(11.3, 3.9))
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.03, hspace=0.08)
 ax_array = fig.subplots(3, 6, squeeze=False)
 
