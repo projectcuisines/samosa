@@ -143,7 +143,7 @@ tol      = 1.0      # per cent; below which a run is taken as equilibrated
 # axis would not allow.
 linthresh = 0.1     # per cent; linear/log crossover of the symlog axis
 
-fig, ax = plt.subplots( figsize=( 13, 7.0 ) )
+fig, ax = plt.subplots( figsize=( 13, 4.6 ) )
 
 # Shade each case by its climate regime, in the colors of Figure 14, so the
 # convergence diagnostic can be read against the regime it belongs to.
@@ -199,9 +199,9 @@ regime_handles = [ Patch( facecolor=regime_color[ r ], edgecolor='0.7', linewidt
                           label=regime_label[ r ] )
                    for r in ( 'frozen', 'mixed', 'warm', 'runaway' ) ]
 
-fig.legend( handles=model_handles, loc='lower left', ncol=6, fontsize=11,
-            bbox_to_anchor=( 0.0, 1.055 ), bbox_transform=ax.transAxes,
-            frameon=False, columnspacing=1.8, handletextpad=0.4 )
+fig.legend( handles=model_handles, loc='lower left', ncol=8, fontsize=11,
+            bbox_to_anchor=( 0.0, 1.085 ), bbox_transform=ax.transAxes,
+            frameon=False, columnspacing=1.1, handletextpad=0.3 )
 fig.legend( handles=regime_handles, loc='lower left', ncol=4, fontsize=10,
             bbox_to_anchor=( 0.0, 1.005 ), bbox_transform=ax.transAxes,
             frameon=False, columnspacing=1.8, handletextpad=0.6, handlelength=1.6 )
