@@ -237,6 +237,8 @@ def setup_panel( ax, title, view ):
     ax.set_xlim( view[ 'xlim' ] )
     ax.set_xticks( view[ 'xticks' ] )
     ax.set_ylim( view[ 'ylim' ] )
+    ax.set_box_aspect( 1 )
+    ax.apply_aspect()
     if view[ 'plain_ticks' ]:
         # Under a decade of pressure holds only one power of ten, so label plain values
         ax.set_yticks( [ 0.5, 1, 2, 5 ], labels=[ '0.5', '1', '2', '5' ] )
@@ -288,20 +290,20 @@ def add_colorbar( fig, cf, rect, view ):
 nrows = len( MODELS ) // 4
 if len( blocks ) == 1:
     _, models, view = blocks[ 0 ]
-    fig, axs = plt.subplots( nrows, 4, figsize=(12.2, 2.4*nrows), squeeze=False )
+    fig, axs = plt.subplots( nrows, 4, figsize=(12.2, 3.05*nrows), squeeze=False )
     for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
         cf = draw_panel( ax, name, fs, ps, vals, view )
-    fig.subplots_adjust( wspace=0.08, hspace=0.22, right=0.88 )
+    fig.subplots_adjust( wspace=0.08, hspace=0.15, right=0.88 )
     label_block( fig, axs )
     add_colorbar( fig, cf, [ 0.905, 0.12, 0.013, 0.76 ], view )
 else:
     # Blocks one above another, each under a bold header and with a colorbar
     # of its own spanning its rows
-    fig   = plt.figure( figsize=(12.2, 5*nrows) )
-    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.36, right=0.88 )
+    fig   = plt.figure( figsize=(12.2, 6.73*nrows) )
+    outer = fig.add_gridspec( len( blocks ), 1, hspace=0.22, right=0.88 )
     above = offset_copy( fig.transFigure, fig=fig, y=23, units='points' )
     for b, ( header, models, view ) in enumerate( blocks ):
-        axs = outer[ b ].subgridspec( nrows, 4, wspace=0.08, hspace=0.22 ).subplots( squeeze=False )
+        axs = outer[ b ].subgridspec( nrows, 4, wspace=0.08, hspace=0.15 ).subplots( squeeze=False )
         for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
             cf = draw_panel( ax, name, fs, ps, vals, view )
         top_left, top_right = axs[ 0, 0 ].get_position(), axs[ 0, -1 ].get_position()

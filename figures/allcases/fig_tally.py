@@ -60,7 +60,7 @@ color_grid    = '#aaaaaa'
 # one-dimensional models.
 fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
                                   [ 'P5', 'P6', 'P7', 'P8' ]],
-                                figsize=(13.1, 4.7) )
+                                figsize=(13.1, 6.9) )
 
 xlim = [ max( flux ) + 50, min( flux ) - 50 ]
 ylim = [ min( pn2 ) * 0.9, max( pn2 ) * 1.1 ]
@@ -72,6 +72,7 @@ def setup_panel( ax, title ):
     ax.set_xlim( xlim )
     ax.set_xticks( [ 2500, 2000, 1500, 1000, 500 ] )
     ax.set_ylim( ylim )
+    ax.set_box_aspect( 1 )
 
 #--------------------------------------------------------------------
 # Panel 1 — ExoPlaSim (all 16 stable; labels identify QMC point numbers)
@@ -147,6 +148,7 @@ fig.subplots_adjust( wspace=0.08, hspace=0.22 )
 # left, instellation under the bottom row, tick labels along the outer edges
 axs = np.array( [ [ axd[ f'P{4*r + c + 1}' ] for c in range( 4 ) ] for r in range( 2 ) ] )
 for ( r, c ), ax in np.ndenumerate( axs ):
+    ax.apply_aspect()
     ax.tick_params( labelleft=( c == 0 ), labelbottom=( r == 1 ) )
 top_left, bottom_right = axs[ 0, 0 ].get_position(), axs[ -1, -1 ].get_position()
 fig.text( top_left.x0, ( top_left.y1 + bottom_right.y0 )/2, 'Surface pressure (bar)',

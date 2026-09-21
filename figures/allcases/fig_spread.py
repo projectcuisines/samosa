@@ -325,6 +325,7 @@ def setup_panel( ax, title, block ):
     ax.set_xlim( block[ 'xlim' ] )
     ax.set_xticks( block[ 'xticks' ] )
     ax.set_ylim( block[ 'ylim' ] )
+    ax.set_box_aspect( 1 )
     if block[ 'plain_ticks' ]:
         # Under a decade of pressure holds only one power of ten, so label plain values
         ax.set_yticks( [ 0.5, 1, 2, 5 ], labels=[ '0.5', '1', '2', '5' ] )

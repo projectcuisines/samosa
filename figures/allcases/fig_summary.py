@@ -474,6 +474,7 @@ def draw_panel( ax, B ):
     ax.set_yscale( 'log' )
     ax.set_xlim( *B[ 'xlim' ] )
     ax.set_ylim( *B[ 'ylim' ] )
+    ax.set_box_aspect( 1 )
     ax.set_xlabel( 'Instellation (W m$^{-2}$)', fontsize=12 )
     ax.set_ylabel( 'N$_2$ surface pressure (bar)', fontsize=12 )
     ax.tick_params( axis='both', labelsize=10 )
@@ -487,13 +488,13 @@ def draw_panel( ax, B ):
                    framealpha=1, borderpad=0.7, labelspacing=0.5 )
 
 if len( panels ) == 1:
-    fig, ax = plt.subplots( figsize=( 5.5, 4.4 ) )
+    fig, ax = plt.subplots( figsize=( 5.5, 5.3 ) )
     draw_panel( ax, panels[ 0 ] )
 else:
     # Side by side rather than stacked: the single panel already fills most of a
     # page with its caption. Each panel under a bold header; the legend, which
     # applies to both, sits in one row beneath them.
-    fig, axs = plt.subplots( 1, len( panels ), figsize=( 5.5*len( panels ), 4.9 ), layout='constrained' )
+    fig, axs = plt.subplots( 1, len( panels ), figsize=( 5.5*len( panels ), 5.9 ), layout='constrained' )
     for ax, B in zip( axs, panels ):
         draw_panel( ax, B )
         ax.set_title( B[ 'header' ], fontsize=14, fontweight='bold', pad=8 )
