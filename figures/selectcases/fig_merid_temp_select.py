@@ -48,15 +48,16 @@ tfreeze = 273.16
 # is no residual for the grids that carry a column on the terminator itself.
 
 # Colors follow fig_profiles_temp_select.py, with PlaHab taking the color it
-# carries in the allcases figures.
+# carries in the allcases figures. The 2-D and 1-D models (PlaHab, HEXTOR) are
+# dashed and the 3-D models solid, as the isotherms are in fig_summary.py.
 MODEL_STYLES = {
-    'ExoCAM':    dict(color='#1f77b4', lw=1.6),
-    'ExoPlaSim': dict(color='#ff7f0e', lw=1.6),
-    'ROCKE-3D':  dict(color='#2ca02c', lw=1.6),
-    'PCM':       dict(color='#d62728', lw=1.6),
-    'LFRic':     dict(color='#9467bd', lw=1.6),
-    'PlaHab':    dict(color='#8c564b', lw=1.6),
-    'HEXTOR':    dict(color='#17becf', lw=1.6),
+    'ExoCAM':    dict(color='#1f77b4', lw=1.6, ls='-'),
+    'ExoPlaSim': dict(color='#ff7f0e', lw=1.6, ls='-'),
+    'ROCKE-3D':  dict(color='#2ca02c', lw=1.6, ls='-'),
+    'PCM':       dict(color='#d62728', lw=1.6, ls='-'),
+    'LFRic':     dict(color='#9467bd', lw=1.6, ls='-'),
+    'PlaHab':    dict(color='#8c564b', lw=1.6, ls='--'),
+    'HEXTOR':    dict(color='#17becf', lw=1.6, ls='--'),
 }
 MODEL_LABELS = {
     'ExoCAM':    'ExoCAM',
@@ -224,7 +225,7 @@ for ci, ax in enumerate(axes):
         if entry is None:
             continue
         lon, T = entry
-        ax.plot(lon, T, ls='-', zorder=3, **MODEL_STYLES[name])
+        ax.plot(lon, T, zorder=3, **MODEL_STYLES[name])
 
     ax.set_xlim(-180, 180)
     ax.set_xticks([-180, -90, 0, 90, 180])
@@ -243,7 +244,7 @@ from matplotlib.lines import Line2D
 # constrained layout gives them the same slot and the second hides the first.
 # Case 16 carries six curves rather than seven, the Generic PCM having no
 # converged solution there.
-model_handles = [Line2D([0], [0], ls='-', label=MODEL_LABELS[m], **MODEL_STYLES[m])
+model_handles = [Line2D([0], [0], label=MODEL_LABELS[m], **MODEL_STYLES[m])
                  for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab', 'HEXTOR')]
 style_handles = [
     Line2D([0], [0], color='0.75', lw=0.8, ls=(0, (2, 2)), label='Terminator'),
