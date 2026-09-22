@@ -152,7 +152,7 @@ def sigmoid( y ):
 ANISO_TS = { 'ExoPlaSim': 2,  'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 10,
              'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7 }
 ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
-             'Generic PCM': 15, 'LFRic': 10, 'ExoColumn': 10 }
+             'Generic PCM': 10, 'LFRic': 10, 'ExoColumn': 10 }
 ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 7,
              'Generic PCM': 1, 'LFRic': 1 }
 

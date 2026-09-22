@@ -27,6 +27,7 @@
 
 === E. summary figure ===
   blue 33.2%, green 52.5%, contested 14.3%, 3-D-only 14.3%, PlaHab-only 0.0%
+  PlaHab agrees in sign with ExoPlaSim/ExoCAM/ROCKE-3D over 99.1% of their frozen area and 100.0% of their unfrozen area
   band at 0.10 bar: 1240-1740
   band at 2.34 bar: 1080-1260
   band at 10.00 bar: 1080-1220

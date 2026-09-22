@@ -173,8 +173,9 @@ def sampled_region( p_pts, f_pts, PP, FF ):
 
 
 # The two mean-based bands use every model, including PlaHab, whose global means
-# track the GCMs over 95% of the blue band and 98% of the pale band even though its
-# extremes are unusable.
+# agree in sign with ExoPlaSim, ExoCAM and ROCKE-3D over 99.1% of the area those
+# three place below freezing and 100% of the area they place above it, even though
+# its extremes are unusable (analysis/case16_stats.py prints both).
 #
 # A model's influence fades with distance from the cases it actually ran, rather
 # than switching on and off at the edge of its convex hull.  A hard cutoff makes the

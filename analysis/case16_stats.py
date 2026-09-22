@@ -151,6 +151,16 @@ C = full[ 'contested_all' ]
 print( '\n=== E. summary figure ===' )
 print( f'  blue {100*area(full["band_blue"]):.1f}%, green {100*area(full["band_warm"]):.1f}%, contested {100*area(C):.1f}%, '
        f'3-D-only {100*area(full["contested_3d"]):.1f}%, PlaHab-only {100*area(full["contested_plahab"]):.1f}%' )
+# How closely PlaHab's kriged global mean follows the three full-coverage 3-D
+# GCMs in sign: the share of the area those three place below (above) 273.16 K
+# where PlaHab does too. Unfaded, since all four ran every case. The Figure 17
+# TO DO on whether PlaHab should vote quotes these. The old "95% / 98%" there
+# dated from 2026-08-19 and no script reproduced it.
+_Z = full[ 'Z' ]
+_cold = np.all( [ _Z[ n ] <  273.16 for n in ( 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D' ) ], axis=0 )
+_warm = np.all( [ _Z[ n ] >= 273.16 for n in ( 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D' ) ], axis=0 )
+print( f'  PlaHab agrees in sign with ExoPlaSim/ExoCAM/ROCKE-3D over {100*area(_cold & (_Z["PlaHab"] < 273.16))/area(_cold):.1f}% '
+       f'of their frozen area and {100*area(_warm & (_Z["PlaHab"] >= 273.16))/area(_warm):.1f}% of their unfrozen area' )
 def edges( M ):
     lo = np.full( len( pn2f ), np.nan ); hi = lo.copy()
     for j in range( len( pn2f ) ):
