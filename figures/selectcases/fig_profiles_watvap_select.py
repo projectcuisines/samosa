@@ -1,7 +1,7 @@
 #
 # Vertical profiles of specific humidity: Selected Cases
-# Layout: 1 row x 3 columns (Cases 1, 4, 16)
-# Solid lines: substellar hemisphere average; dashed: anti-stellar hemisphere average.
+# Layout: 2 rows x 3 columns -- substellar hemisphere mean (top) and
+# anti-stellar hemisphere mean (bottom) for Cases 1, 4, 16.
 #
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -267,63 +267,65 @@ FS_LABEL  = 12
 FS_TICK   = 10
 FS_LEGEND = 10
 
-fig, axes = plt.subplots(1, NCASES, figsize=(11.1, 4.8), layout='constrained')
-fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.06)
+# Two rows: substellar hemisphere above, anti-stellar below, so each hemisphere
+# is read on its own rather than as overlaid solid and dashed curves. The
+# humidity axis is shared down each column and the pressure axis everywhere, so
+# a column compares the two hemispheres of one case directly.
+ROWS = [('Substellar Hemisphere',  'ss'),
+        ('Anti-stellar Hemisphere', 'as')]
+NROWS = len(ROWS)
 
-for ci, ax in enumerate(axes):
-    profiles_ss = [
-        ('ExoCAM',    Q_exocam[ci],    P_exocam[ci]),
-        ('ExoPlaSim', Q_plasim[ci],    P_plasim[ci]),
-        ('ROCKE-3D',  Q_r3d[ci],       P_r3d[ci]),
-        ('PCM',       Q_pcm[ci],       P_pcm[ci]),
-        ('LFRic',     Q_lfric[ci],     P_lfric[ci]),
-    ]
-    profiles_as = [
-        ('ExoCAM',    Q_exocam_as[ci], P_exocam[ci]),
-        ('ExoPlaSim', Q_plasim_as[ci], P_plasim[ci]),
-        ('ROCKE-3D',  Q_r3d_as[ci],    P_r3d[ci]),
-        ('PCM',       Q_pcm_as[ci],    P_pcm[ci]),
-        ('LFRic',     Q_lfric_as[ci],  P_lfric[ci]),
-    ]
+fig, axes = plt.subplots(NROWS, NCASES, figsize=(11.1, 8.4), layout='constrained',
+                         sharex='col', sharey=True)
+fig.get_layout_engine().set(w_pad=2/72, h_pad=4/72, wspace=0.06, hspace=0.06)
 
-    panel_handles, panel_labels = [], []
-    for name, Q_prof, P_prof in profiles_ss:
-        if Q_prof is None:
-            continue
-        h, = ax.plot(Q_prof * 1e3, P_prof, **MODEL_STYLES[name])
-        panel_handles.append(h)
-        panel_labels.append(MODEL_LABELS[name])
+legend_handles = {}
+for ci in range(NCASES):
+    profiles = {
+        'ss': [
+            ('ExoCAM',    Q_exocam[ci],    P_exocam[ci]),
+            ('ExoPlaSim', Q_plasim[ci],    P_plasim[ci]),
+            ('ROCKE-3D',  Q_r3d[ci],       P_r3d[ci]),
+            ('PCM',       Q_pcm[ci],       P_pcm[ci]),
+            ('LFRic',     Q_lfric[ci],     P_lfric[ci]),
+        ],
+        'as': [
+            ('ExoCAM',    Q_exocam_as[ci], P_exocam[ci]),
+            ('ExoPlaSim', Q_plasim_as[ci], P_plasim[ci]),
+            ('ROCKE-3D',  Q_r3d_as[ci],    P_r3d[ci]),
+            ('PCM',       Q_pcm_as[ci],    P_pcm[ci]),
+            ('LFRic',     Q_lfric_as[ci],  P_lfric[ci]),
+        ],
+    }
+    for ri, (row_title, key) in enumerate(ROWS):
+        ax = axes[ri, ci]
+        for name, Q_prof, P_prof in profiles[key]:
+            if Q_prof is None:
+                continue
+            h, = ax.plot(Q_prof * 1e3, P_prof, **MODEL_STYLES[name])
+            legend_handles.setdefault(name, h)
 
-    for name, Q_prof, P_prof in profiles_as:
-        if Q_prof is None:
-            continue
-        ax.plot(Q_prof * 1e3, P_prof, color=MODEL_STYLES[name]['color'], lw=1.6, ls='--')
+        ax.set_xscale('log')
+        ax.set_yscale('log')
+        ax.set_ylim(P_GLOBAL_HI, P_GLOBAL_LO)
+        ax.yaxis.set_major_locator(ticker.LogLocator(base=10, numticks=10))
+        ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext(base=10, labelOnlyBase=True))
+        ax.yaxis.set_minor_formatter(ticker.NullFormatter())
+        ax.tick_params(axis='both', labelsize=FS_TICK)
+        ax.grid(False)
 
-    ax.legend(panel_handles, panel_labels, loc='best', fontsize=FS_LEGEND - 1,
-              frameon=False, handlelength=1.5, borderpad=0.5)
+        if ri == 0:
+            ax.set_title(case_labels[ci], fontsize=FS_TITLE, linespacing=1.5)
+        if ri == NROWS - 1:
+            ax.set_xlabel('Specific Humidity (g kg$^{-1}$)', fontsize=FS_LABEL)
+        if ci == 0:
+            ax.set_ylabel(f'{row_title}\nPressure (hPa)', fontsize=FS_LABEL)
 
-    ax.set_xscale('log')
-    ax.set_yscale('log')
-    ax.set_ylim(P_GLOBAL_HI, P_GLOBAL_LO)
-    ax.yaxis.set_major_locator(ticker.LogLocator(base=10, numticks=10))
-    ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext(base=10, labelOnlyBase=True))
-    ax.yaxis.set_minor_formatter(ticker.NullFormatter())
-    ax.tick_params(axis='both', labelsize=FS_TICK)
-    ax.grid(False)
-
-    ax.set_title(case_labels[ci], fontsize=FS_TITLE, linespacing=1.5)
-    ax.set_xlabel('Specific Humidity (g kg$^{-1}$)', fontsize=FS_LABEL)
-    ax.set_ylabel('Pressure (hPa)', fontsize=FS_LABEL)
-
-from matplotlib.lines import Line2D
-style_handles = [
-    Line2D([0], [0], color='k', lw=1.6, ls='-',  label='Substellar hemi.'),
-    Line2D([0], [0], color='k', lw=1.6, ls='--', label='Anti-stellar hemi.'),
-]
-fig.legend(handles=style_handles, loc='outside lower center', ncols=2,
-           fontsize=FS_LEGEND, frameon=True, framealpha=0.9,
-           handlelength=2.5, handleheight=1.2, handletextpad=0.6,
-           borderpad=0.6, labelspacing=0.5)
+# One model legend above the panels, in the order the models are drawn
+order = [n for n in MODEL_STYLES if n in legend_handles]
+fig.legend([legend_handles[n] for n in order], [MODEL_LABELS[n] for n in order],
+           loc='outside upper center', ncols=len(order), fontsize=FS_LEGEND,
+           frameon=False, handlelength=2.0, columnspacing=1.6)
 
 fig.savefig('fig_profiles_watvap_select.png', bbox_inches='tight', dpi=150)
 fig.savefig('fig_profiles_watvap_select.eps', bbox_inches='tight')
