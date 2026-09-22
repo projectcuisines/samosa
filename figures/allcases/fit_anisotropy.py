@@ -52,6 +52,8 @@ SOURCES = {
     'water vapor':    ( 'crossval_variogram_watvap.py',  'wv'   ),
     'cloud fraction': ( 'crossval_variogram_clouds.py',  'list' ),
     'albedo':         ( 'crossval_variogram_albedo.py',  'list' ),
+    # HEXTOR and ExoColumn over all 64 protocol cases (fig_interpolation_temp_1d.py)
+    'temperature, Cases 1-64': ( 'fig_interpolation_temp_1d.py', 'dict' ),
 }
 
 
