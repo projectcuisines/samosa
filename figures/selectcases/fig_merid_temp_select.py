@@ -216,10 +216,11 @@ for ci, ax in enumerate(axes):
         ('HEXTOR',    hextor[ci]),
     ]
 
-    # Terminators and the freezing point, drawn under the model curves
-    for x in (-90, 90):
-        ax.axvline(x, color='0.75', lw=0.8, ls=(0, (2, 2)), zorder=1)
-    ax.axhline(tfreeze, color='0.6', lw=0.8, ls=(0, (4, 3)), zorder=1)
+    # The freezing point, drawn under the model curves. It is dotted so that it
+    # cannot be mistaken for the dashed PlaHab and HEXTOR curves, and it carries
+    # no legend entry: the caption names it. The terminators are not ruled; the
+    # ticks at +/-90 degrees mark them.
+    ax.axhline(tfreeze, color='0.6', lw=0.8, ls=':', zorder=1)
 
     for name, entry in series:
         if entry is None:
@@ -239,25 +240,14 @@ for ci, ax in enumerate(axes):
 
 from matplotlib.lines import Line2D
 # A six-entry legend inside a panel covers the curves it is labelling, so the
-# models go above the panels, as in fig_energy_balance.py, and the reference
-# lines are keyed below. Two legends cannot share 'outside lower center':
-# constrained layout gives them the same slot and the second hides the first.
+# models go above the panels, as in fig_energy_balance.py.
 # Case 16 carries six curves rather than seven, the Generic PCM having no
 # converged solution there.
 model_handles = [Line2D([0], [0], label=MODEL_LABELS[m], **MODEL_STYLES[m])
                  for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab', 'HEXTOR')]
-style_handles = [
-    Line2D([0], [0], color='0.75', lw=0.8, ls=(0, (2, 2)), label='Terminator'),
-    Line2D([0], [0], color='0.6',  lw=0.8, ls=(0, (4, 3)), label='273.16 K'),
-]
-
 fig.legend(handles=model_handles, loc='outside upper center', ncols=7,
            fontsize=FS_LEGEND, frameon=False,
            handlelength=2.0, handletextpad=0.6, columnspacing=1.8)
-fig.legend(handles=style_handles, loc='outside lower center', ncols=2,
-           fontsize=FS_LEGEND, frameon=True, framealpha=1.0,
-           handlelength=2.5, handleheight=1.2, handletextpad=0.6,
-           borderpad=0.6, labelspacing=0.5)
 
 fig.savefig('fig_merid_temp_select.png', bbox_inches='tight', dpi=150)
 fig.savefig('fig_merid_temp_select.eps', bbox_inches='tight')
