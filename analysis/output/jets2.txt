@@ -1,0 +1,70 @@
+model          c      sig=0.5     sig=0.3    sig=0.15      tpause   uppertrop
+ExoCAM         1     DJ  -1.3    SJ  +5.2    DJ  -0.7    DJ -19.2    DJ  -7.3
+ExoCAM         4     DJ  -6.8    DJ  -6.4    SJ  +2.5    DJ  -1.4    SJ  +6.7
+ExoCAM         7     DJ  -6.5    DJ  -9.6    DJ  -9.1    DJ  -1.8    DJ  -1.6
+ExoCAM         8     DJ -33.9    DJ -35.8    DJ -12.1    DJ  -0.7    SJ  +1.0
+ExoCAM         9     DJ  -2.2    SJ  +3.1    SJ  +9.6    DJ  -6.6    SJ  +1.4
+ExoCAM        10     DJ -30.8    DJ -27.7    DJ -15.8    DJ  -6.6    DJ -11.2
+ExoCAM        11     SJ  +3.4    SJ  +1.8    SJ  +5.6    SJ +12.3    SJ +14.7
+ExoCAM        12     DJ -12.1    DJ -11.6    DJ -12.0    DJ  -8.7    DJ -10.3
+ExoCAM        14     DJ  -7.6    DJ  -1.1    SJ  +1.3    DJ -12.1    DJ  -1.8
+ExoCAM        15     DJ  -0.4    SJ  +8.8    SJ  +9.4    DJ -10.8    DJ  -2.4
+ExoCAM        16     DJ -16.7    DJ  -8.0    DJ -11.1    DJ  -2.3    DJ  -9.8
+ExoPlaSim      1     DJ  -8.2    DJ  -9.7    DJ  -7.6    DJ  -4.2    DJ  -5.3
+ExoPlaSim      2     DJ  -3.9    DJ  -1.6    DJ  -6.9    DJ  -5.4    DJ  -6.2
+ExoPlaSim      3     SJ  +3.8    SJ  +7.2    SJ  +9.9    SJ  +7.2    SJ  +4.5
+ExoPlaSim      4     DJ -12.6    DJ -18.9    DJ -17.8    DJ -11.9    DJ -14.9
+ExoPlaSim      5     SJ  +8.1    SJ +11.7    SJ +13.7    SJ +12.7    SJ +13.2
+ExoPlaSim      6     DJ  -1.1    DJ  -6.0    DJ  -6.4    DJ  -2.6    DJ  -3.9
+ExoPlaSim      7     SJ  +1.6    SJ  +2.7    SJ  +6.0    SJ  +5.0    SJ  +5.5
+ExoPlaSim      8     DJ  -9.2    DJ  -7.3    DJ  -4.2    SJ  +0.0    DJ  -1.3
+ExoPlaSim      9     SJ  +3.1    SJ  +5.4    SJ  +3.9    DJ  -0.6    SJ  +1.7
+ExoPlaSim     10     DJ  -5.4    DJ  -3.9    DJ  -2.7    DJ  -2.9    DJ  -2.8
+ExoPlaSim     11     SJ  +7.7    SJ  +3.5    SJ  +1.4    DJ  -1.3    SJ  +0.1
+ExoPlaSim     12     DJ  -2.9    DJ -12.8    DJ -13.7    DJ -13.9    DJ -13.8
+ExoPlaSim     13     SJ  +7.3    SJ +10.4    SJ +11.0    SJ +11.0    SJ +10.1
+ExoPlaSim     14     DJ -11.5    DJ  -8.5    DJ  -5.3    DJ  -1.1    DJ  -3.0
+ExoPlaSim     15     DJ  -2.8    DJ  -6.8    DJ  -5.9    DJ  -5.2    DJ  -5.2
+ExoPlaSim     16     DJ  -1.6    SJ  +1.7    DJ  -1.6    DJ  -3.8    DJ  -2.0
+ROCKE-3D       1     SJ  +1.6    SJ  +7.2    SJ  +0.6    SJ  +0.6    SJ  +7.2
+ROCKE-3D       2     DJ  -9.9    DJ -13.9    DJ -14.5    DJ -13.1    DJ -12.0
+ROCKE-3D       4     DJ  -7.1    DJ  -7.5    DJ  -1.5    SJ  +2.7    SJ  +3.0
+ROCKE-3D       5     SJ  +0.3    DJ  -0.3    SJ  +7.0    SJ +15.8    SJ +14.6
+ROCKE-3D       6     DJ -16.9    DJ -19.1    DJ -12.9    DJ -10.2    DJ -17.0
+ROCKE-3D       7     SJ  +4.3    SJ  +4.7    SJ  +5.0    DJ  -4.2    DJ  -0.4
+ROCKE-3D       8     DJ -35.5    DJ -30.6    DJ -13.1    SJ  +5.3    DJ  -6.4
+ROCKE-3D       9     SJ  +1.1    SJ  +5.6    SJ  +3.9    DJ  -6.2    DJ  -3.3
+ROCKE-3D      10     DJ -27.0    DJ -24.0    DJ -13.3    SJ  +0.7    DJ -13.1
+ROCKE-3D      11     SJ  +4.3    SJ  +4.2    SJ  +8.8    SJ  +8.3    SJ  +8.5
+ROCKE-3D      12     DJ -29.3    DJ -32.8    DJ -29.8    DJ  -7.0    DJ  -8.7
+ROCKE-3D      13     DJ  -1.5    DJ  -3.0    SJ  +2.4    SJ +18.0    SJ +13.1
+ROCKE-3D      14     DJ  -9.9    DJ  -3.6    SJ  +0.4    DJ  -7.2    SJ  +2.6
+ROCKE-3D      15     SJ  +2.3    SJ  +5.6    SJ  +1.3    DJ  -6.2    SJ  +3.1
+ROCKE-3D      16     DJ -26.1    DJ -24.6    DJ -14.9    DJ  -5.2    DJ  -5.2
+LFRic          1     SJ  +1.7    SJ  +7.7    SJ  +0.4    DJ  -1.9    SJ  +3.9
+LFRic          4     DJ -10.8    DJ  -7.3    DJ  -1.8    DJ  -0.6    SJ  +1.5
+LFRic          7     SJ  +6.7    SJ  +7.0    SJ  +9.4    SJ +11.7    SJ  +6.7
+LFRic          8     DJ  -6.4    DJ  -3.1    SJ  +2.2    SJ  +4.7    DJ  -0.4
+LFRic          9     DJ -11.9    SJ  +0.4    SJ  +5.8    DJ  -1.9    SJ  +1.8
+LFRic         10     SJ  +1.0    SJ  +1.3    SJ  +3.7    SJ  +5.3    SJ  +2.4
+LFRic         11     SJ  +4.7    SJ  +4.4    SJ  +5.1    SJ  +1.4    SJ  +3.1
+LFRic         12     DJ -15.7    DJ  -8.4    DJ  -9.7    SJ  +4.6    SJ  +0.6
+LFRic         14     DJ  -9.9    SJ  +1.8    SJ  +2.8    DJ  -4.0    SJ  +1.6
+LFRic         15     SJ  +1.8    SJ  +8.7    SJ  +9.7    DJ  -6.2    DJ  -0.8
+LFRic         16     DJ -10.3    DJ -19.0    DJ -13.5    DJ  -7.7    DJ -15.3
+Generic PCM    1     DJ -17.7    DJ  -7.8    DJ  -5.5    DJ  -6.9    SJ  +3.9
+Generic PCM    2     DJ -12.7    DJ -27.0    DJ -44.9    DJ -40.7    DJ -37.8
+Generic PCM    3     DJ -21.0    DJ -29.1    DJ -39.4    DJ  -3.8    SJ  +3.2
+Generic PCM    4     DJ -24.4    DJ -26.1    DJ -15.9    DJ -12.6    DJ -13.6
+Generic PCM    5     DJ  -8.9    DJ -11.4    SJ  +9.5    SJ +11.9    SJ +17.4
+Generic PCM    6     DJ -40.4    DJ -40.3    DJ -22.4    DJ  -5.8    DJ  -4.0
+Generic PCM    7     DJ -20.5    DJ -24.1    SJ  +2.6    SJ  +2.8    SJ  +8.0
+Generic PCM    8     DJ -32.2    DJ -31.8    DJ -26.6    DJ  -0.1    SJ  +4.6
+Generic PCM    9     DJ -20.2    DJ -25.3    DJ -22.3    DJ -10.4    DJ  -1.6
+Generic PCM   10     DJ -32.1    DJ -31.9    DJ -29.1    DJ  -2.1    DJ  -6.4
+Generic PCM   11     DJ -16.7    DJ -35.3    DJ -32.2    SJ  +4.0    DJ  -3.9
+Generic PCM   12     DJ -15.2    DJ  -6.6    SJ  +1.0    DJ -12.9    DJ -14.6
+Generic PCM   13     DJ  -1.8    DJ -13.8    DJ -21.1    SJ  +9.5    SJ +10.1
+Generic PCM   14     DJ -12.4    DJ -13.6    SJ  +3.7    SJ  +5.0    SJ  +8.4
+Generic PCM   15     DJ -20.9    DJ -15.2    SJ  +7.3    SJ  +0.1    SJ  +5.2
+Generic PCM   16     DJ  -7.2    DJ -12.8    DJ  -6.6    SJ  +0.1    DJ  -5.9

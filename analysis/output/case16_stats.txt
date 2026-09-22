@@ -1,0 +1,36 @@
+=== A. sample-point Tglob range, cases with >=3 models ===
+  all eight: 14.2-132.8 K, median 37.8 K over 13 cases
+  six resolved: median 34.9 K over 13 cases
+  widest (all eight): C7 132.8, C16 83.4, C11 61.5, C10 58.3, C12 55.6, C4 41.8
+  six-model range at those: C7 132.8, C16 69.0, C11 52.9, C10 37.9, C12 55.6, C4 35.2
+  coldest (152.42, 'HEXTOR', 10)  warmest (400.52, 'LFRic', 7)
+  Case 16 models: PlaHab 292.7, ROCKE-3D 319.3, ExoPlaSim 346.3, ExoCAM 356.7, LFRic 361.7, HEXTOR 376.1
+  HEXTOR minus resolved median: C1 -23.5, C4 +32.2, C8 -19.0, C9 +24.5, C10 -43.5, C11 -2.0, C14 +4.9, C15 -20.6, C16 +29.8
+  cases with >=5 models: [1, 4, 8, 9, 10, 11, 12, 14, 15, 16]; with all 8: [1, 4, 8, 9, 10, 14, 15]
+
+=== C. albedo range, cases with >=3 models ===
+  all eight: 8.3-48.1 points, median 29.9
+  six resolved: 8.3-41.7 points, median 19.9
+  HEXTOR darkest at 7 of 9 cases: [4, 8, 9, 11, 14, 15, 16]
+  HEXTOR albedo: {1: 19.96, 4: 3.4, 8: 12.92, 9: 3.32, 10: 21.8, 11: 15.64, 14: 6.49, 15: 19.25, 16: 3.79}
+
+=== D. temperature spread (Figure spread) ===
+  all eight: median 22.0, min 6.8, max 51.9 at 1600 W/m2, 0.55 bar
+  at Case 7 (1600, 0.55): 51.9; at Case 16 (1400, 10): 29.5; corner (1900, 10): 35.0
+  local maxima: 51.9 at (1600, 0.55), 36.0 at (2000, 10.0), 35.7 at (1800, 10.0), 32.9 at (1600, 0.1)
+  whole-plane medians: six 20.4, +HEXTOR 22.7, +both 22.0
+  band <= 1200 W/m2: six 10.1 -> eight 11.2; outside: six 25.5 -> eight 26.7
+  LFRic Case 7 on six-model medians: in-band +0.01, out +6.77
+  LFRic Case 7 moves: whole +4.77, in-band +0.01, out +5.92
+  LFRic Cases 8/10/11 moves: whole -0.02, in-band -0.07, out +0.01
+  ExoColumn minus HEXTOR at 8 shared cases: +1.0 to +48.9
+
+=== E. summary figure ===
+  blue 33.2%, green 52.5%, contested 14.3%, 3-D-only 14.3%, PlaHab-only 0.0%
+  band at 0.10 bar: 1240-1740
+  band at 2.34 bar: 1080-1260
+  band at 10.00 bar: 1080-1220
+  six resolved contested: 12.6%
+  1-D cold-edge shift: median 30, max 110 at 0.51 bar; rows with shift>0: 152/201; median of positive shifts 30; warm-edge shift max 0
+  largest adjacent step: cold 70, warm 200 (at 0.68-0.70 bar); median 0
+  invariants: partition ok True; row gaps 0; white subset True; regime mismatches (non-runaway) []

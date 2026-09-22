@@ -1,0 +1,195 @@
+model        case source                         S_prot   S_model     dS%   p_prot  p_model p/p_prot  note
+ExoCAM          1 sol_tsi                           500   1361.27  172.25     0.70        -            <<S
+ExoCAM          1 4*<FDS top>                       500    497.74   -0.45     0.70   0.7000   1.0000  
+ExoCAM         10 sol_tsi                           400   1361.27  240.32     4.83        -            <<S
+ExoCAM         10 4*<FDS top>                       400    398.00   -0.50     4.83   4.8300   1.0000  
+ExoCAM         11 sol_tsi                           900   1361.27   51.25     0.10        -            <<S
+ExoCAM         11 4*<FDS top>                       900    892.03   -0.89     0.10   0.1006   1.0058  
+ExoCAM         12 sol_tsi                          1500   1361.27   -9.25     2.98        -            <<S
+ExoCAM         12 4*<FDS top>                      1500   1482.58   -1.16     2.98   3.1203   1.0471   <<S
+ExoCAM         14 sol_tsi                           900   1361.27   51.25     1.44        -            <<S
+ExoCAM         14 4*<FDS top>                       900    895.78   -0.47     1.44   1.4404   1.0003  
+ExoCAM         15 sol_tsi                           600   1361.27  126.88     0.43        -            <<S
+ExoCAM         15 4*<FDS top>                       600    597.31   -0.45     0.43   0.4301   1.0002  
+ExoCAM         16 sol_tsi                          1400   1361.27   -2.77    10.00        -            <<S
+ExoCAM         16 4*<FDS top>                      1400   1392.35   -0.55    10.00  10.1271   1.0127  
+ExoCAM          4 sol_tsi                          1200   1361.27   13.44     2.34        -            <<S
+ExoCAM          4 4*<FDS top>                      1200   1194.13   -0.49     2.34   2.3419   1.0008  
+ExoCAM          7 sol_tsi                          1600   1361.27  -14.92     0.55        -            <<S
+ExoCAM          7 4*<FDS top>                      1600   1554.15   -2.87     0.55   0.8059   1.4653   <<S <<p
+ExoCAM          8 sol_tsi                           800   1361.27   70.16     6.16        -            <<S
+ExoCAM          8 4*<FDS top>                       800    795.88   -0.51     6.16   6.1602   1.0000  
+ExoCAM          9 sol_tsi                          1100   1361.27   23.75     0.70        -            <<S
+ExoCAM          9 4*<FDS top>                      1100   1094.77   -0.48     0.70   0.7008   1.0011  
+ExoPlaSim       1 4*<rst+rsut>                      500     92.28  -81.54     0.70   0.6956   0.9937   <<S
+ExoPlaSim       2 4*<rst+rsut>                     1900    949.46  -50.03     7.85   7.8504   1.0001   <<S
+ExoPlaSim       3 4*<rst+rsut>                     2400   1350.35  -43.74     0.21   0.2104   1.0020   <<S
+ExoPlaSim       4 4*<rst+rsut>                     1200    240.01  -80.00     2.34   2.3362   0.9984   <<S
+ExoPlaSim       5 4*<rst+rsut>                     1500    554.12  -63.06     0.16   0.1628   1.0175   <<S
+ExoPlaSim       6 4*<rst+rsut>                     2100   1306.38  -37.79     1.83   1.8334   1.0019   <<S
+ExoPlaSim       7 4*<rst+rsut>                     1600    645.28  -59.67     0.55   0.5460   0.9927   <<S
+ExoPlaSim       8 4*<rst+rsut>                      800    156.28  -80.47     6.16   6.1589   0.9998   <<S
+ExoPlaSim       9 4*<rst+rsut>                     1100    361.01  -67.18     0.70   0.6956   0.9938   <<S
+ExoPlaSim      10 4*<rst+rsut>                      400     62.12  -84.47     4.83   4.8334   1.0007   <<S
+ExoPlaSim      11 4*<rst+rsut>                      900    210.18  -76.65     0.10   0.1005   1.0047   <<S
+ExoPlaSim      12 4*<rst+rsut>                     1500    981.33  -34.58     2.98   2.9768   0.9989   <<S
+ExoPlaSim      13 4*<rst+rsut>                     1600    604.48  -62.22     0.16   0.1628   1.0175   <<S
+ExoPlaSim      14 4*<rst+rsut>                      900    244.65  -72.82     1.44   1.4389   0.9992   <<S
+ExoPlaSim      15 4*<rst+rsut>                      600    127.77  -78.71     0.43   0.4286   0.9967   <<S
+ExoPlaSim      16 4*<rst+rsut>                     1400    487.25  -65.20    10.00  10.0004   1.0000   <<S
+ROCKE-3D        1 4*<incsw_toa>                     500    500.31    0.06     0.70   0.7000   1.0000  hemis[2]*4=500.31
+ROCKE-3D        2 4*<incsw_toa>                    1900   1901.17    0.06     7.85   7.8500   1.0000  hemis[2]*4=1901.17
+ROCKE-3D        4 4*<incsw_toa>                    1200   1200.74    0.06     2.34   2.3400   1.0000  hemis[2]*4=1200.74
+ROCKE-3D        5 4*<incsw_toa>                    1500   1500.93    0.06     0.16   0.1600   1.0000  hemis[2]*4=1500.93
+ROCKE-3D        6 4*<incsw_toa>                    2100   2101.30    0.06     1.83   1.8300   1.0000  hemis[2]*4=2101.30
+ROCKE-3D        7 4*<incsw_toa>                    1600   1600.99    0.06     0.55   0.5500   1.0000  hemis[2]*4=1600.99
+ROCKE-3D        8 4*<incsw_toa>                     800    800.49    0.06     6.16   6.1600   1.0000  hemis[2]*4=800.49
+ROCKE-3D        9 4*<incsw_toa>                    1100   1100.68    0.06     0.70   0.7000   1.0000  hemis[2]*4=1100.68
+ROCKE-3D       10 4*<incsw_toa>                     400    400.25    0.06     4.83   4.8300   1.0000  hemis[2]*4=400.25
+ROCKE-3D       11 4*<incsw_toa>                     900    900.56    0.06     0.10   0.1000   1.0000  hemis[2]*4=900.56
+ROCKE-3D       12 4*<incsw_toa>                    1500   1500.93    0.06     2.98   2.9800   1.0000  hemis[2]*4=1500.93
+ROCKE-3D       13 4*<incsw_toa>                    1600   1600.99    0.06     0.16   0.1600   1.0000  hemis[2]*4=1600.99
+ROCKE-3D       14 4*<incsw_toa>                     900    900.56    0.06     1.44   1.4400   1.0000  hemis[2]*4=900.56
+ROCKE-3D       15 4*<incsw_toa>                     600    600.37    0.06     0.43   0.4300   1.0000  hemis[2]*4=600.37
+ROCKE-3D       16 4*<incsw_toa>                    1400   1400.86    0.06    10.00  10.0000   1.0000  hemis[2]*4=1400.86
+Generic PCM     1 .dat header                       500    500.00    0.00     0.70   0.7000   1.0000  table Sample=[1]
+Generic PCM     1 4*<incoming_stellar>              500    492.66   -1.47     0.70   0.6993   0.9991   <<S
+Generic PCM    10 .dat header                       400    400.00    0.00     4.83   4.8300   1.0000  table Sample=[10]
+Generic PCM    10 4*<incoming_stellar>              400    394.17   -1.46     4.83   4.8249   0.9989   <<S
+Generic PCM    11 .dat header                       900    900.00    0.00     0.10   0.1000   1.0000  table Sample=[11]
+Generic PCM    11 4*<incoming_stellar>              900    886.32   -1.52     0.10   0.1014   1.0141   <<S
+Generic PCM    12 .dat header                      1500   1500.00    0.00     2.98   2.9800   1.0000  table Sample=[12]
+Generic PCM    12 4*<incoming_stellar>             1500   1478.05   -1.46     2.98   3.1364   1.0525   <<S
+Generic PCM    13 .dat header                      1600   1600.00    0.00     0.16   0.1600   1.0000  table Sample=[13]
+Generic PCM    13 4*<incoming_stellar>             1600   1558.78   -2.58     0.16   0.2988   1.8675   <<S <<p
+Generic PCM    14 .dat header                       900    900.00    0.00     1.44   1.4400   1.0000  table Sample=[14]
+Generic PCM    14 4*<incoming_stellar>              900    886.81   -1.47     1.44   1.4391   0.9994   <<S
+Generic PCM    15 .dat header                       600    600.00    0.00     0.43   0.4300   1.0000  table Sample=[15]
+Generic PCM    15 4*<incoming_stellar>              600    591.16   -1.47     0.43   0.4297   0.9992   <<S
+Generic PCM    16 .dat header                      1400   1400.00    0.00    10.00  10.0000   1.0000  table Sample=[16]
+Generic PCM    16 4*<incoming_stellar>             1400   1379.59   -1.46    10.00  10.2005   1.0200   <<S
+Generic PCM     2 .dat header                      1900   1900.00    0.00     7.85   7.8500   1.0000  table Sample=[2]
+Generic PCM     2 4*<incoming_stellar>             1900   1872.23   -1.46     7.85   8.0068   1.0200   <<S
+Generic PCM     3 .dat header                      2400   2400.00    0.00     0.21   0.2100   1.0000  table Sample=[3]
+Generic PCM     3 4*<incoming_stellar>             2400   2333.53   -2.77     0.21   0.2984   1.4211   <<S <<p
+Generic PCM     4 .dat header                      1200   1200.00    0.00     2.34   2.3400   1.0000  table Sample=[4]
+Generic PCM     4 4*<incoming_stellar>             1200   1182.44   -1.46     2.34   2.3422   1.0010   <<S
+Generic PCM     5 .dat header                      1500   1500.00    0.00     0.16   0.1600   1.0000  table Sample=[5]
+Generic PCM     5 4*<incoming_stellar>             1500   1460.85   -2.61     0.16   0.3037   1.8979   <<S <<p
+Generic PCM     6 .dat header                      2100   2100.00    0.00     1.83   1.8300   1.0000  table Sample=[6]
+Generic PCM     6 4*<incoming_stellar>             2100   2062.72   -1.78     1.83   1.9072   1.0422   <<S
+Generic PCM     7 .dat header                      1600   1600.00    0.00     0.55   0.5500   1.0000  table Sample=[7]
+Generic PCM     7 4*<incoming_stellar>             1600   1568.11   -1.99     0.55   0.6805   1.2372   <<S <<p
+Generic PCM     8 .dat header                       800    800.00    0.00     6.16   6.1600   1.0000  table Sample=[8]
+Generic PCM     8 4*<incoming_stellar>              800    788.33   -1.46     6.16   6.1536   0.9990   <<S
+Generic PCM     9 .dat header                      1100   1100.00    0.00     0.70   0.7000   1.0000  table Sample=[9]
+Generic PCM     9 4*<incoming_stellar>             1100   1083.82   -1.47     0.70   0.7019   1.0027   <<S
+LFRic           1 .txt table                        500    500.00    0.00     0.70   0.7000   1.0000  
+LFRic           4 .txt table                       1200   1200.00    0.00     2.34   2.3400   1.0000  
+LFRic           7 .txt table                       1600   1600.00    0.00     0.55   0.5500   1.0000  
+LFRic           8 .txt table                        800    800.00    0.00     6.16   6.1600   1.0000  
+LFRic           9 .txt table                       1100   1100.00    0.00     0.70   0.7000   1.0000  
+LFRic          10 .txt table                        400    400.00    0.00     4.83   4.8300   1.0000  
+LFRic          11 .txt table                        900    900.00    0.00     0.10   0.1000   1.0000  
+LFRic          12 .txt table                       1500   1500.00    0.00     2.98   2.9800   1.0000  
+LFRic          14 .txt table                        900    900.00    0.00     1.44   1.4400   1.0000  
+LFRic          15 .txt table                        600    600.00    0.00     0.43   0.4300   1.0000  
+LFRic          16 .txt table                       1400   1400.00    0.00    10.00  10.0000   1.0000  
+LFRic           1 nc: p(level0), max sw_net_toa     500         -             0.70   0.6991   0.9988  title='LFRic - SAMOSA Case 1'  max sw_net_toa=318.0 (0.636 of S_prot)
+LFRic           4 nc: p(level0), max sw_net_toa    1200         -             2.34   2.3397   0.9999  title='LFRic - SAMOSA Case 4'  max sw_net_toa=774.6 (0.645 of S_prot)
+LFRic           7 nc: p(level0), max sw_net_toa    1600         -             0.55   0.7732   1.4058  title='LFRic - SAMOSA Case 7'  max sw_net_toa=1580.7 (0.988 of S_prot) <<p
+LFRic           8 nc: p(level0), max sw_net_toa     800         -             6.16   6.1566   0.9995  title='LFRic - SAMOSA Case 8'  max sw_net_toa=474.0 (0.593 of S_prot)
+LFRic           9 nc: p(level0), max sw_net_toa    1100         -             0.70   0.6999   0.9998  title='LFRic - SAMOSA Case 9'  max sw_net_toa=686.3 (0.624 of S_prot)
+LFRic          10 nc: p(level0), max sw_net_toa     400         -             4.83   4.8284   0.9997  title='LFRic - SAMOSA Case 10'  max sw_net_toa=296.2 (0.741 of S_prot)
+LFRic          11 nc: p(level0), max sw_net_toa     900         -             0.10   0.0982   0.9824  title='LFRic - SAMOSA Case 11'  max sw_net_toa=740.8 (0.823 of S_prot)
+LFRic          12 nc: p(level0), max sw_net_toa    1500         -             2.98   3.0601   1.0269  title='LFRic - SAMOSA Case 12'  max sw_net_toa=1149.1 (0.766 of S_prot)
+LFRic          14 nc: p(level0), max sw_net_toa     900         -             1.44   1.4393   0.9995  title='LFRic - SAMOSA Case 14'  max sw_net_toa=513.9 (0.571 of S_prot)
+LFRic          15 nc: p(level0), max sw_net_toa     600         -             0.43   0.4292   0.9981  title='LFRic - SAMOSA Case 15'  max sw_net_toa=379.5 (0.632 of S_prot)
+LFRic          16 nc: p(level0), max sw_net_toa    1400         -            10.00  10.1751   1.0175  title='LFRic - SAMOSA Case 16'  max sw_net_toa=1154.9 (0.825 of S_prot)
+HEXTOR          1 input.nml solarcon/pg0            500    500.00    0.00     0.70   0.7004   1.0006  
+HEXTOR          2 input.nml solarcon/pg0           1900   1900.00    0.00     7.85   7.8504   1.0001  
+HEXTOR          3 input.nml solarcon/pg0           2400   2400.00    0.00     0.21   0.2104   1.0019  
+HEXTOR          4 input.nml solarcon/pg0           1200   1200.00    0.00     2.34   2.3404   1.0002  
+HEXTOR          5 input.nml solarcon/pg0           1500   1500.00    0.00     0.16   0.1604   1.0025  
+HEXTOR          6 input.nml solarcon/pg0           2100   2100.00    0.00     1.83   1.8304   1.0002  
+HEXTOR          7 input.nml solarcon/pg0           1600   1600.00    0.00     0.55   0.5504   1.0007  
+HEXTOR          8 input.nml solarcon/pg0            800    800.00    0.00     6.16   6.1604   1.0001  
+HEXTOR          9 input.nml solarcon/pg0           1100   1100.00    0.00     0.70   0.7004   1.0006  
+HEXTOR         10 input.nml solarcon/pg0            400    400.00    0.00     4.83   4.8304   1.0001  
+HEXTOR         11 input.nml solarcon/pg0            900    900.00    0.00     0.10   0.1004   1.0040  
+HEXTOR         12 input.nml solarcon/pg0           1500   1500.00    0.00     2.98   2.9804   1.0001  
+HEXTOR         13 input.nml solarcon/pg0           1600   1600.00    0.00     0.16   0.1604   1.0025  
+HEXTOR         14 input.nml solarcon/pg0            900    900.00    0.00     1.44   1.4404   1.0003  
+HEXTOR         15 input.nml solarcon/pg0            600    600.00    0.00     0.43   0.4304   1.0009  
+HEXTOR         16 input.nml solarcon/pg0           1400   1400.00    0.00    10.00  10.0004   1.0000  
+HEXTOR          1 .dat table                        500    500.00    0.00     0.70   0.7000   1.0000  Fsdn*4=501.91
+HEXTOR          4 .dat table                       1200   1200.00    0.00     2.34   2.3400   1.0000  Fsdn*4=1204.58
+HEXTOR          8 .dat table                        800    800.00    0.00     6.16   6.1600   1.0000  Fsdn*4=803.06
+HEXTOR          9 .dat table                       1100   1100.00    0.00     0.70   0.7000   1.0000  Fsdn*4=1104.20
+HEXTOR         10 .dat table                        400    400.00    0.00     4.83   4.8300   1.0000  Fsdn*4=401.53
+HEXTOR         11 .dat table                        900    900.00    0.00     0.10   0.1000   1.0000  Fsdn*4=903.44
+HEXTOR         14 .dat table                        900    900.00    0.00     1.44   1.4400   1.0000  Fsdn*4=903.44
+HEXTOR         15 .dat table                        600    600.00    0.00     0.43   0.4300   1.0000  Fsdn*4=602.29
+HEXTOR         16 .dat table                       1400   1400.00    0.00    10.00  10.0000   1.0000  Fsdn*4=1405.35
+HEXTOR          1 belts 4*<ASR/(1-alb)>             500    501.90    0.38     0.70        -           
+HEXTOR          4 belts 4*<ASR/(1-alb)>            1200   1204.73    0.39     2.34        -           
+HEXTOR          8 belts 4*<ASR/(1-alb)>             800    802.97    0.37     6.16        -           
+HEXTOR          9 belts 4*<ASR/(1-alb)>            1100   1104.05    0.37     0.70        -           
+HEXTOR         10 belts 4*<ASR/(1-alb)>             400    401.44    0.36     4.83        -           
+HEXTOR         11 belts 4*<ASR/(1-alb)>             900    903.51    0.39     0.10        -           
+HEXTOR         14 belts 4*<ASR/(1-alb)>             900    903.51    0.39     1.44        -           
+HEXTOR         15 belts 4*<ASR/(1-alb)>             600    602.27    0.38     0.43        -           
+HEXTOR         16 belts 4*<ASR/(1-alb)>            1400   1405.18    0.37    10.00        -           
+ExoColumn       1 .dat table                        500    500.00    0.00     0.70   0.7000   1.0000  
+ExoColumn       4 .dat table                       1200   1200.00    0.00     2.34   2.3400   1.0000  
+ExoColumn       8 .dat table                        800    800.00    0.00     6.16   6.1600   1.0000  
+ExoColumn       9 .dat table                       1100   1100.00    0.00     0.70   0.7000   1.0000  
+ExoColumn      10 .dat table                        400    400.00    0.00     4.83   4.8300   1.0000  
+ExoColumn      11 .dat table                        900    900.00    0.00     0.10   0.1000   1.0000  
+ExoColumn      14 .dat table                        900    900.00    0.00     1.44   1.4400   1.0000  
+ExoColumn      15 .dat table                        600    600.00    0.00     0.43   0.4300   1.0000  
+ExoColumn       1 nml 1360/msdist, ps               500    500.00   -0.00     0.70   0.7004   1.0006  
+ExoColumn       1 out 4*SWDN[top], ps               500    499.90   -0.02     0.70   0.7358   1.0511  
+ExoColumn       2 nml 1360/msdist, ps              1900   1900.00    0.00     7.85   7.8504   1.0001  
+ExoColumn       2 out 4*SWDN[top], ps              1900   1895.35   -0.24     7.85   7.8858   1.0046  
+ExoColumn       3 nml 1360/msdist, ps              2400   2400.00   -0.00     0.21   0.2104   1.0019  
+ExoColumn       3 out 4*SWDN[top], ps              2400   2389.39   -0.44     0.21   0.2458   1.1703   <<p
+ExoColumn       4 nml 1360/msdist, ps              1200   1200.00    0.00     2.34   2.3404   1.0002  
+ExoColumn       4 out 4*SWDN[top], ps              1200   1199.73   -0.02     2.34   2.3758   1.0153  
+ExoColumn       5 nml 1360/msdist, ps              1500   1500.00   -0.00     0.16   0.1604   1.0025  
+ExoColumn       5 out 4*SWDN[top], ps              1500   1496.51   -0.23     0.16   0.1958   1.2235   <<p
+ExoColumn       6 nml 1360/msdist, ps              2100   2100.00   -0.00     1.83   1.8304   1.0002  
+ExoColumn       6 out 4*SWDN[top], ps              2100   2096.42   -0.17     1.83   1.8658   1.0195  
+ExoColumn       7 nml 1360/msdist, ps              1600   1600.00    0.00     0.55   0.5504   1.0007  
+ExoColumn       7 out 4*SWDN[top], ps              1600   1598.37   -0.10     0.55   0.5858   1.0650  
+ExoColumn       8 nml 1360/msdist, ps               800    800.00    0.00     6.16   6.1604   1.0001  
+ExoColumn       8 out 4*SWDN[top], ps               800    799.81   -0.02     6.16   6.1958   1.0058  
+ExoColumn       9 nml 1360/msdist, ps              1100   1100.00   -0.00     0.70   0.7004   1.0006  
+ExoColumn       9 out 4*SWDN[top], ps              1100   1099.74   -0.02     0.70   0.7358   1.0511  
+ExoColumn      10 nml 1360/msdist, ps               400    400.00    0.00     4.83   4.8304   1.0001  
+ExoColumn      10 out 4*SWDN[top], ps               400    399.91   -0.02     4.83   4.8658   1.0074  
+ExoColumn      11 nml 1360/msdist, ps               900    900.00    0.00     0.10   0.1004   1.0040  
+ExoColumn      11 out 4*SWDN[top], ps               900    899.62   -0.04     0.10   0.1358   1.3577   <<p
+ExoColumn      12 nml 1360/msdist, ps              1500   1500.00   -0.00     2.98   2.9804   1.0001  
+ExoColumn      12 out 4*SWDN[top], ps              1500   1499.19   -0.05     2.98   3.0158   1.0120  
+ExoColumn      13 nml 1360/msdist, ps              1600   1600.00    0.00     0.16   0.1604   1.0025  
+ExoColumn      13 out 4*SWDN[top], ps              1600   1596.36   -0.23     0.16   0.1958   1.2235   <<p
+ExoColumn      14 nml 1360/msdist, ps               900    900.00    0.00     1.44   1.4404   1.0003  
+ExoColumn      14 out 4*SWDN[top], ps               900    899.82   -0.02     1.44   1.4758   1.0248  
+ExoColumn      15 nml 1360/msdist, ps               600    600.00   -0.00     0.43   0.4304   1.0009  
+ExoColumn      15 out 4*SWDN[top], ps               600    599.86   -0.02     0.43   0.4658   1.0832  
+ExoColumn      16 nml 1360/msdist, ps              1400   1400.00    0.00    10.00  10.0004   1.0000  
+ExoColumn      16 out 4*SWDN[top], ps              1400   1399.52   -0.03    10.00  10.0358   1.0036  
+PlaHab          1 .dat                              500    500.00   -0.00     0.70   0.7000   1.0000  
+PlaHab         10 .dat                              400    400.00    0.00     4.83   4.8300   1.0000  
+PlaHab         11 .dat                              900    400.00  -55.56     0.10   0.1000   1.0000   <<S
+PlaHab         12 .dat                             1500   1500.53    0.04     2.98   2.9800   1.0000  
+PlaHab         13 .dat                             1600   1600.00    0.00     0.16   0.1600   1.0000  
+PlaHab         14 .dat                              900    900.00    0.00     1.44   1.4400   1.0000  
+PlaHab         15 .dat                              600    600.00   -0.00     0.43   0.4300   1.0000  
+PlaHab         16 .dat                             1400   1400.00    0.00    10.00  10.0000   1.0000  
+PlaHab          4 .dat                             1200   1199.99   -0.00     2.34   2.3400   1.0000  
+PlaHab          5 .dat                             1500   1500.53    0.04     0.16   0.1600   1.0000  
+PlaHab          7 .dat                             1600   1605.19    0.32     0.55   0.5500   1.0000  
+PlaHab          8 .dat                              800    800.00    0.00     6.16   6.1600   1.0000  
+PlaHab          9 .dat                             1100   1100.00    0.00     0.70   0.7000   1.0000  

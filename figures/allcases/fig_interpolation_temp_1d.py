@@ -4,15 +4,17 @@ primary cases and from all 64 cases of the protocol.
 HEXTOR and ExoColumn are the only models to have run the protocol's optional
 Sequences 1b, 2b and 3 (Cases 17-64, Table 4 of Haqq-Misra et al. 2022), so for
 them the sparse sample can be checked against a denser one. For each model the
-left panel is kriged exactly as in Figure 3 (fig_interpolation_temp.py), from
-its stable Cases 1-16, and the right panel from its stable cases among all 64.
+left panel is kriged as in Figure 3 (fig_interpolation_temp.py), from its
+stable Cases 1-16, and the right panel from its stable cases among all 64.
 Every panel shows the same markers, so the new cases sit over the 16-case
 surface they were not used to build.
 
     cd figures/allcases && python fig_interpolation_temp_1d.py
 
-Also prints the out-of-sample check the manuscript quotes: the 16-case kriging
-evaluated at the new stable cases. Run fit_anisotropy.py to refit ANISO_64,
+Also prints every number Section 4 of the manuscript quotes except the
+leave-one-out errors, which come from fit_anisotropy.py: the 16-case kriging
+evaluated at the new stable cases, the case counts, the HEXTOR-ExoColumn
+comparison and the inner edge each sample brackets. Run fit_anisotropy.py to refit ANISO_64,
 which it reads from climate_models below.
 """
 import numpy as np
@@ -66,26 +68,34 @@ CASES = {
    61: ( 535, 1.17 ),   62: ( 1560, 0.30 ),  63: ( 2385, 3.21 ),  64: ( 1348, 0.82 ),
 }
 
-# Global mean surface temperature (K) of every stable case, by case number.
-# Cases 1-16 are the values of fig_interpolation_temp.py; 17-64 are from
-# /models/hextor/samosa_all64/global_output_HEXTOR.dat (2026-09-21) and
-# exocolumn_samosa/output/global_output_ExoColumn_a2736_all64.dat (2026-09-22),
-# both run on the configuration of the submitted Cases 1-16, which they
-# reproduce exactly. Every case not listed ran away. ExoColumn Case 57 is
-# accepted on the protocol's stable-trend allowance (309.5 K for thousands of
-# days, with +1.4 W/m2 at the top of the atmosphere from a water-budget leak).
-hextor = {
-     1: 173.10,  4: 292.22,  8: 224.40,  9: 267.86, 10: 152.42, 11: 225.52, 14: 241.46, 15: 188.62, 16: 376.07,
-    17: 201.80, 20: 332.80, 21: 236.47, 24: 172.94, 25: 282.24, 26: 172.41, 27: 255.35, 29: 313.17, 30: 224.11,
-    31: 173.12, 32: 285.24, 33: 312.95, 36: 167.30, 37: 231.84, 40: 266.14, 41: 255.65, 44: 202.07, 45: 187.39,
-    48: 308.54, 52: 198.21, 53: 216.56, 56: 254.39, 57: 300.58, 60: 228.01, 61: 178.74, 64: 305.53,
-}
-exocolumn = {
-     1: 206.98,  4: 293.26,  8: 248.49,  9: 269.66, 10: 201.36, 11: 242.60, 14: 251.63, 15: 216.92,
-    17: 226.18, 21: 246.35, 24: 208.08, 25: 280.16, 26: 210.37, 27: 259.93, 30: 249.93, 31: 205.39, 32: 285.72,
-    36: 201.74, 37: 248.46, 40: 267.18, 41: 262.00, 44: 227.33, 45: 225.63, 52: 224.23, 53: 243.45, 56: 257.10,
-    57: 310.12, 60: 243.52, 61: 212.09,
-}
+# Global mean surface temperature (K) of every stable case, by case number,
+# read from the SAMOSA archive. The _all64 tables hold the protocol's 64 cases;
+# their rows for Cases 1-16 are identical to the submitted 16-case tables that
+# fig_interpolation_temp.py was transcribed from. Both models were run on the
+# configuration of their submissions (see README_all64.txt in each folder).
+# Every case not listed ran away. ExoColumn Case 57 is accepted on the
+# protocol's stable-trend allowance (309.5 K for thousands of days, with
+# +1.4 W/m2 at the top of the atmosphere from a water-budget residual).
+ARCHIVE = '/models/data/samosa'
+TABLES  = { 'HEXTOR':    f'{ARCHIVE}/hextor/global_output_HEXTOR_all64.dat',
+            'ExoColumn': f'{ARCHIVE}/exocolumn/global_output_ExoColumn_a2736_all64.dat' }
+
+def read_tglob( path ):
+    """{ case: Tglob } from a SAMOSA global output file, checking each row's
+    instellation and pressure against the case table above."""
+    temps = {}
+    for line in open( path ):
+        if line.startswith( '#' ) or not line.strip():
+            continue
+        f = line.split()
+        case, inst, pres = int( f[ 0 ] ), float( f[ 1 ] ), float( f[ 2 ] )
+        assert abs( inst - CASES[ case ][ 0 ] ) < 0.5 and abs( pres - CASES[ case ][ 1 ] ) < 0.005, \
+            f'{path}: case {case} at ( {inst}, {pres} ), not {CASES[ case ]}'
+        temps[ case ] = float( f[ 3 ] )
+    return temps
+
+hextor    = read_tglob( TABLES[ 'HEXTOR' ] )
+exocolumn = read_tglob( TABLES[ 'ExoColumn' ] )
 MODELS = { 'HEXTOR': hextor, 'ExoColumn': exocolumn }
 
 def samples( temps, last_case ):
@@ -220,3 +230,31 @@ if __name__ == '__main__':
         for c, t, p, e, s in sorted( zip( nc, truth, pred, err, sig ), key=lambda r: -abs( r[ 3 ] ) )[ :6 ]:
             print( f'    Case {c:2d} ({CASES[ c ][ 0 ]:4d} W/m2, {CASES[ c ][ 1 ]:5.2f} bar): '
                    f'model {t:6.1f}  kriged {p:6.1f}  err {e:+6.1f}  sigma {s:5.1f}' )
+
+    # How many new cases each model completes, and how the two compare there
+    new_stable = { name: [ c for c in t if c > 16 ] for name, t in MODELS.items() }
+    for name, cs in new_stable.items():
+        print( f'\n{name}: stable at {len( cs )} of the 48 new cases, runaway at {48 - len( cs )}' )
+    shared = [ c for c in new_stable[ 'ExoColumn' ] if c in hextor ]
+    d = np.array( [ hextor[ c ] - exocolumn[ c ] for c in shared ] )
+    print( f'new cases stable in both: {len( shared )}; stable in ExoColumn only: '
+           f'{[ c for c in new_stable[ "ExoColumn" ] if c not in hextor ]}; in HEXTOR only: '
+           f'{[ c for c in new_stable[ "HEXTOR" ] if c not in exocolumn ]}' )
+    print( f'HEXTOR - ExoColumn there: colder at {np.sum( d < 0 )} of {len( d )}, median {np.median( d ):+.1f} K, '
+           f'range {d.min():+.1f} to {d.max():+.1f} K' )
+
+    # The inner edge each sample can place: the warmest stable case against the
+    # least irradiated runaway, from the primary cases and from all 64
+    print( '\nInner edge bracketed by the sample' )
+    for name, t in MODELS.items():
+        for last in ( 16, 64 ):
+            stable  = [ c for c in t if c <= last ]
+            runaway = [ c for c in CASES if c <= last and c not in t ]
+            hs = max( stable, key=lambda c: CASES[ c ][ 0 ] )
+            lr = min( runaway, key=lambda c: CASES[ c ][ 0 ] )
+            print( f'  {name:<9} Cases 1-{last}: stable up to {CASES[ hs ][ 0 ]} W/m2 (Case {hs}, {CASES[ hs ][ 1 ]} bar), '
+                   f'runaway from {CASES[ lr ][ 0 ]} W/m2 (Case {lr}, {CASES[ lr ][ 1 ]} bar)' )
+    print( '  ExoColumn, all 64 cases at 1100-1450 W/m2:' )
+    for c in sorted( ( c for c in CASES if 1100 <= CASES[ c ][ 0 ] <= 1450 ), key=lambda c: CASES[ c ] ):
+        print( f'    Case {c:2d} {CASES[ c ][ 0 ]:5d} W/m2 {CASES[ c ][ 1 ]:5.2f} bar: '
+               + ( f'{exocolumn[ c ]:.1f} K' if c in exocolumn else 'runaway' ) )

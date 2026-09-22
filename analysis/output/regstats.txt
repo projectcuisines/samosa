@@ -1,0 +1,55 @@
+/tmp/samosa_analysis_l6ers05h/allcases/extract_regimes.py:465: RuntimeWarning: Mean of empty slice
+  u_rms  = float( np.sqrt( area_mean( np.nanmean( speed2, axis=-1 ), cw ) ) )
+/tmp/samosa_analysis_l6ers05h/allcases/extract_regimes.py:469: RuntimeWarning: Mean of empty slice
+  ubar  = np.nanmean( D[ 'u' ], axis=-1 )
+===== BEFORE 54 model-cases
+ Urms max/min: median(>=2) 2.47 median(>=3) 2.72 max 9.51 at 7
+ all-five cases [1, 4, 9, 14, 15]
+   c1: windiest ExoPlaSim 6.53, calmest Generic PCM 3.99
+   c4: windiest ExoPlaSim 7.31, calmest Generic PCM 2.57
+   c9: windiest ExoPlaSim 10.12, calmest Generic PCM 3.72
+   c14: windiest ExoPlaSim 7.79, calmest LFRic 3.4
+   c15: windiest ExoPlaSim 9.55, calmest LFRic 5.06
+ windiest at >=2 cases: {'ExoCAM': 1, 'ExoPlaSim': 10, 'ROCKE-3D': 2}  non-ExoPlaSim at {8: 'ROCKE-3D', 10: 'ROCKE-3D', 16: 'ExoCAM'}
+ calmest at >=2 cases: {'LFRic': 5, 'Generic PCM': 5, 'ROCKE-3D': 3} {5: 'ROCKE-3D', 11: 'ROCKE-3D', 13: 'ROCKE-3D'}
+ jet unanimous at 6 of 11 multi (>=3) cases; disagreements [1, 9, 14, 15, 16]
+     c1: ExoCAM:SJ, ExoPlaSim:DJ, ROCKE-3D:SJ, LFRic:SJ, Generic PCM:SJ
+     c9: ExoCAM:SJ, ExoPlaSim:SJ, ROCKE-3D:SJ, LFRic:DJ, Generic PCM:DJ
+     c14: ExoCAM:DJ, ExoPlaSim:DJ, ROCKE-3D:DJ, LFRic:SJ, Generic PCM:DJ
+     c15: ExoCAM:SJ, ExoPlaSim:DJ, ROCKE-3D:SJ, LFRic:SJ, Generic PCM:SJ
+     c16: ExoCAM:DJ, ExoPlaSim:SJ, ROCKE-3D:DJ, LFRic:DJ
+ Rhines hit 40 of 54 (74%), fails 14
+   fails at [(1, 'ExoPlaSim'), (1, 'Generic PCM'), (1, 'LFRic'), (1, 'ROCKE-3D'), (4, 'ExoPlaSim'), (5, 'ROCKE-3D'), (7, 'LFRic'), (13, 'ROCKE-3D'), (14, 'ExoPlaSim'), (14, 'LFRic'), (15, 'ExoPlaSim'), (15, 'Generic PCM'), (15, 'LFRic'), (16, 'ExoPlaSim')]
+ conv spread/mean: median(>=2) 41% median(>=3) 43% {1: 89, 4: 43, 5: 8, 7: 66, 8: 37, 9: 41, 10: 78, 11: 45, 12: 6, 13: 10, 14: 32, 15: 77, 16: 19}
+   conv c1: [27.6, 53.0, 56.4, 57.1, 75.4]
+   conv c10: [29.6, 55.7, 65.6, 73.2]
+ jetlat values in (3.9, 50): [(4.0, 'ROCKE-3D', 7, 'SJ'), (4.0, 'ROCKE-3D', 9, 'SJ'), (4.0, 'ROCKE-3D', 11, 'SJ'), (4.0, 'ROCKE-3D', 15, 'SJ'), (20.0, 'ROCKE-3D', 5, 'DJ'), (24.0, 'ROCKE-3D', 13, 'DJ'), (30.5, 'ExoPlaSim', 2, 'DJ'), (34.0, 'ExoCAM', 14, 'DJ'), (40.0, 'ROCKE-3D', 4, 'DJ'), (40.0, 'ROCKE-3D', 14, 'DJ'), (41.5, 'ExoPlaSim', 15, 'DJ'), (42.0, 'ExoCAM', 4, 'DJ'), (43.0, 'Generic PCM', 14, 'DJ'), (43.0, 'LFRic', 4, 'DJ'), (47.1, 'ExoPlaSim', 6, 'DJ')]
+ SJ umax: n=22, below 20: [5.4, 13.5], above 31.2: []
+ L_R/a 0.29 (LFRic 16) to 1.59 (ExoPlaSim 11); lamR/a 1.35-1.67
+===== AFTER 57 model-cases
+ Urms max/min: median(>=2) 2.72 median(>=3) 2.77 max 9.51 at 7
+ all-five cases [1, 4, 8, 9, 10, 14, 15]
+   c1: windiest ExoPlaSim 6.53, calmest Generic PCM 3.99
+   c4: windiest ExoPlaSim 7.31, calmest Generic PCM 2.57
+   c8: windiest ROCKE-3D 5.64, calmest LFRic 1.97
+   c9: windiest ExoPlaSim 10.12, calmest Generic PCM 3.72
+   c10: windiest ROCKE-3D 5.07, calmest Generic PCM 1.83
+   c14: windiest ExoPlaSim 7.79, calmest LFRic 3.4
+   c15: windiest ExoPlaSim 9.55, calmest LFRic 5.06
+ windiest at >=2 cases: {'ExoCAM': 1, 'ExoPlaSim': 10, 'ROCKE-3D': 2}  non-ExoPlaSim at {8: 'ROCKE-3D', 10: 'ROCKE-3D', 16: 'ExoCAM'}
+ calmest at >=2 cases: {'LFRic': 7, 'Generic PCM': 4, 'ROCKE-3D': 2} {5: 'ROCKE-3D', 13: 'ROCKE-3D'}
+ jet unanimous at 5 of 11 multi (>=3) cases; disagreements [1, 9, 10, 14, 15, 16]
+     c1: ExoCAM:SJ, ExoPlaSim:DJ, ROCKE-3D:SJ, LFRic:SJ, Generic PCM:SJ
+     c9: ExoCAM:SJ, ExoPlaSim:SJ, ROCKE-3D:SJ, LFRic:DJ, Generic PCM:DJ
+     c10: ExoCAM:DJ, ExoPlaSim:DJ, ROCKE-3D:DJ, LFRic:SJ, Generic PCM:DJ
+     c14: ExoCAM:DJ, ExoPlaSim:DJ, ROCKE-3D:DJ, LFRic:SJ, Generic PCM:DJ
+     c15: ExoCAM:SJ, ExoPlaSim:DJ, ROCKE-3D:SJ, LFRic:SJ, Generic PCM:SJ
+     c16: ExoCAM:DJ, ExoPlaSim:SJ, ROCKE-3D:DJ, LFRic:DJ
+ Rhines hit 42 of 57 (74%), fails 15
+   fails at [(1, 'ExoPlaSim'), (1, 'Generic PCM'), (1, 'LFRic'), (1, 'ROCKE-3D'), (4, 'ExoPlaSim'), (5, 'ROCKE-3D'), (7, 'LFRic'), (10, 'LFRic'), (13, 'ROCKE-3D'), (14, 'ExoPlaSim'), (14, 'LFRic'), (15, 'ExoPlaSim'), (15, 'Generic PCM'), (15, 'LFRic'), (16, 'ExoPlaSim')]
+ conv spread/mean: median(>=2) 41% median(>=3) 43% {1: 89, 4: 43, 5: 8, 7: 66, 8: 38, 9: 41, 10: 78, 11: 44, 12: 6, 13: 10, 14: 32, 15: 77, 16: 19}
+   conv c1: [27.6, 53.0, 56.4, 57.1, 75.4]
+   conv c10: [29.6, 55.7, 56.5, 65.6, 73.2]
+ jetlat values in (3.9, 50): [(4.0, 'ROCKE-3D', 7, 'SJ'), (4.0, 'ROCKE-3D', 9, 'SJ'), (4.0, 'ROCKE-3D', 11, 'SJ'), (4.0, 'ROCKE-3D', 15, 'SJ'), (5.0, 'LFRic', 11, 'SJ'), (20.0, 'ROCKE-3D', 5, 'DJ'), (24.0, 'ROCKE-3D', 13, 'DJ'), (30.5, 'ExoPlaSim', 2, 'DJ'), (34.0, 'ExoCAM', 14, 'DJ'), (39.0, 'LFRic', 8, 'DJ'), (40.0, 'ROCKE-3D', 4, 'DJ'), (40.0, 'ROCKE-3D', 14, 'DJ'), (41.5, 'ExoPlaSim', 15, 'DJ'), (42.0, 'ExoCAM', 4, 'DJ'), (43.0, 'Generic PCM', 14, 'DJ'), (43.0, 'LFRic', 4, 'DJ'), (47.1, 'ExoPlaSim', 6, 'DJ')]
+ SJ umax: n=24, below 20: [5.4, 13.5, 18.0], above 31.2: [48.7]
+ L_R/a 0.29 (LFRic 16) to 1.59 (ExoPlaSim 11); lamR/a 1.35-1.67

@@ -1,0 +1,11 @@
+T  median 22.0428  min 6.8423 at (900, 10.00)  max 51.9376 at (1600, 0.55)
+   at (1900,10) 35.01 ; max flux>=1800 & p>=5: 36.0169 at (2000, 10.00)
+   max excluding flux in [1400,1800]: 36.0169 at (2000, 10.00)
+   max flux>=1800: 36.0169 at (2000, 10.00)
+CF median 20.75002965 max 31.0681 at (900, 0.10)
+WV median 0.5317 max 0.8271 at (2100, 10.00)
+   T six         median 20.3592  in-band 10.1119  out 25.4527
+   T +HEXTOR     median 22.6670  in-band 11.3123  out 27.0908
+   T +ExoColumn  median 22.0428  in-band 11.1923  out 26.7284
+   T all eight without HEXTOR Case 16: median 19.2738
+   WV without ExoColumn median 0.4168, with 0.5317
