@@ -160,11 +160,13 @@ Albedo Figure (fig_interpolation_albedo.py, added 2026-08-13):
 
   Color scale 0-45% (extend='both'), changed 2026-09-17 from 10-45%. The old floor put four of HEXTOR's nine cases and LFRic's Case 7 into the
   under-color, so those two panels read as dark slabs with no structure. Colormap changed at the same time from cmocean.ice, which bottoms out at
-  near-black (L* 1.8), to cmocean.haline, which holds a readable lightness across the whole 0-45% range; only PlaHab Case 11 (63.7%) now runs past
-  the top.
+  near-black (L* 1.8), to cmocean.haline, which holds a readable lightness across the whole 0-45% range. PlaHab Case 11 (63.7%) ran past the top until
+  PlaHab resubmitted it at the protocol 900 W/m2 on 2026-09-22 (the first run was at 400 W/m2); it is now 23.8%, and every sample
+  lies inside the range.
 
   sigma_threshold=1.0 logit units now trips for PlaHab, LFRic and HEXTOR, in each case almost entirely at instellations above the warmest case that
-  model ran. PlaHab's variogram is inflated by two extreme points (0.9% at Case 10, 63.7% at Case 11); the Case 10 value looks wrong for a 190 K
+  model ran. PlaHab's variogram is inflated by the extreme point at Case 10 (0.9%; the other, 63.7% at Case 11, went with the 2026-09-22
+  resubmission); the Case 10 value looks wrong for a 190 K
   surface and that case also carries a -9.7% energy imbalance.
 
   Result: albedo spread (median 19.9 pp) is about half the cloud fraction spread (median 41.9 pp), but the model ranking is still unstable --

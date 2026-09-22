@@ -1,8 +1,8 @@
-T all n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 14.17-132.79 median 37.82
-   per case: {1: np.float64(37.8), 4: np.float64(41.8), 5: np.float64(15.7), 7: np.float64(132.8), 8: np.float64(32.6), 9: np.float64(29.8), 10: np.float64(58.3), 11: np.float64(61.5), 12: np.float64(55.6), 13: np.float64(14.2), 14: np.float64(27.1), 15: np.float64(31.0), 16: np.float64(83.4)}
-T no1D(>=3 of non-1D) n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 14.17-132.79 median 34.92
-   per case: {1: np.float64(34.9), 4: np.float64(35.2), 5: np.float64(15.7), 7: np.float64(132.8), 8: np.float64(30.9), 9: np.float64(26.7), 10: np.float64(37.9), 11: np.float64(52.9), 12: np.float64(55.6), 13: np.float64(14.2), 14: np.float64(21.6), 15: np.float64(31.0), 16: np.float64(69.0)}
-   T no1D over the same >=3 cases: median 34.92
+T all n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 14.17-132.79 median 32.59
+   per case: {1: np.float64(37.8), 4: np.float64(41.8), 5: np.float64(15.7), 7: np.float64(132.8), 8: np.float64(32.6), 9: np.float64(29.8), 10: np.float64(58.3), 11: np.float64(31.3), 12: np.float64(55.6), 13: np.float64(14.2), 14: np.float64(27.1), 15: np.float64(31.0), 16: np.float64(83.4)}
+T no1D(>=3 of non-1D) n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 14.17-132.79 median 30.95
+   per case: {1: np.float64(34.9), 4: np.float64(35.2), 5: np.float64(15.7), 7: np.float64(132.8), 8: np.float64(30.9), 9: np.float64(26.7), 10: np.float64(37.9), 11: np.float64(28.7), 12: np.float64(55.6), 13: np.float64(14.2), 14: np.float64(21.6), 15: np.float64(31.0), 16: np.float64(69.0)}
+   T no1D over the same >=3 cases: median 30.95
    Case 7 others: {'ExoPlaSim': np.float64(279.7), 'ROCKE-3D': np.float64(267.7272), 'PlaHab': np.float64(293.0), 'LFRic': 400.52} excl LFRic range 25.3
    Case 10: {'ExoPlaSim': np.float64(172.8), 'ExoCAM': np.float64(194.1), 'ROCKE-3D': np.float64(207.45), 'PlaHab': np.float64(190.1), 'Generic PCM': 210.69, 'LFRic': 197.81, 'HEXTOR': 152.42, 'ExoColumn': 201.36}
    HEXTOR c1: vs median(others) -23.7  vs median(all) -23.5
@@ -10,7 +10,7 @@ T no1D(>=3 of non-1D) n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] 
    HEXTOR c8: vs median(others) -19.4  vs median(all) -19.0
    HEXTOR c9: vs median(others) +23.1  vs median(all) +15.1
    HEXTOR c10: vs median(others) -45.4  vs median(all) -43.5
-   HEXTOR c11: vs median(others) -2.3  vs median(all) -2.0
+   HEXTOR c11: vs median(others) -5.5  vs median(all) -2.6
    HEXTOR c14: vs median(others) +4.7  vs median(all) +2.3
    HEXTOR c15: vs median(others) -21.9  vs median(all) -20.6
    HEXTOR c16: vs median(others) +29.8  vs median(all) +24.6
@@ -20,15 +20,15 @@ WV >= 5 WV-models n=8 cases=[1, 4, 8, 9, 10, 11, 14, 15] range 0.80-2.22 median 
    WV no ExoColumn at T>=5 cases: 0.29-1.15 median 0.76 {1: np.float64(0.84), 4: np.float64(0.8), 8: np.float64(0.8), 9: np.float64(0.65), 10: np.float64(0.94), 11: np.float64(0.29), 12: np.float64(0.72), 14: np.float64(0.48), 15: np.float64(0.36), 16: np.float64(1.15)}
    WV no ExoColumn >= 5 WV-models n=7 cases=[1, 4, 8, 9, 10, 14, 15] range 0.36-0.94 median 0.80
 CF >=3 CF-models n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 28.43-90.37 median 50.67
-    {1: np.float64(57.6), 4: np.float64(33.7), 5: np.float64(33.6), 7: np.float64(54.8), 8: np.float64(41.9), 9: np.float64(50.7), 10: np.float64(90.4), 11: np.float64(82.6), 12: np.float64(50.9), 13: np.float64(28.4), 14: np.float64(36.0), 15: np.float64(62.3), 16: np.float64(34.9)}
+    {1: np.float64(57.6), 4: np.float64(33.7), 5: np.float64(33.6), 7: np.float64(54.8), 8: np.float64(41.9), 9: np.float64(50.7), 10: np.float64(90.4), 11: np.float64(61.6), 12: np.float64(50.9), 13: np.float64(28.4), 14: np.float64(36.0), 15: np.float64(62.3), 16: np.float64(34.9)}
    CF case 8: {'ExoPlaSim': np.float64(25.7), 'ExoCAM': np.float64(16.3), 'ROCKE-3D': np.float64(58.2), 'PlaHab': np.float64(26.2), 'Generic PCM': 17.0, 'LFRic': 42.0}
    CF case 10: {'ExoPlaSim': np.float64(25.2), 'ExoCAM': np.float64(15.8), 'ROCKE-3D': np.float64(98.8), 'PlaHab': np.float64(8.5), 'Generic PCM': 24.6, 'LFRic': 21.0}
-   CF case 11: {'ExoPlaSim': np.float64(76.2), 'ExoCAM': np.float64(83.1), 'ROCKE-3D': np.float64(68.2), 'PlaHab': np.float64(4.4), 'LFRic': 87.0}
-Alb >=3 n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 8.34-48.06 median 29.91
-    {1: np.float64(21.7), 4: np.float64(36.6), 5: np.float64(8.3), 7: np.float64(40.9), 8: np.float64(27.3), 9: np.float64(34.3), 10: np.float64(41.3), 11: np.float64(48.1), 12: np.float64(18.2), 13: np.float64(9.7), 14: np.float64(29.9), 15: np.float64(20.1), 16: np.float64(31.8)}
-Alb 6 resolved >=3 n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 8.34-41.70 median 19.91
-   brightest counts {'ExoPlaSim': 6, 'ROCKE-3D': 4, 'PlaHab': 3}
+   CF case 11: {'ExoPlaSim': np.float64(76.2), 'ExoCAM': np.float64(83.1), 'ROCKE-3D': np.float64(68.2), 'PlaHab': np.float64(25.4), 'LFRic': 87.0}
+Alb >=3 n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 8.34-41.34 median 27.31
+    {1: np.float64(21.7), 4: np.float64(36.6), 5: np.float64(8.3), 7: np.float64(40.9), 8: np.float64(27.3), 9: np.float64(34.3), 10: np.float64(41.3), 11: np.float64(22.7), 12: np.float64(18.2), 13: np.float64(9.7), 14: np.float64(29.9), 15: np.float64(20.1), 16: np.float64(31.8)}
+Alb 6 resolved >=3 n=13 cases=[1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16] range 8.34-41.34 median 19.90
+   brightest counts {'ExoPlaSim': 7, 'ROCKE-3D': 4, 'PlaHab': 2}
    darkest counts {'PlaHab': 2, 'HEXTOR': 7, 'ExoPlaSim': 3, 'LFRic': 1}
-   6-resolved brightest {'ExoPlaSim': 6, 'ROCKE-3D': 4, 'PlaHab': 3} darkest {'PlaHab': 3, 'Generic PCM': 3, 'ExoPlaSim': 3, 'LFRic': 1, 'ExoCAM': 2, 'ROCKE-3D': 1}
+   6-resolved brightest {'ExoPlaSim': 7, 'ROCKE-3D': 4, 'PlaHab': 2} darkest {'PlaHab': 3, 'Generic PCM': 3, 'ExoPlaSim': 3, 'LFRic': 1, 'ExoCAM': 2, 'ROCKE-3D': 1}
    HEXTOR darkest at 7 of 9
    Case 4 albedo range 36.6 pp -> 110 W/m2

@@ -47,7 +47,7 @@ ts_rocke3d = np.array( [ 202.8284, runawaytemp, runawaytemp, 260.1185, 265.88116
                          267.7272, 245.91597, 241.83368, 207.4544, 228.07162, 313.99902,
                          271.92654, 236.30406, 210.50339, 319.25085 ] )
 ts_plahab  = np.array( [ 196.3, runawaytemp, runawaytemp, 273.2, 281.4, runawaytemp,
-                         293.0, 242.9, 260.8, 190.1, 181.1, 295.3, 286.1, 246.1, 207.9, 292.7 ] )
+                         293.0, 242.9, 260.8, 190.1, 240.0, 295.3, 286.1, 246.1, 207.9, 292.7 ] )
 ts_pcm     = np.array( [ 210.9195445942203, 286.7294656230531, 246.76730657647218,
                          266.5987224285321, 210.69131033681012, 246.04296230476365,
                          217.2519558970929 ] )
@@ -90,7 +90,7 @@ cf_rocke3d = np.array( [ 68.20222, runaway_cf, runaway_cf, 51.043224, 81.88261, 
                          88.81546, 58.24044, 61.535275, 98.8356, 68.16493, 68.01357,
                          85.71091, 43.637707, 74.40385, 48.08909 ] )
 cf_plahab  = np.array( [ 11.11879, runaway_cf, runaway_cf, 35.74597, 48.29323, runaway_cf,
-                         70.91280, 26.24803, 31.64522, 8.4692545, 4.3572873, 76.20874,
+                         70.91280, 26.24803, 31.64522, 8.4692545, 25.38866, 76.20874,
                          57.27629, 28.12309, 16.64636, 72.36285 ] )
 cf_pcm     = np.array( [ 25.5674468009485, 27.31228828919005, 16.96672860199983,
                          25.15276275245855, 24.55454268845772, 16.696470834684884,
@@ -149,11 +149,11 @@ def sigmoid( y ):
 # one unit of normalized instellation counts s times a unit of normalized
 # log-pressure. Model-count surfaces stay isotropic: coverage is a property of
 # the sampling design, not of a physical field.
-ANISO_TS = { 'ExoPlaSim': 2,  'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 3,
+ANISO_TS = { 'ExoPlaSim': 2,  'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 10,
              'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7 }
 ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
              'Generic PCM': 15, 'LFRic': 10, 'ExoColumn': 10 }
-ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 3,
+ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 7,
              'Generic PCM': 1, 'LFRic': 1 }
 
 def krige( p, f, z, scaling=1.0, pres_grid=pn2, flux_grid=flux ):

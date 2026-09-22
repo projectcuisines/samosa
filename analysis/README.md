@@ -10,15 +10,17 @@ Run each from this directory, e.g. `python case16_stats.py`. Scripts that
 execute figure scripts do so in a throwaway copy of `figures/allcases`
 (`_paths.scratch_copy()`), so they never write PNG/EPS files into the repo.
 `output/` holds what each printed on 2026-09-22, against the repo and the
-archive as they stood that day.
+archive as they stood that day; the scripts touched by PlaHab's Case 11
+resubmission (the same day, run at the protocol 900 W/m2 instead of 400) were
+rerun after it.
 
 ## Manuscript statistics
 
 | Script | What it computes | Quoted in | Status 2026-09-22 |
 |---|---|---|---|
-| `case16_stats.py` | The pinned definitions of the Results statistics: sample-point Tglob ranges (all eight / six resolved), HEXTOR's departure from the six-resolved median, albedo ranges and darkest counts, the temperature spread (whole plane, in-band <= 1200 W/m2, subsets, LFRic withholding tests), and the Figure 17 areas, band extents, six-resolved band, 1-D cold-edge shift, largest step and invariants | Section 3.1 (surface temperature, HEXTOR, spread and Synthesis paragraphs) | Reproduces the text: 14.2-132.8 K, median 37.8 K (34.9 K six); HEXTOR -43.5 ... +32.2 K, +29.8 K at Case 16; spread 22.0 K (20.4 six, 22.7 +HEXTOR); areas 33.2 / 52.5 / 14.3%; band 1240-1740, 1080-1260, 1080-1220 W/m2; 12.6%; shift 30 / 110 W/m2; step 200 W/m2 |
+| `case16_stats.py` | The pinned definitions of the Results statistics: sample-point Tglob ranges (all eight / six resolved), HEXTOR's departure from the six-resolved median, albedo ranges and darkest counts, the temperature spread (whole plane, in-band <= 1200 W/m2, subsets, LFRic withholding tests), and the Figure 17 areas, band extents, six-resolved band, 1-D cold-edge shift, largest step and invariants | Section 3.1 (surface temperature, HEXTOR, spread and Synthesis paragraphs) | Reproduces the text: 14.2-132.8 K, median 32.6 K (31.0 K six); HEXTOR -43.5 ... +32.2 K, +29.8 K at Case 16; spread 21.7 K (19.9 six, 22.4 +HEXTOR); areas 33.2 / 52.5 / 14.3%; band 1240-1740, 1080-1260, 1080-1220 W/m2; 12.6%; shift 30 / 110 W/m2; step 200 W/m2 |
 | `stats.py` (+ `tables.py`) | Per-case ranges for all four variables from the figure scripts' embedded arrays: temperature, water vapor (dex), cloud fraction, albedo, brightest/darkest model counts, Case 4 albedo spread in W/m2 | Section 3.1; the Case 4 absorbed-flux spread (110 W/m2) | Temperature ranges agree with `case16_stats.py`. Its "HEXTOR vs median" lines use older definitions (median of all other models); the text uses the six-resolved median from `case16_stats.py` |
-| `spreadstats.py` | Median and extrema of the Figure 7 spread fields, subsets, water vapor with and without ExoColumn | Spread paragraph | Reproduces 22.0 K; subsets as in `case16_stats.py` |
+| `spreadstats.py` | Median and extrema of the Figure 7 spread fields, subsets, water vapor with and without ExoColumn | Spread paragraph | Reproduces 21.7 K; subsets as in `case16_stats.py` |
 | `sumcheck.py` | The four Figure 17 invariants: partition, no gaps per pressure row, 3-D contested inside the total, sample-point shading equal to `fig_energy_balance.py`'s regime list | Re-check after any change to `fig_summary.py` | All four hold |
 | `counterfactual.py` | LFRic temperature and albedo anisotropy fits with and without Case 7 and Cases 8/10/11 | LFRic Case 7 discussion (energy-balance paragraph) | Reproduces 32.3 K at ratio 15 with Case 7, 21.3 K at ratio 4 without, 35.5 K at 4 with it |
 | `lfric_loo.py` | LFRic temperature LOO error by variogram family and anisotropy, with and without Case 7 | Same | Consistent with `counterfactual.py` |
@@ -38,7 +40,7 @@ archive as they stood that day.
 | Script | What it checks |
 |---|---|
 | `validate_lfric.py` | LFRic NetCDF files reproduce the group's summary table (area-weighted) |
-| `check_inst.py`, `check_inst2.py` | Every model's instellation and surface pressure against the protocol, from its files, namelists and fluxes (Cases 1-16). Flags PlaHab Case 11 as run at 400 rather than 900 W/m2, the one case at the wrong instellation; ExoCAM's `sol_tsi` rows flag everywhere because that field is a constant 1361.27 in every file, and its fluxes are what check out. `check_inst2.py` also shows ExoColumn's 3537 Pa of extra dry gas |
+| `check_inst.py`, `check_inst2.py` | Every model's instellation and surface pressure against the protocol, from its files, namelists and fluxes (Cases 1-16). Flagged PlaHab Case 11 as run at 400 rather than 900 W/m2, the one case at the wrong instellation, until PlaHab resubmitted it at 900 W/m2 on 2026-09-22; ExoCAM's `sol_tsi` rows flag everywhere because that field is a constant 1361.27 in every file, and its fluxes are what check out. `check_inst2.py` also shows ExoColumn's 3537 Pa of extra dry gas |
 | `plahab_asr.py`, `plahab_map.py`, `plahab_mid.py` | PlaHab absorbed flux against its logs, per case |
 
 ## Elsewhere

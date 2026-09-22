@@ -1,9 +1,9 @@
 HEXTOR minus the median of the six resolved models (K), at its stable Cases 1-16
                                   C1      C4      C8      C9      C10     C11     C14     C15     C16   
-submitted                          -23.5   +32.2   -18.9   +24.5   -43.5    -2.0    +4.9   -20.6   +29.8
+submitted                          -23.5   +32.2   -18.9   +24.5   -43.5    -2.6    +4.9   -20.6   +29.8
   (vs the archived values)       max |difference| 0.004 K
-no cloud correction                 +9.7   +74.4   +17.3   +49.0    -3.3   +27.8   +33.3    +8.6   runaw
-correction scaled with S/900        -7.3   +22.3   -14.9   +19.1   -19.0    -2.0    +4.9   -10.0   -14.5
+no cloud correction                 +9.7   +74.4   +17.3   +49.0    -3.3   +27.3   +33.3    +8.6   runaw
+correction scaled with S/900        -7.3   +22.3   -14.9   +19.1   -19.0    -2.6    +4.9   -10.0   -14.5
 
 ExoColumn greenhouse effect sigma*Ts^4 - OLR, from the archive
   Case  1: Ts 206.98 K, OLR 92.43 W/m2 -> G = 11.6 W/m2
