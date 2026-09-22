@@ -350,11 +350,15 @@ def draw_row( host, axes, block ):
     for ax, v in zip( axes, VARS ):
         k = v[ 'key' ]
         cmax, nlev, ticks = block[ 'colors' ][ k ]
-        ax.contourf( yv*fluxscale, xv, block[ 'std' ][ k ], cmap=v[ 'cm' ], levels=np.linspace( 0, cmax, nlev ), extend='neither' )
+        # Spread above the top of the scale saturates at the top color rather than
+        # being left unfilled: the temperature spread reaches 51.9 K at Case 7 and
+        # 35-37 K in the warm high-pressure corner, above the 35 K scale, and
+        # extend='neither' drew those regions as blank white.
+        ax.contourf( yv*fluxscale, xv, block[ 'std' ][ k ], cmap=v[ 'cm' ], levels=np.linspace( 0, cmax, nlev ), extend='max' )
         if block[ 'hatch' ]:
             ax.contourf( yv*fluxscale, xv, counts[ k ], levels=[-1e9, 1.5], hatches=['///'], colors='none', alpha=0 )
         sm = mcm.ScalarMappable( cmap=v[ 'cm' ], norm=mcolors.Normalize( vmin=0, vmax=cmax ) )
-        cb = host.colorbar( sm, ax=ax, extend='neither' )
+        cb = host.colorbar( sm, ax=ax, extend='max' )
         cb.set_ticks( ticks )
         cb.ax.tick_params( labelsize=10 )
         cb.set_label( v[ 'label' ], fontsize=12 )
