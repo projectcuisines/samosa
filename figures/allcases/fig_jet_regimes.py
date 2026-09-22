@@ -71,14 +71,20 @@ plahab_ratio = np.array( [ 0.615, 0.709, 0.557 ] )
 # of the surface. Its three contrast ratios are 0.615, 0.709 and 0.557 at Cases
 # 1, 4 and 16, against minima of 150.0 (floored), 247.9 and 286.8 K.
 
-# ─── Model style, following fig_summary.py ─────────────────────────────────
-style = { 'ExoPlaSim':   '#ff7f0e',
-          'ExoCAM':      '#1f77b4',
-          'ROCKE-3D':    '#2ca02c',
-          'Generic PCM': '#d62728',
-          'LFRic':       '#9467bd' }
+# ─── Model style: colors and markers as in Figure 2 (fig_energy_balance.py) and
+# Figure 15, with the models in that order ─────────────────────────────────
+style  = { 'ExoPlaSim':   '#ff7f0e',
+           'ExoCAM':      '#1f77b4',
+           'ROCKE-3D':    '#2ca02c',
+           'Generic PCM': '#d62728',
+           'LFRic':       '#9467bd' }
+marker = { 'ExoPlaSim':   'o',
+           'ExoCAM':      's',
+           'ROCKE-3D':    '^',
+           'Generic PCM': 'D',
+           'LFRic':       'v' }
 
-models = [ 'ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'LFRic', 'Generic PCM' ]
+models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic' ]
 
 data = {
     'ExoCAM':      dict( case=exocam_case,  jet=exocam_jet,  jetlat=exocam_jetlat,
@@ -105,7 +111,7 @@ def draw( ax, xkey, ykey ):
         d = data[ name ]
         for x, y, j in zip( d[ xkey ], d[ ykey ], d[ 'jet' ] ):
             single = ( j == 'SJ' )
-            ax.scatter( x, y, s=45, marker='o' if single else 's',
+            ax.scatter( x, y, s=45, marker=marker[ name ],
                         facecolor=style[ name ] if single else 'none',
                         edgecolors='k' if single else style[ name ],
                         linewidths=0.7 if single else 1.2, zorder=5 )
@@ -149,12 +155,12 @@ for ax in axes:
 
 # One legend row above the panels, for the model colors and the jet symbols,
 # on the layout of Figure 15
-fig.legend( handles=[ Line2D( [], [], ls='', marker='o', mfc=style[ m ], mec='k', ms=7, label=m )
+fig.legend( handles=[ Line2D( [], [], ls='', marker=marker[ m ], mfc=style[ m ], mec='k', ms=7, label=m )
                       for m in models ] +
                     [ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=7,
-                              label='single (equatorial) jet' ),
-                      Line2D( [], [], ls='', marker='s', mfc='none', mec='0.4',
-                              mew=1.2, ms=7, label='double (midlatitude) jet' ) ],
+                              label='filled: single (equatorial) jet' ),
+                      Line2D( [], [], ls='', marker='o', mfc='none', mec='0.4',
+                              mew=1.2, ms=7, label='open: double (midlatitude) jet' ) ],
             loc='outside upper center', ncol=7, fontsize=10,
             frameon=False, columnspacing=1.2, handletextpad=0.3 )
 fig.savefig( 'fig_jet_regimes.png', bbox_inches='tight' )
