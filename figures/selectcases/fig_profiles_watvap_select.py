@@ -1,7 +1,8 @@
 #
 # Vertical profiles of specific humidity: Selected Cases
 # Layout: 2 rows x 3 columns -- substellar hemisphere mean (top) and
-# anti-stellar hemisphere mean (bottom) for Cases 1, 4, 16.
+# anti-stellar hemisphere mean (bottom) for Cases 1, 4, 16; ExoColumn's single
+# global-mean column is drawn dashed in both rows.
 #
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -29,6 +30,7 @@ MODEL_STYLES = {
     'ROCKE-3D':  dict(color='#2ca02c', lw=1.6, ls='-'),
     'PCM':       dict(color='#d62728', lw=1.6, ls='-'),
     'LFRic':     dict(color='#9467bd', lw=1.6, ls='-'),
+    'ExoColumn': dict(color='#7f7f7f', lw=1.6, ls='--'),
 }
 MODEL_LABELS = {
     'ExoCAM':    'ExoCAM',
@@ -36,6 +38,7 @@ MODEL_LABELS = {
     'ROCKE-3D':  'ROCKE-3D',
     'PCM':       'Generic PCM',
     'LFRic':     'LFRic',
+    'ExoColumn': 'ExoColumn',
 }
 
 
@@ -250,9 +253,33 @@ Q_lfric_as = [_lfric1[3], _lfric4[3], _lfric16[3]]
 P_lfric    = [_lfric1[4], _lfric4[4], _lfric16[4]]
 
 
+# ── ExoColumn ────────────────────────────────────────────────────────
+# A single global-mean column (1-D radiative-convective equilibrium), so it has no
+# substellar or anti-stellar hemisphere: the same profile is drawn in both rows, as
+# a reference. These are the final steady states of the submitted runs, whose
+# surface temperature and model-top humidity reproduce the archived Tglob and
+# Qstrat exactly. ExoColumn runs away at Case 16, so that panel has no curve.
+# The per-level output is not in /models/data/samosa, which holds only the
+# global-mean table, so it is read from the run directories.
+
+_d = '/hugespace/local/research/exocolumn_samosa/cases/a2736'
+
+def read_exocolumn(case):
+    with netCDF4.Dataset(f'{_d}/case{case:02d}/iofiles/exocol_out.nc') as ds:
+        T    = np.array(ds.variables['tmid'])            # K, top -> surface
+        q    = np.array(ds.variables['h2ommr'])          # kg/kg moist air
+        P    = np.array(ds.variables['pmid']) / 100.0    # Pa -> hPa
+    return T, q, P
+
+_exocol  = [read_exocolumn(1), read_exocolumn(4), None]
+T_exocol = [e[0] if e is not None else None for e in _exocol]
+Q_exocol = [e[1] if e is not None else None for e in _exocol]
+P_exocol = [e[2] if e is not None else None for e in _exocol]
+
+
 # ── Figure: Specific Humidity ─────────────────────────────────────────
 
-_all_P = [p for plist in [P_exocam, P_plasim, P_r3d, P_pcm, P_lfric]
+_all_P = [p for plist in [P_exocam, P_plasim, P_r3d, P_pcm, P_lfric, P_exocol]
           for p in plist if p is not None]
 P_GLOBAL_LO = min(p.min() for p in _all_P) * 0.7
 P_GLOBAL_HI = max(p.max() for p in _all_P) * 1.05
@@ -268,9 +295,11 @@ FS_TICK   = 10
 FS_LEGEND = 10
 
 # Two rows: substellar hemisphere above, anti-stellar below, so each hemisphere
-# is read on its own rather than as overlaid solid and dashed curves. The
-# humidity axis is shared down each column and the pressure axis everywhere, so
-# a column compares the two hemispheres of one case directly.
+# is read on its own rather than as overlaid solid and dashed curves. The x axis
+# is shared down each column and the pressure axis everywhere, so a column
+# compares the two hemispheres of one case directly. The 3-D models are solid and
+# ExoColumn, the one 1-D model with a vertical profile, dashed, as in the other
+# figures that mix model classes.
 ROWS = [('Substellar Hemisphere',  'ss'),
         ('Anti-stellar Hemisphere', 'as')]
 NROWS = len(ROWS)
@@ -288,6 +317,7 @@ for ci in range(NCASES):
             ('ROCKE-3D',  Q_r3d[ci],       P_r3d[ci]),
             ('PCM',       Q_pcm[ci],       P_pcm[ci]),
             ('LFRic',     Q_lfric[ci],     P_lfric[ci]),
+            ('ExoColumn', Q_exocol[ci],    P_exocol[ci]),
         ],
         'as': [
             ('ExoCAM',    Q_exocam_as[ci], P_exocam[ci]),
@@ -295,14 +325,15 @@ for ci in range(NCASES):
             ('ROCKE-3D',  Q_r3d_as[ci],    P_r3d[ci]),
             ('PCM',       Q_pcm_as[ci],    P_pcm[ci]),
             ('LFRic',     Q_lfric_as[ci],  P_lfric[ci]),
+            ('ExoColumn', Q_exocol[ci],    P_exocol[ci]),
         ],
     }
     for ri, (row_title, key) in enumerate(ROWS):
         ax = axes[ri, ci]
-        for name, Q_prof, P_prof in profiles[key]:
-            if Q_prof is None:
+        for name, X_prof, P_prof in profiles[key]:
+            if X_prof is None:
                 continue
-            h, = ax.plot(Q_prof * 1e3, P_prof, **MODEL_STYLES[name])
+            h, = ax.plot(X_prof * 1e3, P_prof, **MODEL_STYLES[name])
             legend_handles.setdefault(name, h)
 
         ax.set_xscale('log')

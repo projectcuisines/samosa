@@ -1,7 +1,8 @@
 #
 # Vertical profiles of temperature: Selected Cases
-# Layout: 1 row x 3 columns (Cases 1, 4, 16)
-# Solid lines: substellar hemisphere average; dashed: anti-stellar hemisphere average.
+# Layout: 2 rows x 3 columns -- substellar hemisphere mean (top) and
+# anti-stellar hemisphere mean (bottom) for Cases 1, 4, 16; ExoColumn's single
+# global-mean column is drawn dashed in both rows.
 #
 import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
@@ -29,6 +30,7 @@ MODEL_STYLES = {
     'ROCKE-3D':  dict(color='#2ca02c', lw=1.6, ls='-'),
     'PCM':       dict(color='#d62728', lw=1.6, ls='-'),
     'LFRic':     dict(color='#9467bd', lw=1.6, ls='-'),
+    'ExoColumn': dict(color='#7f7f7f', lw=1.6, ls='--'),
 }
 MODEL_LABELS = {
     'ExoCAM':    'ExoCAM',
@@ -36,6 +38,7 @@ MODEL_LABELS = {
     'ROCKE-3D':  'ROCKE-3D',
     'PCM':       'Generic PCM',
     'LFRic':     'LFRic',
+    'ExoColumn': 'ExoColumn',
 }
 
 
@@ -250,9 +253,33 @@ Q_lfric_as = [_lfric1[3], _lfric4[3], _lfric16[3]]
 P_lfric    = [_lfric1[4], _lfric4[4], _lfric16[4]]
 
 
+# ── ExoColumn ────────────────────────────────────────────────────────
+# A single global-mean column (1-D radiative-convective equilibrium), so it has no
+# substellar or anti-stellar hemisphere: the same profile is drawn in both rows, as
+# a reference. These are the final steady states of the submitted runs, whose
+# surface temperature and model-top humidity reproduce the archived Tglob and
+# Qstrat exactly. ExoColumn runs away at Case 16, so that panel has no curve.
+# The per-level output is not in /models/data/samosa, which holds only the
+# global-mean table, so it is read from the run directories.
+
+_d = '/hugespace/local/research/exocolumn_samosa/cases/a2736'
+
+def read_exocolumn(case):
+    with netCDF4.Dataset(f'{_d}/case{case:02d}/iofiles/exocol_out.nc') as ds:
+        T    = np.array(ds.variables['tmid'])            # K, top -> surface
+        q    = np.array(ds.variables['h2ommr'])          # kg/kg moist air
+        P    = np.array(ds.variables['pmid']) / 100.0    # Pa -> hPa
+    return T, q, P
+
+_exocol  = [read_exocolumn(1), read_exocolumn(4), None]
+T_exocol = [e[0] if e is not None else None for e in _exocol]
+Q_exocol = [e[1] if e is not None else None for e in _exocol]
+P_exocol = [e[2] if e is not None else None for e in _exocol]
+
+
 # ── Figure: Temperature ───────────────────────────────────────────────
 
-_all_P = [p for plist in [P_exocam, P_plasim, P_r3d, P_pcm, P_lfric]
+_all_P = [p for plist in [P_exocam, P_plasim, P_r3d, P_pcm, P_lfric, P_exocol]
           for p in plist if p is not None]
 P_GLOBAL_LO = min(p.min() for p in _all_P) * 0.7
 P_GLOBAL_HI = max(p.max() for p in _all_P) * 1.05
@@ -267,62 +294,68 @@ FS_LABEL  = 12
 FS_TICK   = 10
 FS_LEGEND = 10
 
-fig, axes = plt.subplots(1, NCASES, figsize=(11.1, 4.8), layout='constrained')
-fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.06)
+# Two rows: substellar hemisphere above, anti-stellar below, so each hemisphere
+# is read on its own rather than as overlaid solid and dashed curves. The x axis
+# is shared down each column and the pressure axis everywhere, so a column
+# compares the two hemispheres of one case directly. The 3-D models are solid and
+# ExoColumn, the one 1-D model with a vertical profile, dashed, as in the other
+# figures that mix model classes.
+ROWS = [('Substellar Hemisphere',  'ss'),
+        ('Anti-stellar Hemisphere', 'as')]
+NROWS = len(ROWS)
 
-for ci, ax in enumerate(axes):
-    profiles_ss = [
-        ('ExoCAM',    T_exocam[ci],    P_exocam[ci]),
-        ('ExoPlaSim', T_plasim[ci],    P_plasim[ci]),
-        ('ROCKE-3D',  T_r3d[ci],       P_r3d[ci]),
-        ('PCM',       T_pcm[ci],       P_pcm[ci]),
-        ('LFRic',     T_lfric[ci],     P_lfric[ci]),
-    ]
-    profiles_as = [
-        ('ExoCAM',    T_exocam_as[ci], P_exocam[ci]),
-        ('ExoPlaSim', T_plasim_as[ci], P_plasim[ci]),
-        ('ROCKE-3D',  T_r3d_as[ci],    P_r3d[ci]),
-        ('PCM',       T_pcm_as[ci],    P_pcm[ci]),
-        ('LFRic',     T_lfric_as[ci],  P_lfric[ci]),
-    ]
+fig, axes = plt.subplots(NROWS, NCASES, figsize=(11.1, 8.4), layout='constrained',
+                         sharex='col', sharey=True)
+fig.get_layout_engine().set(w_pad=2/72, h_pad=4/72, wspace=0.06, hspace=0.06)
 
-    panel_handles, panel_labels = [], []
-    for name, T_prof, P_prof in profiles_ss:
-        if T_prof is None:
-            continue
-        h, = ax.plot(T_prof, P_prof, **MODEL_STYLES[name])
-        panel_handles.append(h)
-        panel_labels.append(MODEL_LABELS[name])
+legend_handles = {}
+for ci in range(NCASES):
+    profiles = {
+        'ss': [
+            ('ExoCAM',    T_exocam[ci],    P_exocam[ci]),
+            ('ExoPlaSim', T_plasim[ci],    P_plasim[ci]),
+            ('ROCKE-3D',  T_r3d[ci],       P_r3d[ci]),
+            ('PCM',       T_pcm[ci],       P_pcm[ci]),
+            ('LFRic',     T_lfric[ci],     P_lfric[ci]),
+            ('ExoColumn', T_exocol[ci],    P_exocol[ci]),
+        ],
+        'as': [
+            ('ExoCAM',    T_exocam_as[ci], P_exocam[ci]),
+            ('ExoPlaSim', T_plasim_as[ci], P_plasim[ci]),
+            ('ROCKE-3D',  T_r3d_as[ci],    P_r3d[ci]),
+            ('PCM',       T_pcm_as[ci],    P_pcm[ci]),
+            ('LFRic',     T_lfric_as[ci],  P_lfric[ci]),
+            ('ExoColumn', T_exocol[ci],    P_exocol[ci]),
+        ],
+    }
+    for ri, (row_title, key) in enumerate(ROWS):
+        ax = axes[ri, ci]
+        for name, X_prof, P_prof in profiles[key]:
+            if X_prof is None:
+                continue
+            h, = ax.plot(X_prof, P_prof, **MODEL_STYLES[name])
+            legend_handles.setdefault(name, h)
 
-    for name, T_prof, P_prof in profiles_as:
-        if T_prof is None:
-            continue
-        ax.plot(T_prof, P_prof, color=MODEL_STYLES[name]['color'], lw=1.6, ls='--')
+        ax.set_yscale('log')
+        ax.set_ylim(P_GLOBAL_HI, P_GLOBAL_LO)
+        ax.yaxis.set_major_locator(ticker.LogLocator(base=10, numticks=10))
+        ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext(base=10, labelOnlyBase=True))
+        ax.yaxis.set_minor_formatter(ticker.NullFormatter())
+        ax.tick_params(axis='both', labelsize=FS_TICK)
+        ax.grid(False)
 
-    ax.legend(panel_handles, panel_labels, loc='best', fontsize=FS_LEGEND - 1,
-              frameon=False, handlelength=1.5, borderpad=0.5)
+        if ri == 0:
+            ax.set_title(case_labels[ci], fontsize=FS_TITLE, linespacing=1.5)
+        if ri == NROWS - 1:
+            ax.set_xlabel('Temperature (K)', fontsize=FS_LABEL)
+        if ci == 0:
+            ax.set_ylabel(f'{row_title}\nPressure (hPa)', fontsize=FS_LABEL)
 
-    ax.set_yscale('log')
-    ax.set_ylim(P_GLOBAL_HI, P_GLOBAL_LO)
-    ax.yaxis.set_major_locator(ticker.LogLocator(base=10, numticks=10))
-    ax.yaxis.set_major_formatter(ticker.LogFormatterMathtext(base=10, labelOnlyBase=True))
-    ax.yaxis.set_minor_formatter(ticker.NullFormatter())
-    ax.tick_params(axis='both', labelsize=FS_TICK)
-    ax.grid(False)
-
-    ax.set_title(case_labels[ci], fontsize=FS_TITLE, linespacing=1.5)
-    ax.set_xlabel('Temperature (K)', fontsize=FS_LABEL)
-    ax.set_ylabel('Pressure (hPa)', fontsize=FS_LABEL)
-
-from matplotlib.lines import Line2D
-style_handles = [
-    Line2D([0], [0], color='k', lw=1.6, ls='-',  label='Substellar hemi.'),
-    Line2D([0], [0], color='k', lw=1.6, ls='--', label='Anti-stellar hemi.'),
-]
-fig.legend(handles=style_handles, loc='outside lower center', ncols=2,
-           fontsize=FS_LEGEND, frameon=True, framealpha=0.9,
-           handlelength=2.5, handleheight=1.2, handletextpad=0.6,
-           borderpad=0.6, labelspacing=0.5)
+# One model legend above the panels, in the order the models are drawn
+order = [n for n in MODEL_STYLES if n in legend_handles]
+fig.legend([legend_handles[n] for n in order], [MODEL_LABELS[n] for n in order],
+           loc='outside upper center', ncols=len(order), fontsize=FS_LEGEND,
+           frameon=False, handlelength=2.0, columnspacing=1.6)
 
 fig.savefig('fig_profiles_temp_select.png', bbox_inches='tight', dpi=150)
 fig.savefig('fig_profiles_temp_select.eps', bbox_inches='tight')
