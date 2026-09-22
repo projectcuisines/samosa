@@ -84,13 +84,20 @@ pcm_ratio = np.array( [ 0.520, 0.430, 0.492, 0.438, 0.355, 0.502, 0.548 ] )
 # 0.709 and 0.557 for Cases 1, 4 and 16), usable in the text.
 
 # ─── Model style, following fig_summary.py ───────────────────────────────────
-style = { 'ExoPlaSim':   '#ff7f0e',
-          'ExoCAM':      '#1f77b4',
-          'ROCKE-3D':    '#2ca02c',
-          'Generic PCM': '#d62728',
-          'LFRic':       '#9467bd' }
+# Colors and markers as in Figure 2 (fig_energy_balance.py), so every model reads
+# the same across the paper; the models are also listed in that order.
+style  = { 'ExoPlaSim':   '#ff7f0e',
+           'ExoCAM':      '#1f77b4',
+           'ROCKE-3D':    '#2ca02c',
+           'Generic PCM': '#d62728',
+           'LFRic':       '#9467bd' }
+marker = { 'ExoPlaSim':   'o',
+           'ExoCAM':      's',
+           'ROCKE-3D':    '^',
+           'Generic PCM': 'D',
+           'LFRic':       'v' }
 
-wind_models = [ 'ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'LFRic', 'Generic PCM' ]
+wind_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic' ]
 
 data = {
     'ExoCAM':      dict( case=exocam_case,  lamr=exocam_lamr,  lr=exocam_lr,
@@ -139,7 +146,7 @@ ax.axvline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 
 for name in wind_models:
     d = data[ name ]
-    ax.scatter( d[ 'lamr' ], d[ 'lr' ], s=45, color=style[ name ], edgecolors='k',
+    ax.scatter( d[ 'lamr' ], d[ 'lr' ], s=45, marker=marker[ name ], color=style[ name ], edgecolors='k',
                 linewidths=0.7, label=name, zorder=5 )
 
 ax.set_xlim( 0.92, 1.78 )
@@ -168,8 +175,10 @@ for name in wind_models:
     d = data[ name ]
     for c, jl, j in zip( d[ 'case' ], d[ 'jetlat' ], d[ 'jet' ] ):
         single = ( j == 'SJ' )
+        # The marker names the model, as everywhere else; the fill gives the jet
+        # regime, filled for a single equatorial jet and open for a double one.
         ax.scatter( c + fan( name ), jl, s=45,
-                    marker='o' if single else 's',
+                    marker=marker[ name ],
                     facecolor=style[ name ] if single else 'none',
                     edgecolors='k' if single else style[ name ],
                     linewidths=0.7 if single else 1.2, zorder=5 )
@@ -182,9 +191,9 @@ ax.set_xlabel( 'Case', fontsize=12 )
 ax.set_ylabel( 'Latitude of the\ntropospheric jet ($\\degree$)', fontsize=12 )
 ax.text( 16.3, 8, 'equatorial jet', fontsize=9, style='italic', color=c_label, ha='right' )
 jet_handles = [ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=7,
-                        label='single (equatorial) jet' ),
-                Line2D( [], [], ls='', marker='s', mfc='none', mec='0.4',
-                        mew=1.2, ms=7, label='double (midlatitude) jet' ) ]
+                        label='filled: single (equatorial) jet' ),
+                Line2D( [], [], ls='', marker='o', mfc='none', mec='0.4',
+                        mew=1.2, ms=7, label='open: double (midlatitude) jet' ) ]
 ax.set_title( '(b) Jet structure at $\\sigma = 0.30$', fontsize=12 )
 
 #--------------------------------------------------------------------
@@ -197,7 +206,7 @@ if SHOW_TRANSPORT:
 
     for name in wind_models:
         d = data[ name ]
-        ax.scatter( d[ 'case' ] + fan( name ), d[ 'conv' ], s=45,
+        ax.scatter( d[ 'case' ] + fan( name ), d[ 'conv' ], s=45, marker=marker[ name ],
                     color=style[ name ], edgecolors='k', linewidths=0.7,
                     label=name, zorder=5 )
 
