@@ -98,6 +98,27 @@ cf_pcm     = np.array( [ 25.5674468009485, 27.31228828919005, 16.96672860199983,
                          32.84789893586739 ] )
 cf_lfric   = np.array( [ 31.0, 61.0, 34.0, 42.0, 58.0, 21.0, 87.0, 81.0, 44.0, 36.0, 83.0 ] )
 
+# ── Planetary albedo data (%) ─────────────────────────────────────────────────
+# As in fig_interpolation_albedo.py, which documents how each group's value is
+# derived. All eight models report an albedo wherever they report a surface
+# temperature, so the albedo panel shares the temperature's model count. HEXTOR
+# is clear-sky by construction and sits well below the rest of the ensemble
+# wherever the surface is ice-free, which the spread includes.
+runaway_al = 200.0
+
+al_plasim    = np.array( [ 40.77, 25.00, 21.85, 39.99, 31.52, 18.87, 29.82, 40.23, 33.58, 42.23, 38.32, 17.26, 31.10, 36.40, 39.34, 32.58 ] )
+al_exocam    = np.array( [ 26.98, runaway_al, runaway_al, 30.74, runaway_al, runaway_al, runaway_al, 20.33, 34.23, 31.44, 22.00, 18.10, runaway_al, 28.57, 20.02, 16.49 ] )
+al_rocke3d   = np.array( [ 23.08, runaway_al, runaway_al, 31.56, 39.86, runaway_al, 44.31, 22.14, 37.63, 21.21, 28.72, 17.96, 40.84, 30.09, 22.26, 12.78 ] )
+al_plahab    = np.array( [ 19.11, runaway_al, runaway_al, 33.03, 33.02, runaway_al, 34.90, 29.62, 30.82, 0.89, 23.80, 35.51, 34.85, 31.12, 19.93, 35.54 ] )
+al_pcm       = np.array( [ 25.57, 14.42, 22.69, 17.72, 28.53, 19.54, 21.31 ] )
+al_lfric     = np.array( [ 26.03, 35.74, 3.44, 33.84, 34.16, 23.99, 30.39, 23.22, 34.41, 28.25, 21.35 ] )
+al_hextor    = np.array( [ 19.96, 3.40, 12.92, 3.32, 21.80, 15.64, 6.49, 19.25, 3.79 ] )
+al_exocolumn = np.array( [ 26.01, 15.51, 23.11, 19.68, 27.26, 23.95, 21.97, 25.53 ] )
+
+al_exocam_mask  = al_exocam  != runaway_al
+al_rocke3d_mask = al_rocke3d != runaway_al
+al_plahab_mask  = al_plahab  != runaway_al
+
 wv_exocam_mask  = wv_exocam  != runaway_wv
 wv_rocke3d_mask = wv_rocke3d != runaway_wv
 
@@ -156,11 +177,17 @@ ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
              'Generic PCM': 10, 'LFRic': 10, 'ExoColumn': 10 }
 ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 7,
              'Generic PCM': 1, 'LFRic': 1 }
+ANISO_AL = { 'ExoPlaSim': 1.5, 'ExoCAM': 15, 'ROCKE-3D': 1.5, 'PlaHab': 4,
+             'Generic PCM': 5, 'LFRic': 3,  'HEXTOR': 3, 'ExoColumn': 5 }
 
-def krige( p, f, z, scaling=1.0, pres_grid=pn2, flux_grid=flux ):
+# Every variogram is linear except ExoCAM's albedo, which is spherical as in
+# fig_interpolation_albedo.py, the family its cross-validation prefers
+VARIOGRAM_AL = { 'ExoCAM': 'spherical' }
+
+def krige( p, f, z, scaling=1.0, pres_grid=pn2, flux_grid=flux, variogram='linear' ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,
                           anisotropy_scaling=scaling,
-                          variogram_model="linear", verbose=False,
+                          variogram_model=variogram, verbose=False,
                           enable_plotting=False, exact_values=True )
     z_pred, z_var = ok.execute( "grid", norm_pres( pres_grid ), norm_flux( flux_grid ) )
     return z_pred, z_var
@@ -207,10 +234,20 @@ CF_MODELS = {
     'Generic PCM': ( pcm_pres1,                pcm_flux1,                cf_pcm ),
     'LFRic':       ( lfric_pres1,              lfric_flux1,              cf_lfric ),
 }
+AL_MODELS = {
+    'ExoPlaSim':   ( pres1,                    flux1,                    al_plasim ),
+    'ExoCAM':      ( pres1[ al_exocam_mask  ], flux1[ al_exocam_mask  ], al_exocam[  al_exocam_mask  ] ),
+    'ROCKE-3D':    ( pres1[ al_rocke3d_mask ], flux1[ al_rocke3d_mask ], al_rocke3d[ al_rocke3d_mask ] ),
+    'PlaHab':      ( pres1[ al_plahab_mask  ], flux1[ al_plahab_mask  ], al_plahab[  al_plahab_mask  ] ),
+    'Generic PCM': ( pcm_pres1,                pcm_flux1,                al_pcm ),
+    'LFRic':       ( lfric_pres1,              lfric_flux1,              al_lfric ),
+    'HEXTOR':      ( hextor_pres1,             hextor_flux1,             al_hextor ),
+    'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          al_exocolumn ),
+}
 
 # Each variable is kriged in its own transformed coordinate (forward) and its
 # spread taken after mapping back (back): K for temperature, dex for water vapor,
-# percentage points for cloud fraction. The full color range, levels and ticks
+# percentage points for cloud fraction and albedo. The full color range, levels and ticks
 # are those of the published figure; step and tick are the level spacing and
 # tick interval a fitted range keeps.
 ln10 = np.log( 10 )
@@ -227,10 +264,15 @@ VARS = [
           forward=logit, back=sigmoid,
           cm=cmocean.cm.ice_r, label='σ(CF) (%)',
           cmax=35, nlev=71, ticks=np.arange( 0, 36, 5 ), step=0.5, tick=5 ),
+    dict( key='al', title='Planetary Albedo', models=AL_MODELS, aniso=ANISO_AL, count=n_ts,
+          variogram=VARIOGRAM_AL, forward=logit, back=sigmoid,
+          cm=cmocean.cm.haline, label='σ(albedo) (%)',
+          cmax=15, nlev=61, ticks=np.arange( 0, 16, 5 ), step=0.25, tick=5 ),
 ]
 
 def spread( var, models, pres_grid=pn2, flux_grid=flux ):
-    results = [ krige( p, f, var[ 'forward' ]( v ), var[ 'aniso' ][ name ], pres_grid, flux_grid )
+    results = [ krige( p, f, var[ 'forward' ]( v ), var[ 'aniso' ][ name ], pres_grid, flux_grid,
+                       var.get( 'variogram', {} ).get( name, 'linear' ) )
                 for name, ( p, f, v ) in models.items() ]
     z, variances = zip( *results )
     return weighted_std( [ var[ 'back' ]( zz ) for zz in z ], variances )
@@ -239,7 +281,7 @@ def spread( var, models, pres_grid=pn2, flux_grid=flux ):
 # models with data for that variable reached a steady state, on a grid zoomed to
 # the range those points span, so the spread measures disagreement between
 # models and not differences in where each was sampled. The set is computed per
-# variable; it is Cases 1, 4, 8, 9, 10, 14 and 15 for all three. The anisotropy
+# variable; it is Cases 1, 4, 8, 9, 10, 14 and 15 for all four. The anisotropy
 # ratios are left at the values fitted on each model's full set of cases. Every
 # model has data at every point of the zoomed region, so nothing is hatched.
 #
@@ -369,15 +411,15 @@ def draw_row( host, axes, block ):
     host.supylabel( 'Surface pressure (bar)', fontsize=12, fontweight='bold' )
 
 if len( blocks ) == 1:
-    fig, axes = plt.subplots( 1, 3, figsize=( 11.4, 3.7 ), layout='constrained' )
+    fig, axes = plt.subplots( 1, len( VARS ), figsize=( 13.0, 3.3 ), layout='constrained' )
     draw_row( fig, axes, blocks[ 0 ] )
 else:
     # Rows one above another, each under a bold header
-    fig  = plt.figure( figsize=( 11.4, 7.6 ), layout='constrained' )
+    fig  = plt.figure( figsize=( 13.0, 6.8 ), layout='constrained' )
     rows = fig.subfigures( len( blocks ), 1, hspace=0.06 )
     for row, block in zip( rows, blocks ):
         row.suptitle( block[ 'header' ], fontsize=14, fontweight='bold' )
-        draw_row( row, row.subplots( 1, 3 ), block )
+        draw_row( row, row.subplots( 1, len( VARS ) ), block )
 
 fig.savefig( f"{outname}.png", bbox_inches='tight' )
 fig.savefig( f"{outname}.eps", bbox_inches='tight' )
