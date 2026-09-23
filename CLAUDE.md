@@ -49,7 +49,7 @@ data/
 
 - **Reduced/summary data** (single scalar per model per case) is embedded directly in the figure scripts as NumPy arrays.
 - **Full spatial data** (lat/lon grids) lives outside this repo at `/models/data/samosa/<model>/`. The `data/` directory here holds time-mean and time-std NetCDF summaries for ExoCAM and ROCKE-3D only.
-- **Cases 17-64** (the protocol's optional Sequences 1b, 2b and 3) exist only for HEXTOR and ExoColumn, as `global_output_HEXTOR_all64.dat` and `global_output_ExoColumn_a2736_all64.dat` beside the 16-case submissions (see `README_all64.txt` in each folder). `figures/allcases/fig_interpolation_temp_1d.py` reads them from the archive; every other script uses Cases 1-16.
+- **Cases 17-64** (the protocol's optional Sequences 1b, 2b and 3) exist only for HEXTOR and ExoColumn, as `global_output_HEXTOR_all64.dat` and `global_output_ExoColumn_a2736_all64.dat` beside the 16-case submissions (see `README_all64.txt` in each folder). `figures/allcases/fig_interpolation_temp_1d.py` reads them from the archive, and `fig_interpolation_temp_uk.py` imports them from it (as the drift for kriging ExoCAM); every other script uses Cases 1-16.
 - `global_output_TEMPLATE.dat` is a binary template for the standardized output format models submit to SAMOSA.
 
 ## Sampling Design
