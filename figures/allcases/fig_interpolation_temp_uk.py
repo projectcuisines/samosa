@@ -208,7 +208,7 @@ if __name__ == '__main__':
                          linestyles=[ '--' if l < 0 else '-' for l in dlevels ] )
         ax.clabel( dc, fmt='%+d', fontsize=9, inline_spacing=2 )
         markers( ax, lc, LOWRES[ name ], c=False, model=name ); markers( ax, ec, EXOCAM, c=False )
-        ax.set_title( 'Universal − ordinary (K)', fontsize=12 )
+        ax.set_title( 'Universal − ordinary', fontsize=12 )
 
         print( f'\n{name} drift, ratio {s}: fitted linear variogram slope {u.variogram_model_parameters[ 0 ]:.1f}, '
                f'nugget {u.variogram_model_parameters[ 1 ]:.1f}; UK - OK on the grid: '
