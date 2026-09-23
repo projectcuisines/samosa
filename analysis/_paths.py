@@ -1,7 +1,7 @@
 """Where the analysis scripts find the repository, its figure scripts and the
 SAMOSA archive, and a throwaway working copy for scripts that execute figure
 scripts (which save their PNG/EPS to the working directory)."""
-import atexit, os, shutil, tempfile
+import atexit, os, shutil, sys, tempfile
 
 REPO       = os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) )
 HERE       = os.path.join( REPO, 'analysis' )
@@ -16,4 +16,6 @@ def scratch_copy( src=FIG_ALL ):
     atexit.register( shutil.rmtree, top, ignore_errors=True )
     dst = os.path.join( top, os.path.basename( src ) )
     shutil.copytree( src, dst, ignore=shutil.ignore_patterns( '*.png', '*.eps', '*.pdf', '__pycache__' ) )
+    # The figure scripts import helper modules from their own directory
+    sys.path.insert( 0, dst )
     return dst

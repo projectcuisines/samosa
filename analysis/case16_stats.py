@@ -150,7 +150,7 @@ area = lambda M: float( np.sum( M * _W ) / np.sum( _W ) )
 C = full[ 'contested_all' ]
 print( '\n=== E. summary figure ===' )
 print( f'  blue {100*area(full["band_blue"]):.1f}%, green {100*area(full["band_warm"]):.1f}%, contested {100*area(C):.1f}%, '
-       f'3-D-only {100*area(full["contested_3d"]):.1f}%, PlaHab-only {100*area(full["contested_plahab"]):.1f}%' )
+       f'3-D-only {100*area(full["contested_3d"]):.1f}%, non-3-D-only {100*area(full["contested_non3d"]):.1f}%' )
 # How closely PlaHab's kriged global mean follows the three full-coverage 3-D
 # GCMs in sign: the share of the area those three place below (above) 273.16 K
 # where PlaHab does too. Unfaded, since all four ran every case. The Figure 17

@@ -147,6 +147,9 @@ consensus_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab' ]
 SHOW_PARTIAL = True
 partial_models = [ 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ]
 
+# The models that are not 3-D GCMs; area contested only once they vote is grey
+non3d_models = [ 'PlaHab', 'HEXTOR', 'ExoColumn' ]
+
 ts_in = {
     'ExoPlaSim':   ( pres1,                    flux1,                    ts_plasim ),
     'ExoCAM':      ( pres1[ ts_exocam_mask  ], flux1[ ts_exocam_mask  ], ts_exocam[  ts_exocam_mask  ] ),
@@ -289,17 +292,18 @@ def consensus( models, pres_grid, flux_grid, fade ):
 
     band_blue, band_warm = consensus_bands( mean_models )
 
-    # The contested band is split by whether PlaHab, the only 2-D model, is needed
-    # to produce the disagreement. Adding a model can only shrink the two consensus
-    # bands, so the 3-D contested region is a strict subset of the full one and the
-    # difference is exactly the area PlaHab alone makes contested.
-    mean_models_3d = [ n for n in mean_models if n != 'PlaHab' ]
+    # The contested band is split by whether a non-3-D model (PlaHab, the 2-D
+    # model, or HEXTOR and ExoColumn, the two 1-D models) is needed to produce the
+    # disagreement. Adding a model can only shrink the two consensus bands, so the
+    # 3-D contested region is a strict subset of the full one and the difference is
+    # exactly the area that only the non-3-D models make contested.
+    mean_models_3d = [ n for n in mean_models if n not in non3d_models ]
     band_blue_3d, band_warm_3d = consensus_bands( mean_models_3d )
 
     contested_all = close_rows( ~( band_blue    | band_warm    ) )
     contested_3d  = close_rows( ~( band_blue_3d | band_warm_3d ) )
     contested_all = contested_all | contested_3d          # keep white inside grey
-    contested_plahab = contested_all & ~contested_3d
+    contested_non3d = contested_all & ~contested_3d
 
     # The three regions must stay a partition of the plane
     band_blue = band_blue & ~contested_all
@@ -311,7 +315,7 @@ def consensus( models, pres_grid, flux_grid, fade ):
 
     return dict( Z=Z, WELL=WELL, PP=PP, FF=FF, pres_grid=pres_grid, flux_grid=flux_grid,
                  band_blue=band_blue, band_warm=band_warm, contested_all=contested_all,
-                 contested_3d=contested_3d, contested_plahab=contested_plahab )
+                 contested_3d=contested_3d, contested_non3d=contested_non3d )
 
 # Area fractions of the plane as drawn: flux is linear and pressure logarithmic.
 # The pressure grid is no longer uniform once the protocol pressures are merged
@@ -323,8 +327,8 @@ def report_areas( title, B ):
     print( title )
     for label, m in ( ( 'all models below freezing', B[ 'band_blue' ] ),
                       ( 'all models above freezing', B[ 'band_warm' ] ),
-                      ( 'contested, 3-D models only', B[ 'contested_3d' ] ),
-                      ( 'contested, PlaHab only',     B[ 'contested_plahab' ] ),
+                      ( 'contested, 3-D models',      B[ 'contested_3d' ] ),
+                      ( 'contested, non-3-D only',    B[ 'contested_non3d' ] ),
                       ( 'contested, total',           B[ 'contested_all' ] ) ):
         print( f'  {label:28s} {100.0 * area( m ):5.1f}%' )
 
@@ -404,7 +408,7 @@ if COMMON or STACKED:
 c_frozen = '#d6e6f4'    # every 3-D model: global mean below freezing
 c_warm   = '#dcefdb'    # every model: global mean above freezing
 c_mixed  = '#ffffff'    # the 3-D models disagree, left white
-c_mixed_2d = '#e6e6e6'  # contested only once PlaHab, the 2-D model, is included
+c_mixed_2d = '#e6e6e6'  # contested only once the 2-D and 1-D models are included
 c_run    = '#f2d6d8'    # pre-blended: EPS does not support transparency
 marker_edge = 'k'
 
