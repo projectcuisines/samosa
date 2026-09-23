@@ -200,6 +200,14 @@ def krige( name, fs, ps, vals, view ):
 
 marker_edge = 'k'
 
+# Each model's sample points take its marker from Figure 2 (fig_energy_balance.py),
+# filled here by the simulated value rather than the model's color. The star is
+# drawn larger so that it reads at the same weight as the other shapes, and no
+# marker is clipped at the panel edge, where a cut shape would be hard to name.
+MARKER = { 'ExoPlaSim': 'o', 'ExoCAM': 's', 'ROCKE-3D': '^', 'Generic PCM': 'D',
+           'LFRic': 'v', 'PlaHab': 'P', 'HEXTOR': 'X', 'ExoColumn': '*' }
+MARKER_SIZE = { '*': 80 }
+
 # Of the regions where σ exceeds the threshold, hatch only those reaching the
 # highest instellation on the grid, as the temperature figure does. Every region
 # presently reaches it, so nothing is dropped here; the rule is carried for the
@@ -258,7 +266,8 @@ def draw_panel( ax, name, fs, ps, vals, view ):
     cf = ax.contourf( yv*fluxscale, xv, np.exp(z), cmap=cm, levels=levels, norm=norm, extend='both' )
     if view[ 'hatch' ]:
         ax.contourf( yv*fluxscale, xv, warm_edge_sigma( np.sqrt(var) ), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
-    ax.scatter( fs*fluxscale, ps, c=vals, cmap=cm, norm=norm, marker='o', s=45, edgecolors=marker_edge )
+    ax.scatter( fs*fluxscale, ps, c=vals, cmap=cm, norm=norm, marker=MARKER[ name ],
+                s=MARKER_SIZE.get( MARKER[ name ], 45 ), edgecolors=marker_edge, clip_on=False )
     if name == labeled_model:
         label_cases( ax, fs, ps )
     setup_panel( ax, f'{name} (n={len(vals)})', view )

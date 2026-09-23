@@ -60,6 +60,25 @@ color_stable  = '#183629'
 color_unavail = '#183629'
 color_grid    = '#aaaaaa'
 
+# Completed cases take each model's color and marker from Figure 2
+# (fig_energy_balance.py); runaway or unavailable cases stay a dark cross.
+style = {
+    'ExoPlaSim':   dict( color='#ff7f0e', marker='o' ),
+    'ExoCAM':      dict( color='#1f77b4', marker='s' ),
+    'ROCKE-3D':    dict( color='#2ca02c', marker='^' ),
+    'Generic PCM': dict( color='#d62728', marker='D' ),
+    'LFRic':       dict( color='#9467bd', marker='v' ),
+    'PlaHab':      dict( color='#8c564b', marker='P' ),
+    'HEXTOR':      dict( color='#17becf', marker='X' ),
+    'ExoColumn':   dict( color='#7f7f7f', marker='*' ),
+}
+
+def plot_cases( ax, name, mask ):
+    st = style[ name ]
+    ax.scatter( flux_all[ mask ], pres_all[ mask ], marker=st[ 'marker' ], s=90 if st[ 'marker' ] == '*' else 45,
+                facecolors=st[ 'color' ], edgecolors='k', linewidths=0.6, zorder=3, clip_on=False )
+    ax.scatter( flux_all[ ~mask ], pres_all[ ~mask ], color=color_unavail, marker='x', s=40, zorder=3, clip_on=False )
+
 # Two rows of four, ordered by model class and ending with the two
 # one-dimensional models.
 fig, axd = plt.subplot_mosaic( [[ 'P1', 'P2', 'P3', 'P4' ],
@@ -82,7 +101,7 @@ def setup_panel( ax, title ):
 # Panel 1 — ExoPlaSim (all 16 stable; labels identify QMC point numbers)
 
 axd[ 'P1' ].scatter( grid[:,0], grid[:,1], s=1.5, color=color_grid, zorder=0 )
-axd[ 'P1' ].scatter( flux_all, pres_all, color=color_stable, marker='o', s=40 )
+plot_cases( axd[ 'P1' ], 'ExoPlaSim', np.ones( len( flux_all ), dtype=bool ) )
 
 # Case numbers placed as in Figures 3-6: to the right of each marker, except
 # where that would crowd a neighbor or run off the panel
@@ -97,50 +116,43 @@ setup_panel( axd[ 'P1' ], f'ExoPlaSim (n=16)' )
 #--------------------------------------------------------------------
 # Panel 2 — ExoCAM
 
-axd[ 'P2' ].scatter( flux_all[  exocam_mask ], pres_all[  exocam_mask ], color=color_stable,  marker='o', s=40 )
-axd[ 'P2' ].scatter( flux_all[ ~exocam_mask ], pres_all[ ~exocam_mask ], color=color_unavail, marker='x', s=40 )
+plot_cases( axd[ 'P2' ], 'ExoCAM', exocam_mask )
 setup_panel( axd[ 'P2' ], f'ExoCAM (n={exocam_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 3 — ROCKE-3D
 
-axd[ 'P3' ].scatter( flux_all[  rocke3d_mask ], pres_all[  rocke3d_mask ], color=color_stable,  marker='o', s=40 )
-axd[ 'P3' ].scatter( flux_all[ ~rocke3d_mask ], pres_all[ ~rocke3d_mask ], color=color_unavail, marker='x', s=40 )
+plot_cases( axd[ 'P3' ], 'ROCKE-3D', rocke3d_mask )
 setup_panel( axd[ 'P3' ], f'ROCKE-3D (n={rocke3d_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 4 — Generic PCM
 
-axd[ 'P4' ].scatter( flux_all[  pcm_mask ], pres_all[  pcm_mask ], color=color_stable,  marker='o', s=40 )
-axd[ 'P4' ].scatter( flux_all[ ~pcm_mask ], pres_all[ ~pcm_mask ], color=color_unavail, marker='x', s=40 )
+plot_cases( axd[ 'P4' ], 'Generic PCM', pcm_mask )
 setup_panel( axd[ 'P4' ], f'Generic PCM (n={pcm_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 5 — LFRic
 
-axd[ 'P5' ].scatter( flux_all[  lfric_mask ], pres_all[  lfric_mask ], color=color_stable,  marker='o', s=40 )
-axd[ 'P5' ].scatter( flux_all[ ~lfric_mask ], pres_all[ ~lfric_mask ], color=color_unavail, marker='x', s=40 )
+plot_cases( axd[ 'P5' ], 'LFRic', lfric_mask )
 setup_panel( axd[ 'P5' ], f'LFRic (n={lfric_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 6 — PlaHab
 
-axd[ 'P6' ].scatter( flux_all[  plahab_mask ], pres_all[  plahab_mask ], color=color_stable,  marker='o', s=40 )
-axd[ 'P6' ].scatter( flux_all[ ~plahab_mask ], pres_all[ ~plahab_mask ], color=color_unavail, marker='x', s=40 )
+plot_cases( axd[ 'P6' ], 'PlaHab', plahab_mask )
 setup_panel( axd[ 'P6' ], f'PlaHab (n={plahab_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 7 - HEXTOR
 
-axd[ 'P7' ].scatter( flux_all[  hextor_mask ], pres_all[  hextor_mask ], color=color_stable,  marker='o', s=40 )
-axd[ 'P7' ].scatter( flux_all[ ~hextor_mask ], pres_all[ ~hextor_mask ], color=color_unavail, marker='x', s=40 )
+plot_cases( axd[ 'P7' ], 'HEXTOR', hextor_mask )
 setup_panel( axd[ 'P7' ], f'HEXTOR (n={hextor_mask.sum()})' )
 
 #--------------------------------------------------------------------
 # Panel 8 - ExoColumn
 
-axd[ 'P8' ].scatter( flux_all[  exocolumn_mask ], pres_all[  exocolumn_mask ], color=color_stable,  marker='o', s=40 )
-axd[ 'P8' ].scatter( flux_all[ ~exocolumn_mask ], pres_all[ ~exocolumn_mask ], color=color_unavail, marker='x', s=40 )
+plot_cases( axd[ 'P8' ], 'ExoColumn', exocolumn_mask )
 setup_panel( axd[ 'P8' ], f'ExoColumn (n={exocolumn_mask.sum()})' )
 
 #--------------------------------------------------------------------

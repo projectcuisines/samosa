@@ -143,6 +143,7 @@ def out_of_sample( name ):
 
 if __name__ == '__main__':
     marker_edge = 'k'
+    MARKER = { 'HEXTOR': 'X', 'ExoColumn': '*' }
 
     # Each panel is ( model, last case used, header over the pair, title )
     PANELS = [ ( name, last ) for name in MODELS for last in ( 16, 64 ) ]
@@ -157,17 +158,21 @@ if __name__ == '__main__':
         z, _ = kriging( fs, ps, vals, aniso ).execute( 'grid', norm_pres( pn2 ), norm_flux( flux ) )
         cf = ax.contourf( yv*fluxscale, xv, z, cmap=cm, levels=levels, extend='both' )
 
-        # The same markers in every panel: circles for Cases 1-16, diamonds for
-        # 17-64, crosses where the model ran away.
+        # The same markers in every panel, in the model's shape from Figure 2
+        # (fig_energy_balance.py): large for Cases 1-16, small for 17-64, and
+        # thin gray crosses where the model ran away, kept light so that they do
+        # not read as HEXTOR's X. The star is drawn larger so that it reads at
+        # the same weight as the X.
         af, ap, av, ac = samples( temps, 64 )
         old = ac <= 16
+        mk, scale = MARKER[ name ], 1.8 if MARKER[ name ] == '*' else 1.0
         ax.scatter( af[ old ]*fluxscale, ap[ old ], c=av[ old ], cmap=cm, vmin=contourmin, vmax=contourmax,
-                    marker='o', s=45, edgecolors=marker_edge, zorder=3 )
+                    marker=mk, s=75*scale, edgecolors=marker_edge, zorder=3, clip_on=False )
         ax.scatter( af[ ~old ]*fluxscale, ap[ ~old ], c=av[ ~old ], cmap=cm, vmin=contourmin, vmax=contourmax,
-                    marker='D', s=24, edgecolors=marker_edge, linewidths=0.8, zorder=3 )
+                    marker=mk, s=32*scale, edgecolors=marker_edge, linewidths=0.7, zorder=3, clip_on=False )
         runaway = [ c for c in CASES if c not in temps ]
         ax.scatter( [ CASES[ c ][ 0 ] for c in runaway ], [ CASES[ c ][ 1 ] for c in runaway ],
-                    marker='x', s=22, c='k', linewidths=0.9, zorder=3 )
+                    marker='x', s=18, c='0.4', linewidths=0.7, zorder=2 )
 
         ax.set_title( f'Cases 1–{last} (n={len( vals )})', fontsize=12 )
         ax.tick_params( axis='both', labelsize=10 )

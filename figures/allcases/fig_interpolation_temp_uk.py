@@ -164,14 +164,17 @@ if __name__ == '__main__':
 
     z_ok, var_ok = ok( efs, eps, ev, ANISO_OK ).execute( 'grid', norm_pres( pn2 ), norm_flux( flux ) )
 
-    # ExoCAM's cases as circles, the 1-D model's as smaller diamonds beneath
-    # them; hollow on the difference panels, whose colors are not temperatures
-    def markers( ax, cases, temps, c=True, marker='o' ):
+    # Each model's cases in its marker from Figure 2 (fig_energy_balance.py):
+    # ExoCAM's as squares, the 1-D model's as smaller X's or stars beneath them;
+    # hollow on the difference panels, whose colors are not temperatures
+    MARKER = { 'ExoCAM': 's', 'HEXTOR': 'X', 'ExoColumn': '*' }
+    def markers( ax, cases, temps, c=True, model='ExoCAM' ):
         f = [ CASES[ k ][ 0 ] for k in cases ]; p = [ CASES[ k ][ 1 ] for k in cases ]
-        big = marker == 'o'
+        big = model == 'ExoCAM'
         ax.scatter( f, p, c=[ temps[ k ] for k in cases ] if c else 'w', cmap=cm,
-                    vmin=contourmin, vmax=contourmax, marker=marker, s=40 if big else 22,
-                    edgecolors='k', linewidths=1.0 if big else 0.8, zorder=4 if big else 3 )
+                    vmin=contourmin, vmax=contourmax, marker=MARKER[ model ],
+                    s=40 if big else 50 if MARKER[ model ] == '*' else 30,
+                    edgecolors='k', linewidths=1.0 if big else 0.7, zorder=4 if big else 3, clip_on=False )
 
 
     for row, name in enumerate( LOWRES ):
@@ -184,7 +187,7 @@ if __name__ == '__main__':
 
         ax = axs[ row, 0 ]
         cf = ax.contourf( yv*fluxscale, xv, drift_grid, cmap=cm, levels=levels, extend='both' )
-        markers( ax, lc, LOWRES[ name ], marker='D' )
+        markers( ax, lc, LOWRES[ name ], model=name )
         ax.set_title( f'{name} (n={len( lc )})', fontsize=12 )
 
         ax = axs[ row, 1 ]
@@ -194,7 +197,7 @@ if __name__ == '__main__':
 
         ax = axs[ row, 2 ]
         ax.contourf( yv*fluxscale, xv, z_uk, cmap=cm, levels=levels, extend='both' )
-        markers( ax, lc, LOWRES[ name ], marker='D' ); markers( ax, ec, EXOCAM )
+        markers( ax, lc, LOWRES[ name ], model=name ); markers( ax, ec, EXOCAM )
         ax.set_title( 'Universal kriging', fontsize=12 )
 
         ax = axs[ row, 3 ]
@@ -204,7 +207,7 @@ if __name__ == '__main__':
                          colors=[ 'tab:blue' if l < 0 else 'tab:red' for l in dlevels ],
                          linestyles=[ '--' if l < 0 else '-' for l in dlevels ] )
         ax.clabel( dc, fmt='%+d', fontsize=9, inline_spacing=2 )
-        markers( ax, lc, LOWRES[ name ], c=False, marker='D' ); markers( ax, ec, EXOCAM, c=False )
+        markers( ax, lc, LOWRES[ name ], c=False, model=name ); markers( ax, ec, EXOCAM, c=False )
         ax.set_title( 'Universal − ordinary (K)', fontsize=12 )
 
         print( f'\n{name} drift, ratio {s}: fitted linear variogram slope {u.variogram_model_parameters[ 0 ]:.1f}, '
