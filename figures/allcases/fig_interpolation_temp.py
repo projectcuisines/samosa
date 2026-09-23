@@ -6,7 +6,6 @@ import cmocean
 from matplotlib.transforms import offset_copy
 from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
-from scipy import ndimage
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
@@ -17,7 +16,6 @@ cm              = cmocean.cm.thermal
 contourmin      = 175.0
 contourmax      = 370.0
 cinterval       = 40
-sigma_threshold = 45.0      # K; hatch where kriging σ exceeds this
 cbar_label      = 'Average Surface Temperature (K)'
 cbar_ticks      = np.arange( 200, 370, 50 )
 # ─────────────────────────────────────────────────────────────────────────────
@@ -117,16 +115,16 @@ def restrict_to_common( models ):
         restricted[ name ] = ( fs[ m ], ps[ m ], vals[ m ] )
     return restricted, cases
 
-# A view is the grid a set of panels is kriged on, its axis limits, its color
-# range, and whether it is hatched where the kriging σ is large. The full view
-# covers the whole parameter space. The zoomed view, used for the common cases,
-# is unhatched and spans only the instellation and pressure its samples cover,
-# padded by 50 W/m2 and 10% as the full axes are, since beyond that the kriging
-# merely carries the edge values outward. It is kriged on a finer grid so the
-# contours stay smooth; the normalization below still uses the full grid, which
-# the anisotropy ratios were fitted on.
+# A view is the grid a set of panels is kriged on, its axis limits and its
+# color range; neither view is hatched for kriging σ. The full view covers the
+# whole parameter space. The zoomed view, used for the common cases, spans only
+# the instellation and pressure its samples cover, padded by 50 W/m2 and 10% as
+# the full axes are, since beyond that the kriging merely carries the edge
+# values outward. It is kriged on a finer grid so the contours stay smooth; the
+# normalization below still uses the full grid, which the anisotropy ratios were
+# fitted on.
 def full_view():
-    return dict( flux_grid=flux, pres_grid=pn2, hatch=True, plain_ticks=False,
+    return dict( flux_grid=flux, pres_grid=pn2, plain_ticks=False,
                  xlim=[ max( flux*fluxscale ) + 50, min( flux*fluxscale ) - 50 ], xticks=[ 2500, 2000, 1500, 1000, 500 ],
                  ylim=[ min( pn2 )*0.9, max( pn2 )*1.1 ],
                  cmin=contourmin, cmax=contourmax, cticks=cbar_ticks )
@@ -144,7 +142,7 @@ def zoomed_view( models ):
     ps_shown  = np.concatenate( [ ps for _, ps, _ in models.values() ] )
     flux_grid = np.linspace( fs_shown.min() - 0.5, fs_shown.max() + 0.5, 41 )
     pres_grid = np.geomspace( ps_shown.min()*0.9, ps_shown.max()*1.1, 41 )
-    return dict( flux_grid=flux_grid, pres_grid=pres_grid, hatch=False, plain_ticks=True,
+    return dict( flux_grid=flux_grid, pres_grid=pres_grid, plain_ticks=True,
                  xlim=[ max( flux_grid*fluxscale ), min( flux_grid*fluxscale ) ], xticks=[ 1100, 900, 700, 500 ],
                  ylim=[ min( pres_grid ), max( pres_grid ) ],
                  cmin=contourmin, cmax=contourmax, cticks=cbar_ticks )
@@ -215,19 +213,6 @@ MARKER = { 'ExoPlaSim': 'o', 'ExoCAM': 's', 'ROCKE-3D': '^', 'Generic PCM': 'D',
            'LFRic': 'v', 'PlaHab': 'P', 'HEXTOR': 'X', 'ExoColumn': '*' }
 MARKER_SIZE = { '*': 80 }
 
-# Of the regions where σ exceeds the threshold, hatch only those reaching the
-# highest instellation on the grid. The rest are slivers along the other panel
-# edges, just past the outermost samples, where σ tops the threshold by at most
-# 12 K; they are largest in HEXTOR and LFRic, whose warmest cases sit beside much
-# cooler ones and so steepen the variogram, and hatched they read as holes in
-# the sampled region. The regions are 8-connected,
-# so a dropped one never shares a grid cell with a kept one and zeroing it leaves
-# the kept boundaries where they were.
-def warm_edge_sigma( sigma ):
-    regions, _ = ndimage.label( sigma > sigma_threshold, structure=np.ones( ( 3, 3 ) ) )
-    dropped    = np.setdiff1d( regions, np.append( regions[ -1, : ], 0 ) )
-    return np.where( np.isin( regions, dropped ), 0.0, sigma )
-
 # ExoPlaSim is stable at all sixteen cases, so its panels carry the case numbers.
 # Labels sit to the right of each marker, except where that would crowd a
 # neighbor or run off the panel.
@@ -257,12 +242,10 @@ def setup_panel( ax, title, view ):
         ax.yaxis.set_minor_formatter( plt.NullFormatter() )
 
 def draw_panel( ax, name, fs, ps, vals, view ):
-    z, var = krige( name, fs, ps, vals, view )
+    z, _ = krige( name, fs, ps, vals, view )
     xv, yv = np.meshgrid( view[ 'pres_grid' ], view[ 'flux_grid' ] )
     levels = np.linspace( view[ 'cmin' ], view[ 'cmax' ], cinterval )
     cf = ax.contourf( yv*fluxscale, xv, z, cmap=cm, levels=levels, extend='both' )
-    if view[ 'hatch' ]:
-        ax.contourf( yv*fluxscale, xv, warm_edge_sigma( np.sqrt(var) ), levels=[sigma_threshold, 1e9], hatches=['///'], colors='none', alpha=0 )
     ax.scatter( fs*fluxscale, ps, c=vals, cmap=cm, vmin=view[ 'cmin' ], vmax=view[ 'cmax' ], marker=MARKER[ name ],
                 s=MARKER_SIZE.get( MARKER[ name ], 45 ), edgecolors=marker_edge, clip_on=False )
     if name == labeled_model:
