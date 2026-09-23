@@ -33,20 +33,18 @@ def read_nc(path, var, lat_var='lat', lon_var='lon', avg_axis=None, offset=0.0, 
 S_CASE = {1: 500.0, 4: 1200.0, 16: 1400.0}   # protocol instellation, W/m2
 
 # Local albedo is reflected over incident shortwave at the top of the
-# atmosphere, and is undefined where no starlight arrives. Cells lit at less
-# than NIGHT_FRAC of the substellar flux are masked: the night side, and a band
-# within about 6 degrees of the terminator where the ratio of two vanishing
-# fluxes is noise. The band has to be this wide for LFRic, whose incident flux
-# is reconstructed (see read_lfric) and whose reflected flux there comes out
-# negative in up to a third of cells.
-NIGHT_FRAC = 0.1
+# atmosphere. On the night side both fluxes are exactly zero in every model,
+# so the albedo is undefined there and those cells are left unfilled (gray).
+# Every lit cell is drawn, up to the terminator; there the four models that
+# report their own incident flux stay within 16-55%, while LFRic, whose
+# incident flux is reconstructed (see read_lfric), does not.
 
 
 def local_albedo(reflected, incident, S):
-    """Percent albedo per cell, NaN where the cell is (nearly) unlit."""
+    """Percent albedo per cell, NaN where the cell is unlit."""
     with np.errstate(divide='ignore', invalid='ignore'):
         alb = 100.0 * reflected / incident
-    return np.where(incident > NIGHT_FRAC * S, alb, np.nan)
+    return np.where(incident > 0.0, alb, np.nan)
 
 
 def planetary_albedo(reflected, incident, lat):
@@ -90,6 +88,14 @@ def read_rocke3d(case_n):
     path = f'/models/data/samosa/rocke3d/rocke_{case_n:02d}q.nc'
     inc, lat, lon = read_nc(path, 'incsw_toa')
     net, _, _     = read_nc(path, 'srnf_toa')
+    # Each pole row is a single polar-cap cell repeated across every longitude,
+    # lit even where the row beside it is in darkness; keep it only where that
+    # row is lit. The rows carry no area weight, so the planetary albedo is
+    # unchanged.
+    for pole, beside in ((0, 1), (-1, -2)):
+        dark = inc[beside] == 0.0
+        inc[pole, dark] = 0.0
+        net[pole, dark] = 0.0
     refl, lon_s = roll_to_180(inc - net, lon)
     inc, _      = roll_to_180(inc, lon)
     _lon = lon_s + 180.0
@@ -105,9 +111,10 @@ def read_lfric(case_n):
     on this grid, and the net flux on the night side is at most 0.005 W/m2, so
     the planetary albedo is exact. The local albedo is not: near the terminator
     the net flux exceeds this geometric incident flux in some cells, which the
-    model's own incident flux, not submitted, would have to resolve. Between 10%
-    and 20% of the substellar flux up to a tenth of LFRic's cells still come out
-    below zero (as low as -5% at Case 1); they take the lowest color."""
+    model's own incident flux, not submitted, would have to resolve. Those cells
+    come out below zero, down to about -7000% where the incident flux nearly
+    vanishes, and take the lowest color. It affects the band where less than 20%
+    of the substellar flux arrives, within about 12 degrees of the terminator."""
     path = f'/models/data/samosa/lfric/lfric_samosa_case{case_n:02d}.nc'
     net, lat, lon = read_nc(path, 'sw_net_toa')
     L, Lo = np.meshgrid(lat, lon, indexing='ij')
