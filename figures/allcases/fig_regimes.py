@@ -4,23 +4,22 @@
 # Panel (a)  the non-dimensional Rhines length against the non-dimensional
 #            Rossby deformation radius, after Figure 4 of Haqq-Misra et al.
 #            (2018), with the equations as corrected by its two errata
-# Panel (b)  the upper-tropospheric jet structure at each sample point, after
-#            Figure 3 of Mak et al. (2024)
-# Panel (c)  the day-night to equator-pole surface temperature contrast ratio
-#            against the Rhines length, after Figure 6 (right) of the same 2018
-#            paper
+# Panel (b)  the night-side static energy flux convergence at each sample
+#            point, after Figure 2 of the same 2018 paper
+#
+# The jet latitude and regime label are plotted in fig_jet_regimes.py; they
+# stay here for the numbers printed at the end.
 #
 # Arrays are produced by extract_regimes.py; rerun it after any resubmission.
 #
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.lines import Line2D
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
 plt.rcParams[ 'axes.labelpad' ]    = 8
 
-SHOW_TRANSPORT = True     # set False to drop panel (c)
+SHOW_TRANSPORT = True     # set False to drop panel (b)
 
 # ─── QMC sample points, replicated from fig_interpolation_temp.py ────────────
 flux = np.arange( 400, 2700, 100 )
@@ -121,12 +120,18 @@ def fan( name ):
     """Small horizontal offset so co-located models stay distinguishable."""
     return ( wind_models.index( name ) - 2.0 ) * 0.14
 
+def case_bands( ax ):
+    """Shade alternate case columns, so each fan of models reads as one case."""
+    for c in range( 1, 17, 2 ):
+        ax.axvspan( c - 0.5, c + 0.5, color='0.93', lw=0, zorder=0 )
+
 c_slow   = '#eef3f8'
 c_rhines = '#faf3ec'
 c_label  = '0.35'
 
-npanel = 3 if SHOW_TRANSPORT else 2
-fig, axes = plt.subplots( 1, npanel, figsize=( 3.75 * npanel, 4.2 ), layout='constrained' )
+npanel = 2 if SHOW_TRANSPORT else 1
+fig, axes = plt.subplots( 1, npanel, figsize=( 5.6 * npanel, 4.6 ), layout='constrained' )
+axes = np.atleast_1d( axes )
 
 #--------------------------------------------------------------------
 # Panel (a) — Rhines length against Rossby deformation radius
@@ -160,49 +165,20 @@ ax.text( 1.75, 0.20, 'Rhines rotators', fontsize=10, style='italic', color=c_lab
 ax.set_title( '(a) Circulation regime', fontsize=12 )
 
 #--------------------------------------------------------------------
-# Panel (b) — jet structure across the parameter space
-#
-# Axes match fig_tally.py: instellation decreasing to the right, pressure
-# logarithmic. Models are fanned out vertically within each sample point so
-# that agreement and disagreement can both be read off directly.
-
-ax = axes[1]
-ax.axhspan( 0.0, 20.0, color='#eef3f8', zorder=0 )
-for c in range( 1, 17 ):
-    ax.axvline( c, color='#e8e8e8', lw=0.8, zorder=0 )
-
-for name in wind_models:
-    d = data[ name ]
-    for c, jl, j in zip( d[ 'case' ], d[ 'jetlat' ], d[ 'jet' ] ):
-        single = ( j == 'SJ' )
-        # The marker names the model, as everywhere else; the fill gives the jet
-        # regime, filled for a single equatorial jet and open for a double one.
-        ax.scatter( c + fan( name ), jl, s=45,
-                    marker=marker[ name ],
-                    facecolor=style[ name ] if single else 'none',
-                    edgecolors='k' if single else style[ name ],
-                    linewidths=0.7 if single else 1.2, zorder=5 )
-
-ax.set_xlim( 0.4, 16.6 )
-ax.set_ylim( -4, 78 )
-ax.set_xticks( [ 1, 4, 7, 10, 13, 16 ] )
-ax.set_xticks( range( 1, 17 ), minor=True )
-ax.set_xlabel( 'Case', fontsize=12 )
-ax.set_ylabel( 'Latitude of the\ntropospheric jet ($\\degree$)', fontsize=12 )
-ax.text( 16.3, 8, 'equatorial jet', fontsize=9, style='italic', color=c_label, ha='right' )
-jet_handles = [ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=7,
-                        label='filled: single (equatorial) jet' ),
-                Line2D( [], [], ls='', marker='o', mfc='none', mec='0.4',
-                        mew=1.2, ms=7, label='open: double (midlatitude) jet' ) ]
-ax.set_title( '(b) Jet structure at $\\sigma = 0.30$', fontsize=12 )
-
-#--------------------------------------------------------------------
-# Panel (c) — day-night against equator-pole heat transport
+# Panel (b) — night-side energy transport
 
 if SHOW_TRANSPORT:
-    ax = axes[2]
+    ax = axes[1]
+    case_bands( ax )
+
+    # A thin bar from the lowest to the highest model at each shared case, so
+    # each cluster reads as one sample point and its length as the spread
     for c in range( 1, 17 ):
-        ax.axvline( c, color='#e8e8e8', lw=0.8, zorder=0 )
+        v = [ data[ n ][ 'conv' ][ data[ n ][ 'case' ] == c ][0]
+              for n in wind_models if c in data[ n ][ 'case' ] ]
+        if len( v ) > 1:
+            ax.plot( [ c, c ], [ min( v ), max( v ) ], color='0.55', lw=1.0,
+                     solid_capstyle='butt', zorder=2 )
 
     for name in wind_models:
         d = data[ name ]
@@ -215,15 +191,14 @@ if SHOW_TRANSPORT:
     ax.set_xticks( range( 1, 17 ), minor=True )
     ax.set_xlabel( 'Case', fontsize=12 )
     ax.set_ylabel( 'Night-side static energy flux\nconvergence (W m$^{-2}$)', fontsize=12 )
-    ax.set_title( '(c) Night-side energy transport', fontsize=12 )
+    ax.set_title( '(b) Night-side energy transport', fontsize=12 )
 
 for ax in axes:
     ax.tick_params( axis='both', labelsize=10 )
 
-# One legend row above the panels, for the model colors of all three and the
-# jet symbols of (b); inside the panels it hid points at this size
+# One legend row above the panels; inside them it hid points at this size
 model_handles, _ = axes[0].get_legend_handles_labels()
-fig.legend( handles=model_handles + jet_handles, loc='outside upper center', ncol=7, fontsize=10,
+fig.legend( handles=model_handles, loc='outside upper center', ncol=5, fontsize=10,
             frameon=False, columnspacing=1.2, handletextpad=0.3 )
 fig.savefig( 'fig_regimes.png', bbox_inches='tight' )
 fig.savefig( 'fig_regimes.eps', bbox_inches='tight' )
