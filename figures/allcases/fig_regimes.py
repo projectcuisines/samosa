@@ -120,10 +120,26 @@ def fan( name ):
     """Small horizontal offset so co-located models stay distinguishable."""
     return ( wind_models.index( name ) - 2.0 ) * 0.14
 
-def case_bands( ax ):
-    """Shade alternate case columns, so each fan of models reads as one case."""
-    for c in range( 1, 17, 2 ):
-        ax.axvspan( c - 0.5, c + 0.5, color='0.93', lw=0, zorder=0 )
+def min_ellipse( P, tol=1e-4 ):
+    """Smallest ellipse (x-c)' A (x-c) <= 1 holding the points P (Khachiyan)."""
+    n, d = P.shape
+    Q = np.vstack( [ P.T, np.ones( n ) ] )
+    u = np.full( n, 1.0 / n )
+    for _ in range( 20000 ):
+        X = Q @ np.diag( u ) @ Q.T
+        M = np.einsum( 'ij,ji->i', Q.T @ np.linalg.inv( X ), Q )
+        j = np.argmax( M )
+        if M[j] < ( d + 1.0 ) * ( 1.0 + tol ):
+            break
+        step = ( M[j] - d - 1.0 ) / ( ( d + 1.0 ) * ( M[j] - 1.0 ) )
+        u = ( 1.0 - step ) * u
+        u[j] += step
+    ctr = P.T @ u
+    A = np.linalg.inv( P.T @ np.diag( u ) @ P - np.outer( ctr, ctr ) ) / d
+    # Stretch just enough that every point is inside
+    r = np.einsum( 'ij,jk,ik->i', P - ctr, A, P - ctr )
+    A = A / max( r.max(), 1.0 )
+    return ctr, A
 
 c_slow   = '#eef3f8'
 c_rhines = '#faf3ec'
@@ -169,16 +185,36 @@ ax.set_title( '(a) Circulation regime', fontsize=12 )
 
 if SHOW_TRANSPORT:
     ax = axes[1]
-    case_bands( ax )
 
-    # A thin bar from the lowest to the highest model at each shared case, so
-    # each cluster reads as one sample point and its length as the spread
+    # A dashed oval around the models at each shared case, labeled with the
+    # case number, so each cluster reads as one sample point. Each oval is the
+    # smallest ellipse holding the markers, found on the page in inches so it
+    # keeps its shape whatever the axis ranges; it may tilt with the cluster.
+    ax.set_xlim( 0.2, 16.8 )
+    ax.set_ylim( 0.0, 500.0 )
+    fig.canvas.draw()
+    bb = ax.get_window_extent().transformed( fig.dpi_scale_trans.inverted() )
+    sx = bb.width  / ( 16.8 - 0.2 )           # inches per case
+    sy = bb.height / 500.0                    # inches per W m-2
+    rm = 0.095                                # marker radius plus a gap, in
+    ring = np.linspace( 0.0, 2.0 * np.pi, 16, endpoint=False )
     for c in range( 1, 17 ):
-        v = [ data[ n ][ 'conv' ][ data[ n ][ 'case' ] == c ][0]
-              for n in wind_models if c in data[ n ][ 'case' ] ]
-        if len( v ) > 1:
-            ax.plot( [ c, c ], [ min( v ), max( v ) ], color='0.55', lw=1.0,
-                     solid_capstyle='butt', zorder=2 )
+        here = [ n for n in wind_models if c in data[ n ][ 'case' ] ]
+        if len( here ) < 2:
+            continue
+        x = np.array( [ c + fan( n ) for n in here ] ) * sx
+        y = np.array( [ data[ n ][ 'conv' ][ data[ n ][ 'case' ] == c ][0] for n in here ] ) * sy
+        P = np.column_stack( [ ( x[:, None] + rm * np.cos( ring ) ).ravel(),
+                               ( y[:, None] + rm * np.sin( ring ) ).ravel() ] )
+        ctr, A = min_ellipse( P )
+        w, V = np.linalg.eigh( A )
+        t = np.linspace( 0.0, 2.0 * np.pi, 200 )
+        E = ctr[:, None] + V @ ( np.diag( 1.0 / np.sqrt( w ) ) @ np.vstack( [ np.cos( t ), np.sin( t ) ] ) )
+        ax.plot( E[0] / sx, E[1] / sy, color='0.5', ls='--', lw=0.9, zorder=2 )
+        top = np.argmax( E[1] )
+        ax.text( E[0, top] / sx, E[1, top] / sy + 3.0, str( c ), fontsize=9,
+                 color='0.35', ha='center', va='bottom', zorder=6,
+                 bbox=dict( fc='w', ec='none', pad=0.5 ) )
 
     for name in wind_models:
         d = data[ name ]
@@ -186,7 +222,7 @@ if SHOW_TRANSPORT:
                     color=style[ name ], edgecolors='k', linewidths=0.7,
                     label=name, zorder=5 )
 
-    ax.set_xlim( 0.4, 16.6 )
+    ax.set_xlim( 0.2, 16.8 )
     ax.set_xticks( [ 1, 4, 7, 10, 13, 16 ] )
     ax.set_xticks( range( 1, 17 ), minor=True )
     ax.set_xlabel( 'Case', fontsize=12 )
