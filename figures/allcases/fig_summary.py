@@ -509,3 +509,15 @@ else:
 suffix = ( "" if SHOW_PARTIAL else "_nopartial" ) + ( "_stacked" if STACKED else "_common" if COMMON else "" )
 fig.savefig( f"fig_summary{suffix}.png", bbox_inches='tight' )
 fig.savefig( f"fig_summary{suffix}.eps", bbox_inches='tight' )
+
+# Each panel on its own, for slides. The side-by-side legend spans both panels
+# and so cannot be cropped with either; each panel is redrawn instead, with the
+# legend beneath it in two rows.
+if STACKED:
+    for tag, B in zip( ( 'all', 'common' ), panels ):
+        sfig, sax = plt.subplots( figsize=( 5.5, 6.4 ), layout='constrained' )
+        draw_panel( sax, B )
+        sax.set_title( B[ 'header' ], fontsize=14, fontweight='bold', pad=8 )
+        sfig.legend( handles=legend_handles(), loc='outside lower center', ncol=4, fontsize=10,
+                     frameon=False, columnspacing=1.4, handlelength=2.2 )
+        sfig.savefig( f"fig_summary{suffix.replace( '_stacked', '_slide' )}_{tag}.png", bbox_inches='tight', dpi=200 )

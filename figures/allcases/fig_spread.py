@@ -7,6 +7,7 @@ import cmocean
 
 from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
+from slide_halves import save_halves
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
@@ -380,4 +381,8 @@ else:
 
 fig.savefig( f"{outname}.png", bbox_inches='tight' )
 fig.savefig( f"{outname}.eps", bbox_inches='tight' )
+
+# Each block on its own, for slides
+if STACKED:
+    save_halves( fig, outname.replace( '_stacked', '_slide' ) )
 #plt.show()
