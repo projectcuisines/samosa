@@ -14,6 +14,9 @@
 #
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.patches import Polygon
+from matplotlib.colors import to_rgb, to_hex
+from scipy.spatial import ConvexHull
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
@@ -156,8 +159,10 @@ def min_ellipse( P, tol=1e-4 ):
     A = A / max( r.max(), 1.0 )
     return ctr, A
 
-c_slow   = '#eef3f8'
-c_rhines = '#faf3ec'
+# The two model groups of the left panel, which differ by a near-constant
+# offset in L_R/a at every shared case (about 0.3; see the analysis note)
+groups = { 'windy': dict( models=[ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D' ], color='#c8a24a' ),
+           'calm':  dict( models=[ 'Generic PCM', 'LFRic' ],            color='#6b7f94' ) }
 c_label  = '0.35'
 
 npanel = 2 if SHOW_TRANSPORT else 1
@@ -177,8 +182,36 @@ fig.get_layout_engine().set( wspace=0.08 )   # a little air between the panels
 # length carries the discrimination.
 
 ax = axes[0]
-ax.axhspan( 1.0, 2.0, color=c_slow,   zorder=0 )
-ax.axhspan( 0.0, 1.0, color=c_rhines, zorder=0 )
+ax.set_xlim( 0.92, 1.78 )
+ax.set_ylim( 0.15, 1.80 )
+
+# A translucent hull around each model group, padded by a marker radius and
+# built on the page in inches so the padding is round whatever the axis ranges
+fig.canvas.draw()
+bb = ax.get_window_extent().transformed( fig.dpi_scale_trans.inverted() )
+gx = bb.width  / ( 1.78 - 0.92 )
+gy = bb.height / ( 1.80 - 0.15 )
+ring = np.linspace( 0.0, 2.0 * np.pi, 24, endpoint=False )
+for gname, g in groups.items():
+    x = np.concatenate( [ data[ n ][ 'lamr' ] for n in g[ 'models' ] ] ) * gx
+    y = np.concatenate( [ data[ n ][ 'lr'   ] for n in g[ 'models' ] ] ) * gy
+    P = np.column_stack( [ ( x[:, None] + 0.10 * np.cos( ring ) ).ravel(),
+                           ( y[:, None] + 0.10 * np.sin( ring ) ).ravel() ] )
+    H = P[ ConvexHull( P ).vertices ]
+    H = np.column_stack( [ H[:, 0] / gx, H[:, 1] / gy ] )
+    ax.add_patch( Polygon( H, closed=True, fc=g[ 'color' ], ec='none',
+                           alpha=0.22, zorder=0.5 ) )
+    ax.add_patch( Polygon( H, closed=True, fill=False, ec=g[ 'color' ],
+                           lw=1.2, zorder=2 ) )
+
+# Group labels beside each hull, clear of the other
+ax.text( 1.18, 1.42, 'windy: ExoPlaSim,\nExoCAM, ROCKE-3D', fontsize=9,
+         color=to_hex( 0.75 * np.array( to_rgb( groups[ 'windy' ][ 'color' ] ) ) ),
+         ha='center', va='top' )
+ax.text( 1.22, 0.56, 'calm: Generic PCM,\nLFRic', fontsize=9,
+         color=to_hex( 0.85 * np.array( to_rgb( groups[ 'calm' ][ 'color' ] ) ) ),
+         ha='center', va='top' )
+
 ax.axhline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 ax.axvline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 
@@ -193,8 +226,8 @@ ax.set_xlabel( 'Non-dimensional Rossby\ndeformation radius, $\\lambda_R/a$', fon
 ax.set_ylabel( 'Non-dimensional Rhines\nlength, $L_R/a$', fontsize=12 )
 ax.text( 0.96, 0.45, 'rapid rotators', fontsize=9, style='italic',
          color=c_label, ha='center', va='center', rotation=90 )
-ax.text( 1.75, 1.73, 'slow rotators',   fontsize=10, style='italic', color=c_label, ha='right' )
-ax.text( 1.75, 0.20, 'Rhines rotators', fontsize=10, style='italic', color=c_label, ha='right' )
+ax.text( 1.02, 1.73, 'slow rotators',   fontsize=10, style='italic', color=c_label, ha='left' )
+ax.text( 1.02, 0.20, 'Rhines rotators', fontsize=10, style='italic', color=c_label, ha='left' )
 ax.set_title( 'Circulation regime', fontsize=12 )
 
 #--------------------------------------------------------------------
@@ -288,7 +321,8 @@ model_handles, _ = axes[0].get_legend_handles_labels()
 fig.legend( handles=model_handles, loc='outside upper center', ncol=5, fontsize=10,
             frameon=False, columnspacing=1.2, handletextpad=0.3 )
 fig.savefig( 'fig_regimes.png', bbox_inches='tight' )
-fig.savefig( 'fig_regimes.eps', bbox_inches='tight' )
+# PDF rather than EPS: the group hulls overlap by transparency, which EPS lacks
+fig.savefig( 'fig_regimes.pdf', bbox_inches='tight' )
 
 #--------------------------------------------------------------------
 # Numbers quoted in the text
@@ -336,3 +370,34 @@ for n in wind_models:
 all_dn, all_cv = np.concatenate( all_dn ), np.concatenate( all_cv )
 print( f'  {"pooled":12s} n={len(all_dn):2d}  r = {np.corrcoef(all_dn, all_cv)[0,1]:+.2f}'
        f'   contrast {all_dn.min():.3f}-{all_dn.max():.3f}' )
+
+print( '\n=== what sets the left panel ===' )
+C  = np.concatenate( [ data[ n ][ 'case' ] for n in wind_models ] )
+M  = np.concatenate( [ [ n ] * len( data[ n ][ 'case' ] ) for n in wind_models ] )
+LA = np.concatenate( [ data[ n ][ 'lamr' ] for n in wind_models ] )
+LR = np.concatenate( [ data[ n ][ 'lr'   ] for n in wind_models ] )
+def explained( v, grp ):
+    within = sum( ( ( v[ grp == k ] - v[ grp == k ].mean() )**2 ).sum() for k in set( grp ) )
+    return 1.0 - within / ( ( v - v.mean() )**2 ).sum()
+print( f'  lambda_R/a: variance explained by case {explained(LA, C):.2f}, by model {explained(LA, M):.2f};'
+       f' r with S {np.corrcoef(LA, flux1[C-1])[0,1]:+.2f}' )
+print( f'  L_R/a:      r with S {np.corrcoef(LR, flux1[C-1])[0,1]:+.2f},'
+       f' with log p {np.corrcoef(LR, np.log(pres1[C-1]))[0,1]:+.2f}' )
+for n in wind_models:
+    lp = np.log10( pres1[ data[ n ][ 'case' ] - 1 ] )
+    b, a0 = np.polyfit( lp, data[ n ][ 'lr' ], 1 )
+    print( f'  {n:12s} r with log p {np.corrcoef(lp, data[n]["lr"])[0,1]:+.2f}'
+           f'   L_R/a = 1 at p = {10**((1.0 - a0) / b):.2f} bar' )
+shared = [ c for c in range( 1, 17 ) if all( c in data[ n ][ 'case' ] for n in wind_models ) ]
+k  = np.isin( C, shared )
+v, cc, mm = LR[ k ], C[ k ], M[ k ]
+tot = ( ( v - v.mean() )**2 ).sum()
+ce = { c: v[ cc == c ].mean() - v.mean() for c in shared }
+me = { n: v[ mm == n ].mean() - v.mean() for n in wind_models }
+fit = np.array( [ v.mean() + ce[ c ] + me[ n ] for c, n in zip( cc, mm ) ] )
+print( f'  shared cases {shared}: case {explained(v, cc):.2f}, model {explained(v, mm):.2f},'
+       f' interaction {((v - fit)**2).sum() / tot:.2f}' )
+print( '  model offsets in L_R/a: ' + ', '.join( f'{n} {me[n]:+.2f}' for n in wind_models ) )
+gap = ( np.mean( [ me[ n ] for n in groups[ 'windy' ][ 'models' ] ] )
+        - np.mean( [ me[ n ] for n in groups[ 'calm' ][ 'models' ] ] ) )
+print( f'  windy minus calm group mean offset {gap:.2f}' )
