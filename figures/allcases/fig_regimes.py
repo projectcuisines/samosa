@@ -187,23 +187,28 @@ if SHOW_TRANSPORT:
     ax = axes[1]
 
     # A dashed oval around the models at each shared case, labeled with the
-    # case number, so each cluster reads as one sample point. Each oval is the
+    # case number, so each cluster reads as one sample point; the cases only
+    # ExoPlaSim reports carry the number alone. Each oval is the
     # smallest ellipse holding the markers, found on the page in inches so it
     # keeps its shape whatever the axis ranges; it may tilt with the cluster.
     ax.set_xlim( 0.2, 16.8 )
-    ax.set_ylim( 0.0, 500.0 )
+    ax.set_ylim( 0.0, 520.0 )
     fig.canvas.draw()
     bb = ax.get_window_extent().transformed( fig.dpi_scale_trans.inverted() )
     sx = bb.width  / ( 16.8 - 0.2 )           # inches per case
-    sy = bb.height / 500.0                    # inches per W m-2
+    sy = bb.height / 520.0                    # inches per W m-2
     rm = 0.095                                # marker radius plus a gap, in
     ring = np.linspace( 0.0, 2.0 * np.pi, 16, endpoint=False )
     for c in range( 1, 17 ):
         here = [ n for n in wind_models if c in data[ n ][ 'case' ] ]
-        if len( here ) < 2:
-            continue
         x = np.array( [ c + fan( n ) for n in here ] ) * sx
         y = np.array( [ data[ n ][ 'conv' ][ data[ n ][ 'case' ] == c ][0] for n in here ] ) * sy
+        if len( here ) == 1:
+            # ExoPlaSim alone: the number only, where an oval's top would be
+            ax.text( x[0] / sx, ( y[0] + rm ) / sy + 3.0, str( c ), fontsize=9,
+                     color='0.35', ha='center', va='bottom', zorder=6,
+                     bbox=dict( fc='w', ec='none', pad=0.5 ) )
+            continue
         P = np.column_stack( [ ( x[:, None] + rm * np.cos( ring ) ).ravel(),
                                ( y[:, None] + rm * np.sin( ring ) ).ravel() ] )
         ctr, A = min_ellipse( P )
