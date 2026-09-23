@@ -390,7 +390,7 @@ def setup_panel( ax, title, block ):
 
 def draw_row( host, axes, block ):
     xv, yv = np.meshgrid( block[ 'pres_grid' ], block[ 'flux_grid' ] )
-    for ax, v in zip( axes, VARS ):
+    for i, ( ax, v ) in enumerate( zip( axes, VARS ) ):
         k = v[ 'key' ]
         cmax, nlev, ticks = block[ 'colors' ][ k ]
         # Spread above the top of the scale saturates at the top color rather than
@@ -401,21 +401,26 @@ def draw_row( host, axes, block ):
         if block[ 'hatch' ]:
             ax.contourf( yv*fluxscale, xv, counts[ k ], levels=[-1e9, 1.5], hatches=['///'], colors='none', alpha=0 )
         sm = mcm.ScalarMappable( cmap=v[ 'cm' ], norm=mcolors.Normalize( vmin=0, vmax=cmax ) )
-        cb = host.colorbar( sm, ax=ax, extend='max' )
+        # Slim colorbars close to their panels, so that four fit across the
+        # width of Figure 2 with the panels still near the size of Figure 3's
+        cb = host.colorbar( sm, ax=ax, extend='max', fraction=0.05, aspect=22, pad=0.03 )
         cb.set_ticks( ticks )
         cb.ax.tick_params( labelsize=10 )
         cb.set_label( v[ 'label' ], fontsize=12 )
         setup_panel( ax, v[ 'title' ], block )
-    # The panels of a row share their axes, so each is labeled once per row
+        if i > 0:
+            ax.tick_params( labelleft=False )
+    # The panels of a row share their axes, so each is labeled once per row,
+    # with the pressure tick labels on the first panel only
     host.supxlabel( 'Instellation (W m$^{-2}$)', fontsize=12, fontweight='bold' )
     host.supylabel( 'Surface pressure (bar)', fontsize=12, fontweight='bold' )
 
 if len( blocks ) == 1:
-    fig, axes = plt.subplots( 1, len( VARS ), figsize=( 13.0, 3.3 ), layout='constrained' )
+    fig, axes = plt.subplots( 1, len( VARS ), figsize=( 13.0, 3.4 ), layout='constrained' )
     draw_row( fig, axes, blocks[ 0 ] )
 else:
     # Rows one above another, each under a bold header
-    fig  = plt.figure( figsize=( 13.0, 6.8 ), layout='constrained' )
+    fig  = plt.figure( figsize=( 13.0, 6.9 ), layout='constrained' )
     rows = fig.subfigures( len( blocks ), 1, hspace=0.06 )
     for row, block in zip( rows, blocks ):
         row.suptitle( block[ 'header' ], fontsize=14, fontweight='bold' )
