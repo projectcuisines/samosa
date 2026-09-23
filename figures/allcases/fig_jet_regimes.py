@@ -102,7 +102,67 @@ data = {
 T_FREEZE = 273.16
 c_label  = '0.35'
 
+# Surface pressure of each sample point (bar), replicated from fig_regimes.py
+pres1 = np.array( [ 0.70, 7.85, 0.21, 2.34, 0.16, 1.83, 0.55, 6.16,
+                    0.70, 4.83, 0.10, 2.98, 0.16, 1.44, 0.43, 10.0 ] )
+
+
+def min_ellipse( P, tol=1e-4 ):
+    """Smallest ellipse (x-c)' A (x-c) <= 1 holding the points P (Khachiyan)."""
+    n, d = P.shape
+    Q = np.vstack( [ P.T, np.ones( n ) ] )
+    u = np.full( n, 1.0 / n )
+    for _ in range( 20000 ):
+        X = Q @ np.diag( u ) @ Q.T
+        M = np.einsum( 'ij,ji->i', Q.T @ np.linalg.inv( X ), Q )
+        j = np.argmax( M )
+        if M[j] < ( d + 1.0 ) * ( 1.0 + tol ):
+            break
+        step = ( M[j] - d - 1.0 ) / ( ( d + 1.0 ) * ( M[j] - 1.0 ) )
+        u = ( 1.0 - step ) * u
+        u[j] += step
+    ctr = P.T @ u
+    A = np.linalg.inv( P.T @ np.diag( u ) @ P - np.outer( ctr, ctr ) ) / d
+    r = np.einsum( 'ij,jk,ik->i', P - ctr, A, P - ctr )
+    return ctr, A / max( r.max(), 1.0 )
+
+
+def jet_of( name, case ):
+    d = data[ name ]
+    return d[ 'jet' ][ list( d[ 'case' ] ).index( case ) ]
+
+
+def oval( ax, keep, xkey, ykey, label, side=( 0.0, 1.0 ) ):
+    """Dashed oval around the points picked by keep( name, case ), labeled at
+    the point of the oval furthest in the direction side ( dx, dy ). Fitted on the page in inches, as in Figure 16, so call it only once
+    the axis limits are fixed."""
+    fig.canvas.draw()
+    bb = ax.get_window_extent().transformed( fig.dpi_scale_trans.inverted() )
+    x0, x1 = ax.get_xlim(); y0, y1 = ax.get_ylim()
+    sx, sy = bb.width / ( x1 - x0 ), bb.height / ( y1 - y0 )
+    xs, ys = [], []
+    for name in models:
+        d = data[ name ]
+        for c, x, y in zip( d[ 'case' ], d[ xkey ], d[ ykey ] ):
+            if keep( name, c ):
+                xs.append( x * sx ); ys.append( y * sy )
+    ring = np.linspace( 0.0, 2.0 * np.pi, 16, endpoint=False )
+    P = np.column_stack( [ ( np.array( xs )[:, None] + 0.095 * np.cos( ring ) ).ravel(),
+                           ( np.array( ys )[:, None] + 0.095 * np.sin( ring ) ).ravel() ] )
+    ctr, A = min_ellipse( P )
+    w, V = np.linalg.eigh( A )
+    t = np.linspace( 0.0, 2.0 * np.pi, 200 )
+    E = ctr[:, None] + V @ ( np.diag( 1.0 / np.sqrt( w ) ) @ np.vstack( [ np.cos( t ), np.sin( t ) ] ) )
+    ax.plot( E[0] / sx, E[1] / sy, color='0.4', ls='--', lw=0.9, zorder=2 )
+    dx, dy = side
+    k = np.argmax( dx * E[0] + dy * E[1] )
+    ax.text( ( E[0, k] + 0.04 * dx ) / sx, ( E[1, k] + 0.04 * dy ) / sy, label,
+             fontsize=9, color=c_label, zorder=6,
+             ha='left' if dx > 0.3 else 'right' if dx < -0.3 else 'center',
+             va='bottom' if dy > 0.3 else 'top' if dy < -0.3 else 'center' )
+
 fig, axes = plt.subplots( 1, 2, figsize=(11.2, 4.6), layout='constrained' )
+fig.get_layout_engine().set( wspace=0.08 )   # a little air between the panels
 
 
 def draw( ax, xkey, ykey ):
@@ -122,18 +182,17 @@ def draw( ax, xkey, ykey ):
 
 ax = axes[0]
 ax.axhspan( -6, 20, color='#eef3f8', zorder=0 )
-ax.axvline( 0.0, color='k', ls=':', lw=1.0, zorder=1 )
 draw( ax, 'umax', 'jetlat' )
 
 ax.set_ylim( -6, 78 )
 ax.set_xlabel( 'Maximum zonal wind within $10\\degree$ of the equator\n'
                'at $\\sigma = 0.30$ (m s$^{-1}$)', fontsize=12 )
 ax.set_ylabel( 'Latitude of the tropospheric jet ($\\degree$)', fontsize=12 )
-# Kept in the upper part of the shaded band: LFRic Case 11 sits at 48.7 m/s and
-# 5 degrees, at the right-hand end of the single-jet row.
-ax.text( 0.98, 0.22, 'equatorial jet', transform=ax.transAxes, fontsize=9,
-         style='italic', color=c_label, ha='right' )
 ax.set_title( '(a) Jet latitude against equatorial wind', fontsize=12 )
+ax.set_xlim( ax.get_xlim() )
+# The single jets of the thin atmospheres; the regime is set by the surface pressure
+oval( ax, lambda n, c: pres1[ c - 1 ] < 1.0 and jet_of( n, c ) == 'SJ', 'umax', 'jetlat',
+      '$p_s < 1$ bar', side=( 0.0, 1.0 ) )
 
 #--------------------------------------------------------------------
 # Panel (b) — minimum surface temperature against the contrast ratio
@@ -149,7 +208,6 @@ ax.set_ylabel( 'Minimum surface temperature (K)', fontsize=12 )
 ax.text( 0.98, T_FREEZE + 6, '273.16 K', fontsize=9, color=c_label, ha='right',
          transform=ax.get_yaxis_transform() )
 ax.set_title( '(b) Minimum surface temperature against contrast ratio', fontsize=12 )
-
 for ax in axes:
     ax.tick_params( axis='both', labelsize=10 )
 
@@ -183,3 +241,18 @@ for xkey, label in ( ( 'umax', 'equatorial wind (m/s)' ),
     print( f'  {label:24s} SJ {sj.min():7.1f}-{sj.max():6.1f} med {np.median(sj):6.1f}'
            f'   DJ {dj.min():7.1f}-{dj.max():6.1f} med {np.median(dj):6.1f}'
            f'   overlap {100.0 * max(0.0, hi - lo) / span:3.0f}% of the range' )
+
+#--------------------------------------------------------------------
+# The surface pressure sets the jet state (the oval in panel a)
+
+print( '\n=== jet state against surface pressure ===' )
+C = np.concatenate( [ data[ m ][ 'case' ] for m in models ] )
+J = np.concatenate( [ data[ m ][ 'jet'  ] for m in models ] )
+P = pres1[ C - 1 ]
+thin = P < 1.0
+print( f'  below 1 bar: {np.sum(J[thin] == "SJ")} of {thin.sum()} single jets;'
+       f' at or above: {np.sum(J[~thin] == "SJ")} of {(~thin).sum()}' )
+print( f'  "single jet below 1 bar" is right for {np.sum(thin == (J == "SJ"))} of {len(J)}' )
+print( '  exceptions: ' + ', '.join( f'{m} {c} ({pres1[c-1]:.2f} bar, {j})'
+       for m in models for c, j in zip( data[ m ][ 'case' ], data[ m ][ 'jet' ] )
+       if ( pres1[ c - 1 ] < 1.0 ) != ( j == 'SJ' ) ) )
