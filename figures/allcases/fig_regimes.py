@@ -20,6 +20,9 @@ plt.rcParams[ 'axes.labelweight' ] = 'bold'
 plt.rcParams[ 'axes.labelpad' ]    = 8
 
 SHOW_TRANSPORT = True     # set False to drop panel (b)
+TRANSPORT_X    = 'flux'   # abscissa of (b): 'flux' (S/S0), 'contrast' or 'case'
+CASE_OVALS     = ( TRANSPORT_X != 'contrast' )   # dashed oval and number around each case
+                          # in (b); on the contrast axis the cases overlap
 
 # ─── QMC sample points, replicated from fig_interpolation_temp.py ────────────
 flux = np.arange( 400, 2700, 100 )
@@ -38,6 +41,7 @@ exocam_lr    = np.array( [ 1.017, 0.834, 0.783, 1.034, 0.626, 1.454, 0.637, 0.94
 exocam_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'DJ']
 exocam_jetlat= np.array( [ 2.0, 42.0, 66.0, 2.0, 70.0, 2.0, 66.0, 34.0, 2.0, 58.0 ] )
 exocam_conv  = np.array( [ 57.1, 196.9, 140.7, 167.3, 55.7, 152.4, 310.8, 136.8, 84.9, 296.1 ] )
+exocam_dn    = np.array( [ 0.323, 0.164, 0.136, 0.191, 0.156, 0.205, 0.011, 0.228, 0.283, 0.009 ] )
 exocam_ratio = np.array( [ 0.572, 0.507, 0.463, 0.590, 0.461, 0.638, 0.424, 0.553, 0.531, 0.374 ] )
 
 # ExoPlaSim
@@ -47,6 +51,7 @@ plasim_lr    = np.array( [ 1.021, 0.709, 1.418, 1.081, 1.438, 0.878, 1.220, 0.84
 plasim_jet   = ['DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ']
 plasim_jetlat= np.array( [ 58.1, 30.5, 2.8, 52.6, 2.8, 47.1, 2.8, 63.7, 2.8, 69.2, 2.8, 58.1, 2.8, 52.6, 41.5, 2.8 ] )
 plasim_conv  = np.array( [ 27.6, 361.0, 464.2, 174.3, 245.8, 430.4, 280.7, 94.7, 153.7, 29.6, 95.3, 313.8, 266.2, 113.1, 36.6, 249.5 ] )
+plasim_dn    = np.array( [ 0.429, 0.016, 0.061, 0.164, 0.105, 0.023, 0.122, 0.220, 0.240, 0.334, 0.297, 0.024, 0.087, 0.262, 0.443, 0.024 ] )
 plasim_ratio = np.array( [ 0.655, 0.199, 0.512, 0.609, 0.443, 0.460, 0.545, 0.454, 0.665, 0.685, 0.632, 0.408, 0.418, 0.541, 0.651, 0.283 ] )
 
 # ROCKE-3D
@@ -56,6 +61,7 @@ rocke3d_lr    = np.array( [ 0.979, 0.854, 1.318, 1.073, 0.949, 1.075, 0.900, 1.4
 rocke3d_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ']
 rocke3d_jetlat= np.array( [ 0.0, 40.0, 20.0, 4.0, 68.0, 4.0, 68.0, 4.0, 64.0, 24.0, 40.0, 4.0, 68.0 ] )
 rocke3d_conv  = np.array( [ 56.4, 196.3, 227.1, 234.2, 138.0, 157.2, 65.6, 130.1, 295.2, 240.9, 130.0, 74.1, 303.5 ] )
+rocke3d_dn    = np.array( [ 0.268, 0.148, 0.079, 0.070, 0.140, 0.177, 0.162, 0.192, 0.041, 0.067, 0.209, 0.254, 0.040 ] )
 rocke3d_ratio = np.array( [ 0.454, 0.497, 0.546, 0.408, 0.525, 0.529, 0.477, 0.573, 0.198, 0.458, 0.519, 0.464, 0.246 ] )
 
 # LFRic
@@ -65,6 +71,7 @@ lfric_lr    = np.array( [ 0.803, 0.647, 0.396, 0.560, 0.784, 0.563, 1.107, 0.338
 lfric_jet   = ['SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'SJ', 'DJ', 'SJ', 'SJ', 'DJ']
 lfric_jetlat= np.array( [ 1.0, 43.0, 1.0, 39.0, 1.0, 1.0, 5.0, 61.0, 1.0, 1.0, 69.0 ] )
 lfric_conv  = np.array( [ 53.0, 177.3, 447.4, 112.8, 157.4, 56.5, 136.9, 299.6, 116.5, 67.4, 288.9 ] )
+lfric_dn    = np.array( [ 0.403, 0.171, 0.055, 0.184, 0.232, 0.238, 0.239, 0.014, 0.270, 0.377, 0.017 ] )
 lfric_ratio = np.array( [ 0.704, 0.522, 0.441, 0.726, 0.614, 0.817, 0.717, 0.812, 0.645, 0.705, 0.430 ] )
 
 # Generic PCM
@@ -74,6 +81,7 @@ pcm_lr    = np.array( [ 0.798, 0.640, 0.603, 0.771, 0.541, 0.756, 0.905 ] )
 pcm_jet   = ['SJ', 'DJ', 'DJ', 'DJ', 'DJ', 'DJ', 'SJ']
 pcm_jetlat= np.array( [ 3.9, 58.7, 62.6, 50.9, 62.6, 43.0, 0.0 ] )
 pcm_conv  = np.array( [ 75.4, 261.3, 142.2, 223.6, 73.2, 155.4, 90.9 ] )
+pcm_dn    = np.array( [ 0.272, 0.097, 0.143, 0.147, 0.161, 0.214, 0.257 ] )
 pcm_ratio = np.array( [ 0.520, 0.430, 0.492, 0.438, 0.355, 0.502, 0.548 ] )
 
 # PlaHab, HEXTOR and ExoColumn cannot appear in any of the three panels. Panel
@@ -101,20 +109,27 @@ wind_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic' ]
 data = {
     'ExoCAM':      dict( case=exocam_case,  lamr=exocam_lamr,  lr=exocam_lr,
                          jet=exocam_jet,  jetlat=exocam_jetlat,  conv=exocam_conv,
-                         ratio=exocam_ratio ),
+                         ratio=exocam_ratio, dn=exocam_dn ),
     'ExoPlaSim':   dict( case=plasim_case,  lamr=plasim_lamr,  lr=plasim_lr,
                          jet=plasim_jet,  jetlat=plasim_jetlat,  conv=plasim_conv,
-                         ratio=plasim_ratio ),
+                         ratio=plasim_ratio, dn=plasim_dn ),
     'ROCKE-3D':    dict( case=rocke3d_case, lamr=rocke3d_lamr, lr=rocke3d_lr,
                          jet=rocke3d_jet, jetlat=rocke3d_jetlat, conv=rocke3d_conv,
-                         ratio=rocke3d_ratio ),
+                         ratio=rocke3d_ratio, dn=rocke3d_dn ),
     'LFRic':       dict( case=lfric_case,   lamr=lfric_lamr,   lr=lfric_lr,
                          jet=lfric_jet,   jetlat=lfric_jetlat,   conv=lfric_conv,
-                         ratio=lfric_ratio ),
+                         ratio=lfric_ratio, dn=lfric_dn ),
     'Generic PCM': dict( case=pcm_case,     lamr=pcm_lamr,     lr=pcm_lr,
                          jet=pcm_jet,     jetlat=pcm_jetlat,     conv=pcm_conv,
-                         ratio=pcm_ratio ),
+                         ratio=pcm_ratio, dn=pcm_dn ),
 }
+
+S0 = 1361.0              # present-day solar constant, W m-2
+
+# Three pairs of cases share an instellation, and 7/13 and 11/14 overlap in
+# convergence too, so on the S/S0 axis each pair is nudged apart, in S/S0. The
+# tall Case 7 goes outermost, and Case 14 into the gap towards 1100 W m-2.
+PAIR_SHIFT = { 7: +0.024, 13: -0.016, 12: +0.016, 5: -0.018, 14: +0.050, 11: -0.010 }
 
 def fan( name ):
     """Small horizontal offset so co-located models stay distinguishable."""
@@ -146,8 +161,10 @@ c_rhines = '#faf3ec'
 c_label  = '0.35'
 
 npanel = 2 if SHOW_TRANSPORT else 1
-fig, axes = plt.subplots( 1, npanel, figsize=( 5.6 * npanel, 4.6 ), layout='constrained' )
+fig, axes = plt.subplots( 1, npanel, figsize=( 5.6 * npanel, 4.6 ), layout='constrained',
+                         width_ratios=( [ 1.0, 1.4 ] if SHOW_TRANSPORT else None ) )
 axes = np.atleast_1d( axes )
+fig.get_layout_engine().set( wspace=0.08 )   # a little air between the panels
 
 #--------------------------------------------------------------------
 # Panel (a) — Rhines length against Rossby deformation radius
@@ -178,61 +195,90 @@ ax.text( 0.96, 0.45, 'rapid rotators', fontsize=9, style='italic',
          color=c_label, ha='center', va='center', rotation=90 )
 ax.text( 1.75, 1.73, 'slow rotators',   fontsize=10, style='italic', color=c_label, ha='right' )
 ax.text( 1.75, 0.20, 'Rhines rotators', fontsize=10, style='italic', color=c_label, ha='right' )
-ax.set_title( '(a) Circulation regime', fontsize=12 )
+ax.set_title( 'Circulation regime', fontsize=12 )
 
 #--------------------------------------------------------------------
 # Panel (b) — night-side energy transport
+#
+# Against the scaled day-night surface temperature contrast (T_day -
+# T_night) / T_eq, as in the lower-right panel of Figure 2 of Haqq-Misra et al.
+# (2018), where the axes are the other way round; or against the case number,
+# with the models fanned out within each case.
 
 if SHOW_TRANSPORT:
     ax = axes[1]
+    by_case = ( TRANSPORT_X == 'case' )
+    by_flux = ( TRANSPORT_X == 'flux' )
+    def xpos( name ):
+        d = data[ name ]
+        if by_case:
+            return d[ 'case' ] + fan( name )
+        if by_flux:
+            shift = np.array( [ PAIR_SHIFT.get( c, 0.0 ) for c in d[ 'case' ] ] )
+            return flux1[ d[ 'case' ] - 1 ] / S0 + shift + 0.07 * fan( name )
+        return d[ 'dn' ]
+    xlim = { 'case': ( 0.2, 16.8 ), 'flux': ( 1.80, 0.24 ), 'contrast': ( 0.0, 0.47 ) }[ TRANSPORT_X ]
+    ylim = ( 0.0, 520.0 )
 
-    # A dashed oval around the models at each shared case, labeled with the
-    # case number, so each cluster reads as one sample point; the cases only
-    # ExoPlaSim reports carry the number alone. Each oval is the
-    # smallest ellipse holding the markers, found on the page in inches so it
-    # keeps its shape whatever the axis ranges; it may tilt with the cluster.
-    ax.set_xlim( 0.2, 16.8 )
-    ax.set_ylim( 0.0, 520.0 )
-    fig.canvas.draw()
-    bb = ax.get_window_extent().transformed( fig.dpi_scale_trans.inverted() )
-    sx = bb.width  / ( 16.8 - 0.2 )           # inches per case
-    sy = bb.height / 520.0                    # inches per W m-2
-    rm = 0.095                                # marker radius plus a gap, in
-    ring = np.linspace( 0.0, 2.0 * np.pi, 16, endpoint=False )
-    for c in range( 1, 17 ):
-        here = [ n for n in wind_models if c in data[ n ][ 'case' ] ]
-        x = np.array( [ c + fan( n ) for n in here ] ) * sx
-        y = np.array( [ data[ n ][ 'conv' ][ data[ n ][ 'case' ] == c ][0] for n in here ] ) * sy
-        if len( here ) == 1:
-            # ExoPlaSim alone: the number only, where an oval's top would be
-            ax.text( x[0] / sx, ( y[0] + rm ) / sy + 3.0, str( c ), fontsize=9,
-                     color='0.35', ha='center', va='bottom', zorder=6,
+    if CASE_OVALS:
+        # A dashed oval around the models at each shared case, labeled with the
+        # case number, so each cluster reads as one sample point; the cases
+        # only ExoPlaSim reports carry the number alone. Each oval is the
+        # smallest ellipse holding the markers, found on the page in inches so
+        # it keeps its shape whatever the axis ranges; it may tilt with the
+        # cluster.
+        ax.set_xlim( xlim )
+        ax.set_ylim( ylim )
+        fig.canvas.draw()
+        bb = ax.get_window_extent().transformed( fig.dpi_scale_trans.inverted() )
+        sx = bb.width  / abs( xlim[1] - xlim[0] )    # inches per abscissa unit
+        sy = bb.height / ( ylim[1] - ylim[0] )    # inches per W m-2
+        rm = 0.085                                # marker radius plus a gap, in
+        ring = np.linspace( 0.0, 2.0 * np.pi, 16, endpoint=False )
+        for c in range( 1, 17 ):
+            here = [ n for n in wind_models if c in data[ n ][ 'case' ] ]
+            x = np.array( [ xpos( n )[ data[ n ][ 'case' ] == c ][0] for n in here ] ) * sx
+            y = np.array( [ data[ n ][ 'conv' ][ data[ n ][ 'case' ] == c ][0] for n in here ] ) * sy
+            if len( here ) == 1:
+                # ExoPlaSim alone: the number only, where an oval's top would be
+                ax.text( x[0] / sx, ( y[0] + rm ) / sy + 3.0, str( c ), fontsize=9,
+                         color=c_label, ha='center', va='bottom', zorder=4,
+                         bbox=dict( fc='w', ec='none', pad=0.5 ) )
+                continue
+            P = np.column_stack( [ ( x[:, None] + rm * np.cos( ring ) ).ravel(),
+                                   ( y[:, None] + rm * np.sin( ring ) ).ravel() ] )
+            ctr, A = min_ellipse( P )
+            w, V = np.linalg.eigh( A )
+            t = np.linspace( 0.0, 2.0 * np.pi, 200 )
+            E = ctr[:, None] + V @ ( np.diag( 1.0 / np.sqrt( w ) )
+                                     @ np.vstack( [ np.cos( t ), np.sin( t ) ] ) )
+            ax.plot( E[0] / sx, E[1] / sy, color='0.5', ls='--', lw=0.9, zorder=2 )
+            # Below the oval where the space above is taken (Case 13 on S/S0)
+            below = by_flux and c in ( 13, )
+            k = np.argmin( E[1] ) if below else np.argmax( E[1] )
+            ax.text( E[0, k] / sx, E[1, k] / sy + ( -3.0 if below else 3.0 ), str( c ),
+                     fontsize=9, color=c_label, ha='center',
+                     va='top' if below else 'bottom', zorder=4,
                      bbox=dict( fc='w', ec='none', pad=0.5 ) )
-            continue
-        P = np.column_stack( [ ( x[:, None] + rm * np.cos( ring ) ).ravel(),
-                               ( y[:, None] + rm * np.sin( ring ) ).ravel() ] )
-        ctr, A = min_ellipse( P )
-        w, V = np.linalg.eigh( A )
-        t = np.linspace( 0.0, 2.0 * np.pi, 200 )
-        E = ctr[:, None] + V @ ( np.diag( 1.0 / np.sqrt( w ) ) @ np.vstack( [ np.cos( t ), np.sin( t ) ] ) )
-        ax.plot( E[0] / sx, E[1] / sy, color='0.5', ls='--', lw=0.9, zorder=2 )
-        top = np.argmax( E[1] )
-        ax.text( E[0, top] / sx, E[1, top] / sy + 3.0, str( c ), fontsize=9,
-                 color='0.35', ha='center', va='bottom', zorder=6,
-                 bbox=dict( fc='w', ec='none', pad=0.5 ) )
 
     for name in wind_models:
-        d = data[ name ]
-        ax.scatter( d[ 'case' ] + fan( name ), d[ 'conv' ], s=45, marker=marker[ name ],
+        ax.scatter( xpos( name ), data[ name ][ 'conv' ], s=45, marker=marker[ name ],
                     color=style[ name ], edgecolors='k', linewidths=0.7,
                     label=name, zorder=5 )
 
-    ax.set_xlim( 0.2, 16.8 )
-    ax.set_xticks( [ 1, 4, 7, 10, 13, 16 ] )
-    ax.set_xticks( range( 1, 17 ), minor=True )
-    ax.set_xlabel( 'Case', fontsize=12 )
+    ax.set_xlim( xlim )
+    ax.set_ylim( ylim )
+    if by_case:
+        ax.set_xticks( [ 1, 4, 7, 10, 13, 16 ] )
+        ax.set_xticks( range( 1, 17 ), minor=True )
+        ax.set_xlabel( 'Case', fontsize=12 )
+    elif by_flux:
+        ax.set_xlabel( 'Relative instellation, $S/S_0$', fontsize=12 )
+    else:
+        ax.set_xlabel( 'Day-night temperature contrast,\n'
+                       '$(T_{\\mathrm{day}} - T_{\\mathrm{night}})/T_{\\mathrm{eq}}$', fontsize=12 )
     ax.set_ylabel( 'Night-side static energy flux\nconvergence (W m$^{-2}$)', fontsize=12 )
-    ax.set_title( '(b) Night-side energy transport', fontsize=12 )
+    ax.set_title( 'Night-side energy transport', fontsize=12 )
 
 for ax in axes:
     ax.tick_params( axis='both', labelsize=10 )
@@ -279,3 +325,14 @@ for n in wind_models:
            f'   ratio {ratio.min():.2f}-{ratio.max():.2f}' )
 pooled = np.corrcoef( np.concatenate( all_lr ), np.concatenate( all_ratio ) )[0,1]
 print( f'  {"pooled":12s} n={len(np.concatenate(all_lr)):2d}  r = {pooled:+.2f}' )
+
+print( '\n=== night-side convergence against the day-night contrast ===' )
+all_dn, all_cv = [], []
+for n in wind_models:
+    dn, cv = data[ n ][ 'dn' ], data[ n ][ 'conv' ]
+    all_dn.append( dn ); all_cv.append( cv )
+    print( f'  {n:12s} n={len(dn):2d}  r = {np.corrcoef(dn, cv)[0,1]:+.2f}'
+           f'   contrast {dn.min():.3f}-{dn.max():.3f}' )
+all_dn, all_cv = np.concatenate( all_dn ), np.concatenate( all_cv )
+print( f'  {"pooled":12s} n={len(all_dn):2d}  r = {np.corrcoef(all_dn, all_cv)[0,1]:+.2f}'
+       f'   contrast {all_dn.min():.3f}-{all_dn.max():.3f}' )

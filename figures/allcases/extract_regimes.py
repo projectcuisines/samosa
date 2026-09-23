@@ -191,6 +191,7 @@ G     = 9.81                       # m s^-2, as in Haqq-Misra et al. (2018)
 RGAS  = 8.314                      # J mol^-1 K^-1
 MAIR  = 0.028                      # kg mol^-1, as in Haqq-Misra et al. (2018)
 OMEGA = 2.0 * np.pi / ( 15.0 * 86400.0 )   # 15-day synchronous rotation
+SIGMA_SB = 5.670374e-8                     # Stefan-Boltzmann, W m-2 K-4
 BETA  = 2.0 * OMEGA / A                    # s^-1 m^-1, per Erratum 2
 SIGMA_JET = 0.30                   # level at which the jet structure is judged
 JET_POLE  = 75.0                   # jets are sought equatorward of this latitude
@@ -445,7 +446,20 @@ def diagnose( D ):
         conv = float( area_mean( np.nanmean(
             ( D[ 'olr' ] - D[ 'asr' ] )[ :, night ], axis=-1 ), ts_cw ) )
 
+    # Day-night contrast scaled by the equilibrium temperature, (T_day -
+    # T_night) / T_eq, the abscissa of the lower-right panel of Figure 2 of
+    # Haqq-Misra et al. (2018). T_eq = (ASR / sigma)^(1/4) from the model's own
+    # global mean absorbed shortwave, which is S (1 - albedo) / 4 on its own
+    # planetary albedo; PlaHab archives no flux maps and so has no T_eq here.
+    if D.get( 'asr' ) is None:
+        asr_glob, teq, dn = np.nan, np.nan, np.nan
+    else:
+        asr_glob = float( area_mean( np.nanmean( D[ 'asr' ], axis=-1 ), ts_cw ) )
+        teq = ( asr_glob / SIGMA_SB ) ** 0.25
+        dn  = ( t_day - t_night ) / teq
+
     out = dict( tglob=tglob, t_day=t_day, t_night=t_night, t_eq=t_eq,
+                asr_glob=asr_glob, teq=teq, dn=dn,
                 t_pole=t_pole, ratio=ratio, hotspot=hotspot, conv=conv,
                 tsmin=float( np.nanmin( D[ 'ts' ] ) ) )
 
@@ -533,6 +547,7 @@ if __name__ == '__main__':
             print( f"{k}_jetlat= np.array( {fmt([ r['jetlat'] for _, r in rows ], '%.1f')} )" )
             print( f"{k}_umax  = np.array( {fmt([ r['umax'] for _, r in rows ], '%.1f')} )" )
             print( f"{k}_conv  = np.array( {fmt([ r['conv'] for _, r in rows ], '%.1f')} )" )
+            print( f"{k}_dn    = np.array( {fmt([ r['dn'] for _, r in rows ], '%.3f')} )" )
         print( f"{k}_tsmin = np.array( {fmt([ r['tsmin'] for _, r in rows ], '%.1f')} )" )
         print( f"{k}_ratio = np.array( {fmt([ r['ratio'] for _, r in rows ], '%.3f')} )" )
         print()
