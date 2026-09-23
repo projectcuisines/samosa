@@ -36,7 +36,7 @@ from matplotlib.transforms import offset_copy
 from pykrige.ok import OrdinaryKriging
 from pykrige.uk import UniversalKriging
 
-from fig_interpolation_temp_1d import ( CASES, MODELS as LOWRES, samples, ANISO_64,
+from fig_interpolation_temp_1d import ( CASES, MODELS as LOWRES, ROW_ORDER, samples, ANISO_64,
                                         pn2, flux, fluxscale, norm_pres, norm_flux,
                                         kriging as ok_1d,
                                         cm, contourmin, contourmax, cinterval,
@@ -177,7 +177,7 @@ if __name__ == '__main__':
                     edgecolors='k', linewidths=1.0 if big else 0.7, zorder=4 if big else 3, clip_on=False )
 
 
-    for row, name in enumerate( LOWRES ):
+    for row, name in enumerate( ROW_ORDER ):
         drift_pts, drift_grid, _ = fields[ name ]
         s = best[ name ]
         u = uk( efs, eps, ev, drift_pts, s )

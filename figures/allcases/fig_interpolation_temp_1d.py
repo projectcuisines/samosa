@@ -95,6 +95,8 @@ def read_tglob( path ):
 hextor    = read_tglob( TABLES[ 'HEXTOR' ] )
 exocolumn = read_tglob( TABLES[ 'ExoColumn' ] )
 MODELS = { 'HEXTOR': hextor, 'ExoColumn': exocolumn }
+# Figure rows, top to bottom (Figure 20 follows the same order)
+ROW_ORDER = [ 'ExoColumn', 'HEXTOR' ]
 
 def samples( temps, last_case ):
     """( instellation / fluxscale, pressure, temperature, case ) of the stable cases up to last_case."""
@@ -145,10 +147,10 @@ if __name__ == '__main__':
     marker_edge = 'k'
     MARKER = { 'HEXTOR': 'X', 'ExoColumn': '*' }
 
-    # Each panel is ( model, last case used, header over the pair, title )
-    PANELS = [ ( name, last ) for name in MODELS for last in ( 16, 64 ) ]
+    # One row per model: ( model, last case used ) for each panel
+    PANELS = [ ( name, last ) for name in ROW_ORDER for last in ( 16, 64 ) ]
 
-    fig, axs = plt.subplots( 1, 4, figsize=(12.2, 2.95), squeeze=False )
+    fig, axs = plt.subplots( 2, 2, figsize=(11.8, 12.1) )
     xv, yv = np.meshgrid( pn2, flux )
     levels = np.linspace( contourmin, contourmax, cinterval )
     for ax, ( name, last ) in zip( axs.flat, PANELS ):
@@ -183,26 +185,28 @@ if __name__ == '__main__':
         ax.set_box_aspect( 1 )
         ax.apply_aspect()
 
-    fig.subplots_adjust( wspace=0.12, right=0.88 )
+    fig.subplots_adjust( wspace=0.12, hspace=0.3, right=0.86 )
 
-    # One bold header over each model's pair of panels, as over the blocks of
-    # Figure 3, and the axes labeled once for the row
+    # One bold header over each model's row of panels, as over the blocks of
+    # Figure 3, and the axes labeled once for the figure
     above = offset_copy( fig.transFigure, fig=fig, y=23, units='points' )
-    for i, name in enumerate( MODELS ):
-        left, right = axs[ 0, 2*i ].get_position(), axs[ 0, 2*i + 1 ].get_position()
+    for i, name in enumerate( ROW_ORDER ):
+        left, right = axs[ i, 0 ].get_position(), axs[ i, 1 ].get_position()
         fig.text( ( left.x0 + right.x1 )/2, left.y1, name, transform=above,
                   ha='center', va='bottom', fontsize=14, fontweight='bold' )
-    for ax in axs.flat[ 1: ]:
+    for ax in axs[ :, 1 ]:
         ax.tick_params( labelleft=False )
-    first, last_ax = axs[ 0, 0 ].get_position(), axs[ 0, -1 ].get_position()
-    fig.text( first.x0, ( first.y0 + first.y1 )/2, 'Surface pressure (bar)',
+    for ax in axs[ 0, : ]:
+        ax.tick_params( labelbottom=False )
+    top, bot, last_ax = axs[ 0, 0 ].get_position(), axs[ 1, 0 ].get_position(), axs[ 1, -1 ].get_position()
+    fig.text( top.x0, ( bot.y0 + top.y1 )/2, 'Surface pressure (bar)',
               rotation=90, ha='right', va='center', fontsize=12, fontweight='bold',
               transform=offset_copy( fig.transFigure, fig=fig, x=-38, units='points' ) )
-    fig.text( ( first.x0 + last_ax.x1 )/2, first.y0, 'Instellation (W m$^{-2}$)',
+    fig.text( ( bot.x0 + last_ax.x1 )/2, bot.y0, 'Instellation (W m$^{-2}$)',
               ha='center', va='top', fontsize=12, fontweight='bold',
               transform=offset_copy( fig.transFigure, fig=fig, y=-25, units='points' ) )
 
-    cax = fig.add_axes( [ 0.905, first.y0, 0.013, first.y1 - first.y0 ] )
+    cax = fig.add_axes( [ last_ax.x1 + 0.025, bot.y0, 0.014, top.y1 - bot.y0 ] )
     cb = fig.colorbar( cf, cax=cax, extend='both', ticks=cbar_ticks )
     cb.ax.tick_params( labelsize=10 )
     cb.ax.get_yaxis().labelpad = 16
