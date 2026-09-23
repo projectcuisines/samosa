@@ -23,7 +23,6 @@ import cmocean
 
 from matplotlib.transforms import offset_copy
 from pykrige.ok import OrdinaryKriging
-from scipy import ndimage
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
@@ -34,7 +33,6 @@ cm              = cmocean.cm.thermal
 contourmin      = 175.0
 contourmax      = 370.0
 cinterval       = 40
-sigma_threshold = 45.0      # K; hatch where kriging σ exceeds this
 cbar_label      = 'Average Surface Temperature (K)'
 cbar_ticks      = np.arange( 200, 370, 50 )
 # ─────────────────────────────────────────────────────────────────────────────
@@ -132,13 +130,6 @@ def kriging( fs, ps, vals, aniso ):
                             anisotropy_scaling=aniso, variogram_model='linear',
                             verbose=False, enable_plotting=False, exact_values=True )
 
-# Of the regions where σ exceeds the threshold, hatch only those reaching the
-# highest instellation on the grid, as in fig_interpolation_temp.py.
-def warm_edge_sigma( sigma ):
-    regions, _ = ndimage.label( sigma > sigma_threshold, structure=np.ones( ( 3, 3 ) ) )
-    dropped    = np.setdiff1d( regions, np.append( regions[ -1, : ], 0 ) )
-    return np.where( np.isin( regions, dropped ), 0.0, sigma )
-
 
 def out_of_sample( name ):
     """The 16-case kriging of one model evaluated at its new stable cases."""
@@ -163,10 +154,8 @@ if __name__ == '__main__':
         temps = MODELS[ name ]
         fs, ps, vals, _ = samples( temps, last )
         aniso = ( ANISO_16 if last == 16 else ANISO_64 )[ name ]
-        z, var = kriging( fs, ps, vals, aniso ).execute( 'grid', norm_pres( pn2 ), norm_flux( flux ) )
+        z, _ = kriging( fs, ps, vals, aniso ).execute( 'grid', norm_pres( pn2 ), norm_flux( flux ) )
         cf = ax.contourf( yv*fluxscale, xv, z, cmap=cm, levels=levels, extend='both' )
-        ax.contourf( yv*fluxscale, xv, warm_edge_sigma( np.sqrt( np.clip( var, 0, None ) ) ), levels=[ sigma_threshold, 1e9 ],
-                     hatches=[ '///' ], colors='none', alpha=0 )
 
         # The same markers in every panel: circles for Cases 1-16, diamonds for
         # 17-64, crosses where the model ran away.
