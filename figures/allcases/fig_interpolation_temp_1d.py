@@ -150,7 +150,10 @@ if __name__ == '__main__':
     # One row per model: ( model, last case used ) for each panel
     PANELS = [ ( name, last ) for name in ROW_ORDER for last in ( 16, 64 ) ]
 
-    fig, axs = plt.subplots( 2, 2, figsize=(11.8, 12.1) )
+    # Panels ~2.1 in square, the size of those in Figures 3-6 and 20, with the
+    # same fonts; the paper includes this figure at the fraction of \linewidth
+    # that gives it their print scale, rather than at full width
+    fig, axs = plt.subplots( 2, 2, figsize=(6.6, 6.6) )
     xv, yv = np.meshgrid( pn2, flux )
     levels = np.linspace( contourmin, contourmax, cinterval )
     for ax, ( name, last ) in zip( axs.flat, PANELS ):
@@ -183,9 +186,10 @@ if __name__ == '__main__':
         ax.set_xticks( [ 2500, 2000, 1500, 1000, 500 ] )
         ax.set_ylim( [ min( pn2 )*0.9, max( pn2 )*1.1 ] )
         ax.set_box_aspect( 1 )
-        ax.apply_aspect()
 
-    fig.subplots_adjust( wspace=0.12, hspace=0.3, right=0.86 )
+    fig.subplots_adjust( wspace=0.12, hspace=0.36, left=0.14, right=0.82, bottom=0.1, top=0.89 )
+    for ax in axs.flat:
+        ax.apply_aspect()     # square boxes fixed before positions are read
 
     # One bold header over each model's row of panels, as over the blocks of
     # Figure 3, and the axes labeled once for the figure
@@ -206,7 +210,7 @@ if __name__ == '__main__':
               ha='center', va='top', fontsize=12, fontweight='bold',
               transform=offset_copy( fig.transFigure, fig=fig, y=-25, units='points' ) )
 
-    cax = fig.add_axes( [ last_ax.x1 + 0.025, bot.y0, 0.014, top.y1 - bot.y0 ] )
+    cax = fig.add_axes( [ last_ax.x1 + 0.03, bot.y0, 0.022, top.y1 - bot.y0 ] )
     cb = fig.colorbar( cf, cax=cax, extend='both', ticks=cbar_ticks )
     cb.ax.tick_params( labelsize=10 )
     cb.ax.get_yaxis().labelpad = 16
