@@ -192,7 +192,6 @@ ax.set_xticklabels( [ f'{c}\n{f:.0f}\n{p:.2f}' for c, f, p in zip( cases, flux1,
 ax.set_xlabel( 'Case / instellation (W m$^{-2}$) / N$_2$ surface pressure (bar)', fontsize=12, labelpad=8 )
 
 ax.tick_params( axis='y', labelsize=11 )
-ax.text( 16.45, tol, f'{tol:.0f}%', ha='right', va='bottom', fontsize=9, color='0.55' )
 
 # One marker shape and color per model, and nothing else encoded in the symbol
 model_handles = [ Line2D( [0], [0], marker=style[ m ][ 'marker' ], color='none',
