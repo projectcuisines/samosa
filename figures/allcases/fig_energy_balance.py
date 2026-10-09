@@ -36,6 +36,10 @@ plt.rcParams[ 'axes.labelpad' ]    = 8
 #   ROCKE-3D     rocke3d/rocke_NNq.nc, -trnf_toa_hemis[2] / srnf_toa_hemis[2]
 #   Generic PCM  genericpcm/OHT_off/case-N/samosa_gcm_output_case-N_OHT_off.dat
 #   LFRic        lfric/samosa_global_diagnostics_lfric_2026-09-10.txt
+#   UM           um/global_UM.dat
+#   CLERO-UM,    clero/CLERO-*/samosa_CLERO-*_caseNN.nc, area_weight-weighted
+#   CLERO-ExoCAM asr / olr. CLERO is an emulator, so for it this is a check on
+#                the energy closure of its predicted climate, not convergence.
 #   PlaHab       plahab/simulations/sampleN/global_samosa_plahab_*
 #                (the simulations/ copies are authoritative; the top-level
 #                 seq1sam4 file is a stale duplicate that disagrees by ~3 K)
@@ -58,6 +62,9 @@ imbalance = {
     'PlaHab':      np.array( [ -0.19,    nan,    nan,   0.76,  -0.54,    nan,  -0.57,   2.04,   1.06,  -9.65,  -0.48,  -0.50,  -0.36,   2.79,  -0.07,  -0.42 ] ),
     'HEXTOR':      np.array( [ -0.50,    nan,    nan,  -0.74,    nan,    nan,    nan,  -0.64,  -0.72,  -0.51,  -0.62,    nan,    nan,  -0.66,  -0.50,  -0.70 ] ),
     'ExoColumn':   np.array( [ -0.05,    nan,    nan,  -0.29,    nan,    nan,    nan,   0.06,  -0.20,   0.11,  -0.04,    nan,    nan,  -0.21,  -0.15,    nan ] ),
+    'UM':          np.array( [  0.86,    nan,    nan,  -0.13,    nan,    nan,    nan,   0.15,   0.04,   0.05,   1.62,    nan,    nan,  -0.20,   1.39,  -0.10 ] ),
+    'CLERO-UM':     np.array( [  1.05,  -0.16,    nan,  -0.08,   0.20,  -0.18,   0.03,  -0.04,   0.09,   0.19,   0.47,   0.00,    nan,  -0.06,   1.07,  -0.07 ] ),
+    'CLERO-ExoCAM': np.array( [  1.26,  -0.36,    nan,   0.48,   0.24,  -0.27,   0.20,   0.79,   0.48,   0.89,   0.36,   0.14,    nan,   0.50,   1.24,  -0.16 ] ),
 }
 
 # True where the case is carried into the analysis of Figures 2-5; False where
@@ -102,6 +109,9 @@ accepted = {
     'PlaHab':      np.array( [ True, False, False, True, True, False, True, True, True, True, True, True, True, True, True, True ] ),
     'HEXTOR':      np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, True ] ),
     'ExoColumn':   np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, False ] ),
+    'UM':          np.array( [ True, False, False, True, False, False, False, True, True, True, True, False, False, True, True, True ] ),
+    'CLERO-UM':     np.array( [ True, True, False, True, True, True, True, True, True, True, True, True, False, True, True, True ] ),
+    'CLERO-ExoCAM': np.array( [ True, True, False, True, True, True, True, True, True, True, True, True, False, True, True, True ] ),
 }
 
 # Colors follow the selectcases figures so the models read consistently
@@ -114,6 +124,9 @@ style = {
     'PlaHab':      dict( color='#8c564b', marker='P' ),
     'HEXTOR':      dict( color='#17becf', marker='X' ),
     'ExoColumn':   dict( color='#7f7f7f', marker='*' ),
+    'UM':          dict( color='#e377c2', marker='>' ),
+    'CLERO-UM':     dict( color='#bcbd22', marker='h' ),
+    'CLERO-ExoCAM': dict( color='#e7ba52', marker='p' ),
 }
 
 # Regime of each case, on the consensus rule of fig_summary.py but evaluated at
@@ -123,7 +136,9 @@ style = {
 # with data there puts the global mean below 273.16 K, 'warm' if every model
 # puts it above, and 'mixed' if they disagree on the sign.
 # Case 9 was 'mixed' while HEXTOR put it at 278.2 K, and is 'frozen' again since
-# HEXTOR's RH 0.8 resubmission (2026-09-16) brought it to 267.9 K. Re-run the
+# HEXTOR's RH 0.8 resubmission (2026-09-16) brought it to 267.9 K. The UM
+# (2026-10-09) changes no case. CLERO, an emulator, is left out of the rule, as
+# it is out of every ensemble statistic. Re-run the
 # sample-point cross-check against fig_summary.py after any resubmission.
 regime = [ 'frozen', 'runaway', 'runaway', 'mixed', 'mixed', 'runaway', 'mixed', 'frozen',
            'frozen', 'frozen', 'frozen', 'warm', 'mixed', 'frozen', 'frozen', 'warm' ]
@@ -138,7 +153,8 @@ regime_label = { 'frozen':  'All below 273 K',
                  'warm':    'All above 273 K',
                  'runaway': 'Majority runaway' }
 
-models   = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab', 'HEXTOR', 'ExoColumn' ]
+models   = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM', 'PlaHab', 'HEXTOR', 'ExoColumn',
+             'CLERO-UM', 'CLERO-ExoCAM' ]
 tol      = 1.0      # per cent; below which a run is taken as equilibrated
 # Plotting the magnitude frees the half of the axis that used to carry the
 # negative residuals, so the linear/log crossover drops from 1.0 to 0.1 and the
@@ -164,7 +180,7 @@ for i in range( 1, 16 ):
 ax.axhline( 0.0, color='0.45', lw=0.9, zorder=2 )
 ax.axhline( tol, color='0.72', lw=0.8, ls=( 0, ( 4, 3 ) ), zorder=1 )
 
-offsets = np.linspace( -0.30, 0.30, len( models ) )
+offsets = np.linspace( -0.36, 0.36, len( models ) )
 
 for off, name in zip( offsets, models ):
     ok = accepted[ name ]
@@ -173,7 +189,7 @@ for off, name in zip( offsets, models ):
 
     y = np.abs( imbalance[ name ] )
     good = ~np.isnan( y ) & ok
-    ax.scatter( x[ good ], y[ good ], marker=st[ 'marker' ], s=58,
+    ax.scatter( x[ good ], y[ good ], marker=st[ 'marker' ], s=50,
                 facecolors=st[ 'color' ], edgecolors='k', linewidths=0.6, zorder=4 )
 
 ax.set_yscale( 'symlog', linthresh=linthresh, linscale=1.1 )
@@ -202,7 +218,7 @@ regime_handles = [ Patch( facecolor=regime_color[ r ], edgecolor='0.7', linewidt
                           label=regime_label[ r ] )
                    for r in ( 'frozen', 'mixed', 'warm', 'runaway' ) ]
 
-fig.legend( handles=model_handles, loc='lower left', ncol=8, fontsize=11,
+fig.legend( handles=model_handles, loc='lower left', ncol=6, fontsize=11,
             bbox_to_anchor=( 0.0, 1.085 ), bbox_transform=ax.transAxes,
             frameon=False, columnspacing=1.1, handletextpad=0.3 )
 fig.legend( handles=regime_handles, loc='lower left', ncol=4, fontsize=10,

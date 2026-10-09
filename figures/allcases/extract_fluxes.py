@@ -55,6 +55,19 @@ Per-model sources and the traps in each:
                atmosphere as in HEXTOR -- a third reading of the same protocol
                column, so albedo again comes from S/4.
 
+  UM           um/global_UM.dat, a whitespace table in template column order;
+               cos(lat)-weighted fields of um_samosa_caseNN.nc reproduce it
+               to 2 dp. Its Fsdn is at 10 m, so albedo again comes from S/4.
+               The UM uses a PHOENIX 3000 K spectrum, not the blackbody.
+
+  CLERO-UM     clero/CLERO-{UM,ExoCAM}/samosa_CLERO-*_caseNN.nc, asr and olr,
+  CLERO-ExoCAM weighted by the area_weight variable (per latitude row, divide
+               by 64). CLERO is a statistical emulator conditioned on either
+               the UM or ExoCAM; global_CLERO.dat is the MEAN of the two, so
+               it is not used. Cases are those delivered (mean runaway
+               probability of the two configurations <= 0.5), so CLERO-ExoCAM
+               keeps Case 6 although its own probability there is 0.59.
+
   PlaHab       plahab/simulations/sampleN/global_samosa_plahab_*
                Use simulations/, NOT the top-level global_samosa_plahab_
                seq1sam4.dat, which is a stale duplicate disagreeing by ~3 K in
@@ -85,6 +98,9 @@ ACCEPTED = {
     'PlaHab':      [ 1, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16 ],
     'HEXTOR':      [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ],
     'ExoColumn':   [ 1, 4, 8, 9, 10, 11, 14, 15 ],
+    'UM':          [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ],
+    'CLERO-UM':     [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
+    'CLERO-ExoCAM': [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
 }
 
 N = np.nan
@@ -173,6 +189,9 @@ def read_table( path, sample_col=True ):
             continue
         c = line.split()
         i = int( c[ 0 ] ) - 1
+        # The UM table lists all 64 protocol cases, with -- where none was run
+        if i >= 16 or c[ 3 ] == '--':
+            continue
         out[ 'ts' ][ i ]  = float( c[ 3 ] )
         out[ 'olr' ][ i ] = float( c[ 6 ] )
         out[ 'asr' ][ i ] = float( c[ 7 ] )
@@ -196,6 +215,22 @@ data[ 'Generic PCM' ] = d
 data[ 'LFRic' ]  = read_table( f'{ROOT}/lfric/samosa_global_diagnostics_lfric_2026-09-10.txt' )
 data[ 'HEXTOR' ]    = read_table( f'{ROOT}/hextor/global_output_HEXTOR.dat' )
 data[ 'ExoColumn' ] = read_table( f'{ROOT}/exocolumn/global_output_ExoColumn_a2736.dat' )
+
+data[ 'UM' ]        = read_table( f'{ROOT}/um/global_UM.dat' )
+
+# ── CLERO, one entry per configuration ──────────────────────────────────────
+for cfg in ( 'UM', 'ExoCAM' ):
+    d = blank()
+    for i in range( 16 ):
+        p = f'{ROOT}/clero/CLERO-{cfg}/samosa_CLERO-{cfg}_case{i+1:02d}.nc'
+        if not os.path.exists( p ):
+            continue
+        with nc.Dataset( p ) as ds:
+            w  = ds.variables[ 'area_weight' ][ : ][ :, None ] / ds.dimensions[ 'lon' ].size
+            gm = lambda k: float( np.sum( ds.variables[ k ][ : ] * w ) )
+            d[ 'ts' ][ i ], d[ 'olr' ][ i ], d[ 'asr' ][ i ] = gm( 'surface_temperature' ), gm( 'olr' ), gm( 'asr' )
+        d[ 'alb' ][ i ] = 100.0 * ( 1.0 - d[ 'asr' ][ i ] / incident[ i ] )
+    data[ f'CLERO-{cfg}' ] = d
 
 # ── PlaHab ───────────────────────────────────────────────────────────────────
 d = blank()
@@ -256,7 +291,7 @@ else:
 print( f'  overall: {"PASS" if allok else "FAIL - do not trust the fluxes below"}' )
 
 # ── Emit the arrays ──────────────────────────────────────────────────────────
-order = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab', 'HEXTOR', 'ExoColumn' ]
+order = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM', 'PlaHab', 'HEXTOR', 'ExoColumn', 'CLERO-UM', 'CLERO-ExoCAM' ]
 
 def fmt( vals ):
     return '[ ' + ', '.join( 'nan' if np.isnan( v ) else f'{v:.2f}' for v in vals ) + ' ]'
@@ -283,7 +318,7 @@ for m in order:
     # protocol's 400 ubar partial pressure (2026-09-14) Case 10 was a
     # CO2-condensation exclusion instead, and until its RH 0.8 resubmission
     # (2026-09-16) Case 16 was treated as a runaway.
-    if m in ( 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ):
+    if m in ( 'Generic PCM', 'LFRic', 'UM', 'HEXTOR', 'ExoColumn', 'CLERO-UM', 'CLERO-ExoCAM' ):
         sel = [ a[ c-1 ] for c in ACCEPTED[ m ] ]
         print( f'  {m:12s} {fmt(sel)}   (cases {ACCEPTED[m]})' )
     else:

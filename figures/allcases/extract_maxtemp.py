@@ -36,6 +36,11 @@ Per-model sources:
                it. That is a real property of the model, not a gap in the
                submission, but it means its state counts are not comparable
                with the resolved models'.
+  UM           um/um_samosa_caseNN.nc, surface_temperature, cos(lat) on the
+               native 90x144 grid; reproduces the Tmax/Tmin of global_UM.dat.
+  CLERO-UM     clero/CLERO-{UM,ExoCAM}/samosa_CLERO-*_caseNN.nc,
+  CLERO-ExoCAM surface_temperature, weighted by area_weight. CLERO's fields are
+               a spectral emulator's mean prediction on a 32x64 grid.
   PlaHab       plahab/simulations/sampleN/model_samosa_plahab_*.out. Four
                36x20 maps are concatenated in one file; block 0 is tsurf,
                verified against the standalone caseN_tsurf.out for samples 1
@@ -62,6 +67,9 @@ ACCEPTED = {
     'LFRic':       [ 1, 4, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
     'HEXTOR':      [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ],
     'ExoColumn':   [ 1, 4, 8, 9, 10, 11, 14, 15 ],
+    'UM':          [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ],
+    'CLERO-UM':     [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
+    'CLERO-ExoCAM': [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
 }
 
 # Global means already in fig_summary.py, used only to validate the mapping
@@ -79,6 +87,11 @@ REF = {
                 14:228.84, 15:203.64, 16:361.70 },
  'HEXTOR':    { 1:173.10, 4:292.22, 8:224.40, 9:267.86, 10:152.42, 11:225.52, 14:241.46, 15:188.62, 16:376.07 },
  'ExoColumn': { 1:206.98, 4:293.26, 8:248.49, 9:269.66, 10:201.36, 11:242.60, 14:251.63, 15:216.92 },
+ 'UM':        { 1:191.67, 4:260.62, 8:224.27, 9:253.33, 10:192.59, 11:228.14, 14:232.28, 15:201.97, 16:286.49 },
+ 'CLERO-UM':     { 1:191.04, 2:335.66, 4:260.32, 5:280.23, 6:335.21, 7:294.53, 8:225.00, 9:253.42,
+                   10:189.64, 11:227.84, 12:295.62, 14:233.13, 15:201.74, 16:289.68 },
+ 'CLERO-ExoCAM': { 1:193.80, 2:377.59, 4:273.84, 5:277.75, 6:341.68, 7:290.17, 8:244.07, 9:248.12,
+                   10:193.91, 11:231.81, 12:334.20, 14:233.94, 15:204.25, 16:348.38 },
 }
 
 T_FREEZE = 273.16
@@ -149,6 +162,22 @@ def read_plahab( case ):
     return _mean_max( ts, w )
 
 
+def read_um( case ):
+    with nc.Dataset( f'{ROOT}/um/um_samosa_case{case:02d}.nc' ) as d:
+        ts  = np.asarray( d.variables[ 'surface_temperature' ] )
+        lat = np.asarray( d.variables[ 'latitude' ] )
+    return _mean_max( ts, np.cos( np.radians( lat ) ) )
+
+
+def read_clero( cfg ):
+    def read( case ):
+        with nc.Dataset( f'{ROOT}/clero/CLERO-{cfg}/samosa_CLERO-{cfg}_case{case:02d}.nc' ) as d:
+            ts = np.asarray( d.variables[ 'surface_temperature' ] )
+            w  = np.asarray( d.variables[ 'area_weight' ] )
+        return _mean_max( ts, w )
+    return read
+
+
 def read_exocolumn( case ):
     """ExoColumn is one column: Tglob, Tmax and Tmin are the same number."""
     for line in open( f'{ROOT}/exocolumn/global_output_ExoColumn_a2736.dat' ):
@@ -173,7 +202,8 @@ def read_hextor( case ):
 
 READERS = { 'ExoPlaSim': read_exoplasim, 'ExoCAM': read_exocam, 'ROCKE-3D': read_rocke3d,
             'PlaHab': read_plahab, 'Generic PCM': read_pcm, 'LFRic': read_lfric,
-            'HEXTOR': read_hextor, 'ExoColumn': read_exocolumn }
+            'HEXTOR': read_hextor, 'ExoColumn': read_exocolumn, 'UM': read_um,
+            'CLERO-UM': read_clero( 'UM' ), 'CLERO-ExoCAM': read_clero( 'ExoCAM' ) }
 
 results = {}
 print( f"{'model':<12} {'case':>4} {'Tglob':>8} {'ref':>8} {'d':>7} {'Tmin':>8} {'Tmax':>8}  state" )
@@ -204,7 +234,8 @@ for model, name in order:
                  for c in range( 1, 17 ) ]
         print( f"{name.replace('tmax',tag):<14}= np.array( [ " + ", ".join( vals ) + " ] )" )
 for model, name in [ ( 'Generic PCM', 'tmax_pcm' ), ( 'LFRic', 'tmax_lfric' ),
-                     ( 'HEXTOR', 'tmax_hextor' ), ( 'ExoColumn', 'tmax_exocolumn' ) ]:
+                     ( 'HEXTOR', 'tmax_hextor' ), ( 'ExoColumn', 'tmax_exocolumn' ), ( 'UM', 'tmax_um' ),
+                     ( 'CLERO-UM', 'tmax_clero_um' ), ( 'CLERO-ExoCAM', 'tmax_clero_exocam' ) ]:
     for idx, tag in ( ( 0, 'tmax' ), ( 1, 'tmin' ) ):
         vals = [ f"{results[model][c][idx]:.1f}" for c in ACCEPTED[ model ] ]
         print( f"{name.replace('tmax',tag):<14}= np.array( [ " + ", ".join( vals ) + " ] )" )
