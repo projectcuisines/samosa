@@ -9,6 +9,7 @@ from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
 from scipy import ndimage
 from slide_halves import save_halves
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
@@ -71,9 +72,12 @@ MODELS = {
     'ROCKE-3D':    ( rocke3d_flux1,   rocke3d_pres1,   rocke3d_stable ),
     'Generic PCM': ( pcm_flux1,       pcm_pres1,       pcm            ),
     'LFRic':       ( lfric_flux1,     lfric_pres1,     lfric          ),
+    'UM':          ( uc.um_flux/fluxscale, uc.um_pres, uc.um_wv ),
     'PlaHab':      'No data\n(2D model)',
     'HEXTOR':      'No data\n(1D model)',
     'ExoColumn':   ( exocolumn_flux1, exocolumn_pres1, exocolumn      ),
+    'CLERO-UM':     ( uc.clero_flux/fluxscale, uc.clero_pres, uc.clero_um_wv ),
+    'CLERO-ExoCAM': ( uc.clero_flux/fluxscale, uc.clero_pres, uc.clero_exocam_wv ),
 }
 
 # With --common, every model is kriged from only the sample points at which all
@@ -144,14 +148,14 @@ def zoomed_view( models ):
 
 # Each block is ( header, models, view ), drawn as rows of four panels. Stacked,
 # each block has its own colorbar and the common cases get a fitted color
-# range; alone, they keep the full one so they compare directly with the full
-# figure.
+# range. Since 3x4 blocks (2026-10-09) the paper prints the two blocks as
+# separate figures, so --common alone takes the fitted range as well.
 if STACKED or COMMON:
     common_models, _ = restrict_to_common( MODELS )
     common_block = ( 'Common Cases',
                      common_models, zoomed_view( common_models ) )
-if STACKED:
     common_block[ 2 ].update( fitted_colors( common_models ) )
+if STACKED:
     blocks = [ ( 'All Cases', MODELS, full_view() ), common_block ]
 elif COMMON:
     blocks = [ common_block ]
@@ -171,6 +175,9 @@ ANISO = {
     'Generic PCM':  10,
     'LFRic':        10,
     'ExoColumn':    10,
+    'UM':           4,
+    'CLERO-UM':     4,
+    'CLERO-ExoCAM': 2,
 }
 
 # Normalize both axes to [0, 1] for kriging so distance metric is balanced
@@ -206,7 +213,8 @@ marker_edge = 'k'
 # drawn larger so that it reads at the same weight as the other shapes, and no
 # marker is clipped at the panel edge, where a cut shape would be hard to name.
 MARKER = { 'ExoPlaSim': 'o', 'ExoCAM': 's', 'ROCKE-3D': '^', 'Generic PCM': 'D',
-           'LFRic': 'v', 'PlaHab': 'P', 'HEXTOR': 'X', 'ExoColumn': '*' }
+           'LFRic': 'v', 'PlaHab': 'P', 'HEXTOR': 'X', 'ExoColumn': '*',
+           **{ name: st[ 'marker' ] for name, st in uc.STYLE.items() } }
 MARKER_SIZE = { '*': 80 }
 
 # Of the regions where σ exceeds the threshold, hatch only those reaching the
@@ -281,6 +289,8 @@ def draw_block( axs, models, view ):
             draw_empty( ax, name, model )
         else:
             cf = draw_panel( ax, name, *model, view )
+    for ax in axs.flat[ len( models ): ]:      # the unused twelfth slot
+        ax.set_axis_off()
     return cf
 
 # Every panel in a block shares one view, so the axes are labeled once per
@@ -310,9 +320,9 @@ def add_colorbar( fig, cf, rect, view ):
 
 #--------------------------------------------------------------------
 # Panels: rows of four, with the colorbar alongside rather than occupying a
-# panel slot. Each block is two rows, so panels keep the same size.
+# panel slot. Each block is three rows for the eleven models, the last slot empty.
 
-nrows = len( MODELS ) // 4
+nrows = -( -len( MODELS ) // 4 )
 if len( blocks ) == 1:
     _, models, view = blocks[ 0 ]
     fig, axs = plt.subplots( nrows, 4, figsize=(12.2, 2.95*nrows), squeeze=False )

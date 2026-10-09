@@ -1,5 +1,6 @@
 import numpy as np
 from pykrige.ok import OrdinaryKriging
+import um_clero as uc
 
 #--------------------------------------------------------------------
 # Data setup (mirrors fig_interpolation_albedo.py)
@@ -115,7 +116,8 @@ climate_models = [
     ( 'LFRic',       lfric_pres1,   lfric_flux1,   logit( lfric           ) ),
     ( 'HEXTOR',      hextor_pres1,  hextor_flux1,  logit( hextor          ) ),
     ( 'ExoColumn',   exocolumn_pres1, exocolumn_flux1, logit( exocolumn     ) ),
-]
+] + [ ( name, p, f/fluxscale, logit( v ) )      # UM and CLERO, flux in W/m2
+      for name, ( f, p, v ) in uc.samples( 'alb' ).items() ]
 
 #--------------------------------------------------------------------
 # Run and print results

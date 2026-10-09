@@ -1,5 +1,6 @@
 import numpy as np
 from pykrige.ok import OrdinaryKriging
+import um_clero as uc
 
 #--------------------------------------------------------------------
 # Data setup (mirrors fig_interpolation_watvap.py)
@@ -142,7 +143,8 @@ climate_models = [
     ( 'Generic PCM', 'std',    pcm_pres1,     pcm_flux1,     np.log(pcm),            None, None, None ),
     ( 'LFRic',       'std',    lfric_pres1,   lfric_flux1,   np.log(lfric),          None, None, None ),
     ( 'ExoColumn',   'std',    exocolumn_pres1, exocolumn_flux1, np.log(exocolumn),    None, None, None ),
-]
+] + [ ( name, 'std', p, f/fluxscale, np.log( v ), None, None, None )      # UM and CLERO, flux in W/m2
+      for name, ( f, p, v ) in uc.samples( 'wv' ).items() ]
 
 for row in climate_models:
     name, mode = row[0], row[1]

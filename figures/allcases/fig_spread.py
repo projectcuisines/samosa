@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 import matplotlib.cm as mcm
 import cmocean
+import um_clero as uc
 
 from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
@@ -135,15 +136,21 @@ wv_exocolumn = np.array( [ 0.00248419, 23.5491, 0.418244, 3.59523, 0.00097159, 0
 
 exocolumn_in_main = np.array( [ any( np.isclose( f, exocolumn_flux1 ) & np.isclose( p, exocolumn_pres1 ) ) for f, p in zip( flux1, pres1 ) ] )
 
+# The UM joins the resolved ensemble (2026-10-09). CLERO is plotted elsewhere
+# but kept out of the spread, since it emulates two of the ensemble's own models.
+um_flux1, um_pres1 = uc.um_flux / fluxscale, uc.um_pres
+um_in_main = np.array( [ any( np.isclose( f, um_flux1 ) & np.isclose( p, um_pres1 ) ) for f, p in zip( flux1, pres1 ) ] )
+
 hextor_in_main = np.array( [ any( np.isclose( f, hextor_flux1 ) & np.isclose( p, hextor_pres1 ) ) for f, p in zip( flux1, pres1 ) ] )
 
 n_ts = ( np.ones( 16 )           # ExoPlaSim always valid
        + ts_exocam_mask           + ts_rocke3d_mask  + ts_plahab_mask
        + pcm_in_main              + lfric_in_main    + hextor_in_main
-       + exocolumn_in_main )
+       + exocolumn_in_main        + um_in_main )
 n_wv = ( np.ones( 16 )           # ExoPlaSim always valid; PlaHab has no WV data
        + wv_exocam_mask           + wv_rocke3d_mask
-       + pcm_in_main              + lfric_in_main    + exocolumn_in_main )
+       + pcm_in_main              + lfric_in_main    + exocolumn_in_main
+       + um_in_main )
 n_cf = ( np.ones( 16 )           # ExoPlaSim always valid
        + cf_exocam_mask           + cf_rocke3d_mask  + cf_plahab_mask
        + pcm_in_main              + lfric_in_main )
@@ -172,13 +179,16 @@ def sigmoid( y ):
 # log-pressure. Model-count surfaces stay isotropic: coverage is a property of
 # the sampling design, not of a physical field.
 ANISO_TS = { 'ExoPlaSim': 2,  'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 10,
-             'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7 }
+             'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7,
+             'UM': 10 }
 ANISO_WV = { 'ExoPlaSim': 3,  'ExoCAM': 10, 'ROCKE-3D': 7,
-             'Generic PCM': 10, 'LFRic': 10, 'ExoColumn': 10 }
+             'Generic PCM': 10, 'LFRic': 10, 'ExoColumn': 10,
+             'UM': 4 }
 ANISO_CF = { 'ExoPlaSim': 1,  'ExoCAM': 1,  'ROCKE-3D': 3, 'PlaHab': 7,
              'Generic PCM': 1, 'LFRic': 1 }
 ANISO_AL = { 'ExoPlaSim': 1.5, 'ExoCAM': 15, 'ROCKE-3D': 1.5, 'PlaHab': 4,
-             'Generic PCM': 5, 'LFRic': 3,  'HEXTOR': 3, 'ExoColumn': 5 }
+             'Generic PCM': 5, 'LFRic': 3,  'HEXTOR': 3, 'ExoColumn': 5,
+             'UM': 50 }
 
 # Every variogram is linear except ExoCAM's albedo, which is spherical as in
 # fig_interpolation_albedo.py, the family its cross-validation prefers
@@ -217,6 +227,7 @@ TS_MODELS = {
     'LFRic':       ( lfric_pres1,              lfric_flux1,              ts_lfric ),
     'HEXTOR':      ( hextor_pres1,             hextor_flux1,             ts_hextor ),
     'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          ts_exocolumn ),
+    'UM':          ( um_pres1,                 um_flux1,                 uc.um_temp ),
 }
 WV_MODELS = {
     'ExoPlaSim':   ( pres1,                    flux1,                    wv_plasim ),
@@ -225,6 +236,7 @@ WV_MODELS = {
     'Generic PCM': ( pcm_pres1,                pcm_flux1,                wv_pcm ),
     'LFRic':       ( lfric_pres1,              lfric_flux1,              wv_lfric ),
     'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          wv_exocolumn ),
+    'UM':          ( um_pres1,                 um_flux1,                 uc.um_wv ),
 }
 CF_MODELS = {
     'ExoPlaSim':   ( pres1,                    flux1,                    cf_plasim ),
@@ -243,6 +255,7 @@ AL_MODELS = {
     'LFRic':       ( lfric_pres1,              lfric_flux1,              al_lfric ),
     'HEXTOR':      ( hextor_pres1,             hextor_flux1,             al_hextor ),
     'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          al_exocolumn ),
+    'UM':          ( um_pres1,                 um_flux1,                 uc.um_alb ),
 }
 
 # Each variable is kriged in its own transformed coordinate (forward) and its

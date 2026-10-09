@@ -31,6 +31,7 @@ from scipy.ndimage import distance_transform_edt
 from scipy.spatial import ConvexHull
 
 from pykrige.ok import OrdinaryKriging
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
@@ -112,7 +113,7 @@ def norm_flux( f ):
 # fig_interpolation_temp.py panels use. A value of s means one unit of normalized
 # instellation counts s times a unit of normalized log-pressure.
 ANISO = { 'ExoPlaSim': 2, 'ExoCAM': 10, 'ROCKE-3D': 4, 'PlaHab': 10,
-          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7 }
+          'Generic PCM': 5, 'LFRic': 15, 'HEXTOR': 10, 'ExoColumn': 7, 'UM': 10 }
 
 def krige( p, f, z, scaling=1.0, pres_grid=pn2f, flux_grid=fluxf ):
     ok = OrdinaryKriging( norm_pres( p ), norm_flux( f ), z,
@@ -129,7 +130,8 @@ style = { 'ExoPlaSim':   dict( color='#ff7f0e', ls='-'  ),
           'Generic PCM': dict( color='#d62728', ls='-'  ),
           'LFRic':       dict( color='#9467bd', ls='-'  ),
           'HEXTOR':      dict( color='#17becf', ls='--' ),
-          'ExoColumn':   dict( color='#7f7f7f', ls='--' ) }
+          'ExoColumn':   dict( color='#7f7f7f', ls='--' ),
+          'UM':          dict( color='#e377c2', ls='-'  ) }
 
 consensus_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab' ]
 
@@ -145,7 +147,7 @@ consensus_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab' ]
 # the GCMs even inside its hull; the dashed style marks that.
 # Set to False to omit them entirely.
 SHOW_PARTIAL = True
-partial_models = [ 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ]
+partial_models = [ 'Generic PCM', 'LFRic', 'UM', 'HEXTOR', 'ExoColumn' ]
 
 # The models that are not 3-D GCMs; area contested only once they vote is grey
 non3d_models = [ 'PlaHab', 'HEXTOR', 'ExoColumn' ]
@@ -159,6 +161,9 @@ ts_in = {
     'LFRic':       ( lfric_pres1,              lfric_flux1,              ts_lfric ),
     'HEXTOR':      ( hextor_pres1,             hextor_flux1,             ts_hextor ),
     'ExoColumn':   ( exocolumn_pres1,          exocolumn_flux1,          ts_exocolumn ),
+    # The UM joins the consensus (2026-10-09); CLERO, an emulator of two of these
+    # models, is kept out of it
+    'UM':          ( uc.um_pres,               uc.um_flux / fluxscale,   uc.um_temp ),
 }
 
 
@@ -189,7 +194,7 @@ def sampled_region( p_pts, f_pts, PP, FF ):
 # models with full 16-case coverage keep alpha = 1 almost everywhere (ExoPlaSim's
 # largest distance to its own nearest case is 0.327) while the Generic PCM and LFRic,
 # which reach 0.80, fade out where they have nothing nearby.
-mean_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ]
+mean_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'UM', 'HEXTOR', 'ExoColumn' ]
 d_full, d_none = 0.30, 0.55     # normalized (log p, flux) units
 # A model's margin is blended toward SLACK as its weight falls, so a fully faded
 # model contributes +SLACK and never blocks, whatever its temperature, while a

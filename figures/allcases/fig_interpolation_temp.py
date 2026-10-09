@@ -7,6 +7,7 @@ from matplotlib.transforms import offset_copy
 from matplotlib import patheffects
 from pykrige.ok import OrdinaryKriging
 from slide_halves import save_halves
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams[ 'axes.labelweight' ] = 'bold'
@@ -77,16 +78,19 @@ MODELS = {
     'ROCKE-3D':    ( rocke3d_flux1,   rocke3d_pres1,   rocke3d_stable ),
     'Generic PCM': ( pcm_flux1,       pcm_pres1,       pcm            ),
     'LFRic':       ( lfric_flux1,     lfric_pres1,     lfric          ),
+    'UM':          ( uc.um_flux/fluxscale, uc.um_pres, uc.um_temp ),
     'PlaHab':      ( plahab_flux1,    plahab_pres1,    plahab_stable  ),
     'HEXTOR':      ( hextor_flux1,    hextor_pres1,    hextor         ),
     'ExoColumn':   ( exocolumn_flux1, exocolumn_pres1, exocolumn      ),
+    'CLERO-UM':     ( uc.clero_flux/fluxscale, uc.clero_pres, uc.clero_um_temp ),
+    'CLERO-ExoCAM': ( uc.clero_flux/fluxscale, uc.clero_pres, uc.clero_exocam_temp ),
 }
 
-# With --gcm, only the four full-complexity GCMs are drawn, dropping ExoPlaSim,
-# PlaHab and the two one-dimensional models.
+# With --gcm, only the five full-complexity GCMs are drawn, dropping ExoPlaSim,
+# PlaHab, the two one-dimensional models and the CLERO emulator.
 GCM = '--gcm' in sys.argv
 if GCM:
-    MODELS = { name: m for name, m in MODELS.items() if name in ( 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic' ) }
+    MODELS = { name: m for name, m in MODELS.items() if name in ( 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM' ) }
 
 # With --common, every model is kriged from only the sample points at which all
 # models shown reached a steady state, so the panels differ in the models and
@@ -150,13 +154,14 @@ def zoomed_view( models ):
 
 # Each block is ( header, models, view ), drawn as rows of four panels. Stacked,
 # each block has its own colorbar and the common cases get a narrower color
-# range; alone, they keep the full one so they compare directly with Figure 3.
+# range. Since 3x4 blocks (2026-10-09) the paper prints the two blocks as
+# separate figures, so --common alone takes the fitted range as well.
 if STACKED or COMMON:
     common_models, _ = restrict_to_common( MODELS )
     common_block = ( 'Common Cases',
                      common_models, zoomed_view( common_models ) )
-if STACKED:
     common_block[ 2 ].update( fitted_colors( common_models ) )
+if STACKED:
     blocks = [ ( 'All Cases', MODELS, full_view() ), common_block ]
 elif COMMON:
     blocks = [ common_block ]
@@ -178,6 +183,9 @@ ANISO = {
     'Generic PCM':  5,
     'HEXTOR':       10,
     'ExoColumn':    7,
+    'UM':           10,
+    'CLERO-UM':     5,
+    'CLERO-ExoCAM': 1.5,
 }
 
 # Normalize both axes to [0, 1] for kriging so distance metric is balanced
@@ -211,7 +219,8 @@ marker_edge = 'k'
 # drawn larger so that it reads at the same weight as the other shapes, and no
 # marker is clipped at the panel edge, where a cut shape would be hard to name.
 MARKER = { 'ExoPlaSim': 'o', 'ExoCAM': 's', 'ROCKE-3D': '^', 'Generic PCM': 'D',
-           'LFRic': 'v', 'PlaHab': 'P', 'HEXTOR': 'X', 'ExoColumn': '*' }
+           'LFRic': 'v', 'PlaHab': 'P', 'HEXTOR': 'X', 'ExoColumn': '*',
+           **{ name: st[ 'marker' ] for name, st in uc.STYLE.items() } }
 MARKER_SIZE = { '*': 80 }
 
 # ExoPlaSim is stable at all sixteen cases, so its panels carry the case numbers.
@@ -281,15 +290,17 @@ def add_colorbar( fig, cf, rect, view ):
 
 #--------------------------------------------------------------------
 # Panels: rows of four, with the colorbar alongside rather than occupying a
-# panel slot. Each block is two rows for all eight models or one for the GCMs,
-# so panels keep the same size.
+# panel slot. Each block is three rows for the eleven models, the last slot
+# empty, or one for the GCMs, so panels keep the same size.
 
-nrows = len( MODELS ) // 4
+nrows = -( -len( MODELS ) // 4 )
 if len( blocks ) == 1:
     _, models, view = blocks[ 0 ]
     fig, axs = plt.subplots( nrows, 4, figsize=(12.2, 2.95*nrows), squeeze=False )
     for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
         cf = draw_panel( ax, name, fs, ps, vals, view )
+    for ax in axs.flat[ len( models ): ]:      # the unused twelfth slot
+        ax.set_axis_off()
     fig.subplots_adjust( wspace=0.12, hspace=0.15, right=0.88 )
     label_block( fig, axs )
     add_colorbar( fig, cf, [ 0.905, 0.12, 0.013, 0.76 ], view )
@@ -303,6 +314,8 @@ else:
         axs = outer[ b ].subgridspec( nrows, 4, wspace=0.12, hspace=0.15 ).subplots( squeeze=False )
         for ax, ( name, ( fs, ps, vals ) ) in zip( axs.flat, models.items() ):
             cf = draw_panel( ax, name, fs, ps, vals, view )
+        for ax in axs.flat[ len( models ): ]:
+            ax.set_axis_off()
         top_left, top_right = axs[ 0, 0 ].get_position(), axs[ 0, -1 ].get_position()
         fig.text( ( top_left.x0 + top_right.x1 )/2, top_left.y1, header, transform=above,
                   ha='center', va='bottom', fontsize=14, fontweight='bold' )

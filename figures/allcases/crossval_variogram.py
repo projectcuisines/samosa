@@ -1,5 +1,6 @@
 import numpy as np
 from pykrige.ok import OrdinaryKriging
+import um_clero as uc
 
 #--------------------------------------------------------------------
 # Data setup (mirrors fig_interpolation_temp.py)
@@ -95,6 +96,8 @@ climate_models = {
     'Generic PCM': ( pcm_pres1,     pcm_flux1,     pcm             ),
     'HEXTOR':      ( hextor_pres1,  hextor_flux1,  hextor          ),
     'ExoColumn':   ( exocolumn_pres1, exocolumn_flux1, exocolumn     ),
+    # UM and CLERO from the shared module; its instellation is in W/m2
+    **{ name: ( p, f/fluxscale, v ) for name, ( f, p, v ) in uc.samples( 'temp' ).items() },
 }
 
 variogram_models = [ 'linear', 'power', 'gaussian', 'spherical', 'exponential' ]
