@@ -14,6 +14,19 @@ archive as they stood that day; the scripts touched by PlaHab's Case 11
 resubmission (the same day, run at the protocol 900 W/m2 instead of 400) were
 rerun after it.
 
+**2026-10-09: the UM and CLERO.** The UM joined as a ninth, resolved model and
+CLERO (an emulator, as CLERO-UM and CLERO-ExoCAM) arrived with it; their arrays
+live in `figures/allcases/um_clero.py`. Every script here now counts the UM as
+resolved (labels print the counts, e.g. "all 9", "7 resolved") and keeps CLERO
+out. `output/` was regenerated that day for case16_stats, stats, spreadstats,
+regstats, sumcheck, jets2 and hextor_cloud_tests. jets2.py prints the label
+table only: the "34 of 78 keep one label" in the text is the count of rows
+whose five labels agree. The select-case statistics quoted for the UM and CLERO
+(day-night contrasts, 100 hPa humidity, cold points, peak winds) came from
+throwaway scripts run on the selectcases figure scripts' panels; 100 hPa
+humidity reproduces the text with q interpolated linearly in log p, except
+ExoPlaSim, which needs log q.
+
 ## Manuscript statistics
 
 | Script | What it computes | Quoted in | Status 2026-09-22 |

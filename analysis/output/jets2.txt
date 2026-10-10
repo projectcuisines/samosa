@@ -68,3 +68,12 @@ Generic PCM   13     DJ  -1.8    DJ -13.8    DJ -21.1    SJ  +9.5    SJ +10.1
 Generic PCM   14     DJ -12.4    DJ -13.6    SJ  +3.7    SJ  +5.0    SJ  +8.4
 Generic PCM   15     DJ -20.9    DJ -15.2    SJ  +7.3    SJ  +0.1    SJ  +5.2
 Generic PCM   16     DJ  -7.2    DJ -12.8    DJ  -6.6    SJ  +0.1    DJ  -5.9
+UM             1     SJ  +3.4    SJ  +8.9    SJ  +0.5    SJ  +0.4    SJ  +7.6
+UM             4     DJ -12.6    DJ -11.0    DJ  -1.7    SJ  +6.5    SJ  +9.9
+UM             8     DJ -12.0    DJ  -3.9    SJ  +1.7    DJ  -2.3    DJ  -1.8
+UM             9     DJ  -8.6    DJ  -2.7    SJ  +6.4    DJ  -3.3    DJ  -2.5
+UM            10     DJ  -9.2    DJ  -5.3    SJ  +1.2    DJ  -5.8    DJ  -4.6
+UM            11     SJ  +3.5    SJ  +4.5    SJ +10.1    SJ +15.2    SJ +15.2
+UM            14     DJ -23.2    DJ -15.4    DJ  -2.0    SJ  +6.0    SJ  +9.3
+UM            15     SJ  +3.0    SJ +11.7    SJ  +4.0    DJ  -0.0    SJ  +2.4
+UM            16     DJ -13.5    DJ  -2.2    SJ  +3.7    DJ  -1.1    SJ  +1.4
