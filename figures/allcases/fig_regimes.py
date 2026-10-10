@@ -87,6 +87,37 @@ pcm_conv  = np.array( [ 75.4, 261.3, 142.2, 223.6, 73.2, 155.4, 90.9 ] )
 pcm_dn    = np.array( [ 0.272, 0.097, 0.143, 0.147, 0.161, 0.214, 0.257 ] )
 pcm_ratio = np.array( [ 0.520, 0.430, 0.492, 0.438, 0.355, 0.502, 0.548 ] )
 
+# UM
+um_case  = np.array( [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ] )
+um_lamr  = np.array( [ 1.390, 1.501, 1.445, 1.490, 1.391, 1.451, 1.458, 1.408, 1.536 ] )
+um_lr    = np.array( [ 0.905, 0.750, 0.680, 0.944, 0.635, 1.295, 0.858, 1.012, 0.578 ] )
+um_jet   = ['SJ', 'DJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ']
+um_jetlat= np.array( [ 1.0, 47.0, 59.0, 41.0, 63.0, 1.0, 53.0, 1.0, 41.0 ] )
+um_conv  = np.array( [ 46.3, 204.6, 108.1, 195.3, 54.4, 135.4, 127.6, 63.8, 247.0 ] )
+um_dn    = np.array( [ 0.432, 0.149, 0.206, 0.195, 0.278, 0.254, 0.244, 0.393, 0.065 ] )
+um_ratio = np.array( [ 0.688, 0.512, 0.620, 0.599, 0.657, 0.805, 0.565, 0.686, 0.489 ] )
+
+# CLERO, an emulator: drawn, but kept out of the hulls, ovals and statistics
+# CLERO-UM
+clero_um_case  = np.array( [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ] )
+clero_um_lamr  = np.array( [ 1.388, 1.599, 1.500, 1.528, 1.598, 1.547, 1.446, 1.490, 1.386, 1.451, 1.548, 1.459, 1.407, 1.541 ] )
+clero_um_lr    = np.array( [ 1.076, 0.683, 1.024, 1.497, 0.948, 1.224, 0.896, 1.219, 0.906, 1.677, 0.825, 1.073, 1.229, 0.772 ] )
+clero_um_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'DJ']
+clero_um_jetlat= np.array( [ 2.8, 52.6, 47.1, 2.8, 47.1, 41.5, 58.1, 2.8, 69.2, 2.8, 47.1, 47.1, 2.8, 47.1 ] )
+clero_um_conv  = np.array( [ 50.0, 404.2, 202.9, 301.9, 461.3, 335.9, 110.3, 193.8, 52.7, 135.1, 297.6, 127.8, 65.6, 252.9 ] )
+clero_um_dn    = np.array( [ 0.425, 0.002, 0.148, 0.096, 0.009, 0.067, 0.200, 0.189, 0.296, 0.243, 0.065, 0.249, 0.393, 0.060 ] )
+clero_um_ratio = np.array( [ 0.729, 0.035, 0.544, 0.585, 0.169, 0.463, 0.623, 0.611, 0.700, 0.740, 0.428, 0.633, 0.741, 0.446 ] )
+
+# CLERO-ExoCAM
+clero_exocam_case  = np.array( [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ] )
+clero_exocam_lamr  = np.array( [ 1.393, 1.646, 1.519, 1.525, 1.606, 1.541, 1.476, 1.482, 1.394, 1.457, 1.597, 1.460, 1.412, 1.614 ] )
+clero_exocam_lr    = np.array( [ 1.178, 0.734, 0.907, 1.462, 0.885, 1.148, 0.882, 1.133, 0.825, 1.682, 0.722, 1.098, 1.257, 0.715 ] )
+clero_exocam_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'DJ']
+clero_exocam_jetlat= np.array( [ 2.8, 58.1, 41.5, 2.8, 47.1, 47.1, 63.7, 2.8, 69.2, 2.8, 58.1, 41.5, 2.8, 58.1 ] )
+clero_exocam_conv  = np.array( [ 61.7, 425.1, 206.2, 286.5, 422.7, 292.5, 139.4, 177.6, 56.3, 149.3, 304.0, 140.2, 80.5, 297.2 ] )
+clero_exocam_dn    = np.array( [ 0.340, -0.045, 0.127, 0.092, -0.005, 0.071, 0.140, 0.184, 0.228, 0.197, 0.018, 0.220, 0.314, 0.004 ] )
+clero_exocam_ratio = np.array( [ 0.632, -4.888, 0.512, 0.515, -0.119, 0.489, 0.483, 0.588, 0.599, 0.634, 0.348, 0.560, 0.633, 0.178 ] )
+
 # PlaHab, HEXTOR and ExoColumn cannot appear in any of the three panels. Panel
 # (a) needs a wind field and panels (b) and (c) need a jet and a flux map, and
 # none of the three submits them. extract_regimes.py does report a contrast
@@ -100,14 +131,22 @@ style  = { 'ExoPlaSim':   '#ff7f0e',
            'ExoCAM':      '#1f77b4',
            'ROCKE-3D':    '#2ca02c',
            'Generic PCM': '#d62728',
-           'LFRic':       '#9467bd' }
+           'LFRic':       '#9467bd',
+           'UM':          '#e377c2',
+           'CLERO-UM':     '#bcbd22',
+           'CLERO-ExoCAM': '#e7ba52' }
 marker = { 'ExoPlaSim':   'o',
            'ExoCAM':      's',
            'ROCKE-3D':    '^',
            'Generic PCM': 'D',
-           'LFRic':       'v' }
+           'LFRic':       'v',
+           'UM':          '>',
+           'CLERO-UM':     'h',
+           'CLERO-ExoCAM': 'p' }
 
-wind_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic' ]
+wind_models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM' ]
+emulators   = [ 'CLERO-UM', 'CLERO-ExoCAM' ]
+drawn       = wind_models + emulators
 
 data = {
     'ExoCAM':      dict( case=exocam_case,  lamr=exocam_lamr,  lr=exocam_lr,
@@ -125,6 +164,15 @@ data = {
     'Generic PCM': dict( case=pcm_case,     lamr=pcm_lamr,     lr=pcm_lr,
                          jet=pcm_jet,     jetlat=pcm_jetlat,     conv=pcm_conv,
                          ratio=pcm_ratio, dn=pcm_dn ),
+    'UM':          dict( case=um_case,      lamr=um_lamr,      lr=um_lr,
+                         jet=um_jet,      jetlat=um_jetlat,      conv=um_conv,
+                         ratio=um_ratio,  dn=um_dn ),
+    'CLERO-UM':     dict( case=clero_um_case, lamr=clero_um_lamr, lr=clero_um_lr,
+                          jet=clero_um_jet, jetlat=clero_um_jetlat, conv=clero_um_conv,
+                          ratio=clero_um_ratio, dn=clero_um_dn ),
+    'CLERO-ExoCAM': dict( case=clero_exocam_case, lamr=clero_exocam_lamr, lr=clero_exocam_lr,
+                          jet=clero_exocam_jet, jetlat=clero_exocam_jetlat, conv=clero_exocam_conv,
+                          ratio=clero_exocam_ratio, dn=clero_exocam_dn ),
 }
 
 S0 = 1361.0              # present-day solar constant, W m-2
@@ -136,7 +184,7 @@ PAIR_SHIFT = { 7: +0.024, 13: -0.016, 12: +0.016, 5: -0.018, 14: +0.050, 11: -0.
 
 def fan( name ):
     """Small horizontal offset so co-located models stay distinguishable."""
-    return ( wind_models.index( name ) - 2.0 ) * 0.14
+    return ( drawn.index( name ) - ( len( drawn ) - 1 ) / 2.0 ) * 0.14
 
 def min_ellipse( P, tol=1e-4 ):
     """Smallest ellipse (x-c)' A (x-c) <= 1 holding the points P (Khachiyan)."""
@@ -215,7 +263,7 @@ ax.text( 1.22, 0.56, 'calm: Generic PCM,\nLFRic', fontsize=9,
 ax.axhline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 ax.axvline( 1.0, color='k', ls='--', lw=1.0, zorder=1 )
 
-for name in wind_models:
+for name in drawn:
     d = data[ name ]
     ax.scatter( d[ 'lamr' ], d[ 'lr' ], s=45, marker=marker[ name ], color=style[ name ], edgecolors='k',
                 linewidths=0.7, label=name, zorder=5 )
@@ -294,7 +342,7 @@ if SHOW_TRANSPORT:
                      va='top' if below else 'bottom', zorder=4,
                      bbox=dict( fc='w', ec='none', pad=0.5 ) )
 
-    for name in wind_models:
+    for name in drawn:
         ax.scatter( xpos( name ), data[ name ][ 'conv' ], s=45, marker=marker[ name ],
                     color=style[ name ], edgecolors='k', linewidths=0.7,
                     label=name, zorder=5 )
@@ -318,7 +366,7 @@ for ax in axes:
 
 # One legend row above the panels; inside them it hid points at this size
 model_handles, _ = axes[0].get_legend_handles_labels()
-fig.legend( handles=model_handles, loc='outside upper center', ncol=5, fontsize=10,
+fig.legend( handles=model_handles, loc='outside upper center', ncol=4, fontsize=10,
             frameon=False, columnspacing=1.2, handletextpad=0.3 )
 fig.savefig( 'fig_regimes.png', bbox_inches='tight' )
 # PDF rather than EPS: the group hulls overlap by transparency, which EPS lacks

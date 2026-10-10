@@ -170,6 +170,21 @@ Per-model sources and the traps in each:
                150.000 K floor over 47% of the surface, so the ratio for that
                case is an upper bound, not a resolved value.
 
+  UM           um/um_samosa_caseNN.nc. An Arakawa C grid: x_wind sits on the
+               longitude edges (longitude_0) and y_wind on the latitude edges
+               (latitude_0, 91 rows), both on the 38 rho levels, while
+               air_pressure is on the 39 theta levels with the surface as
+               level 0. Both winds are averaged onto the cell centres and each
+               rho level takes the mean pressure of the theta levels either
+               side. Its lowest rho level, about 10 m up, stands for the
+               surface wind. 9 of 16 cases.
+
+  CLERO-UM,    clero/CLERO-*/samosa_CLERO-*_caseNN.nc. The emulator's u and v
+  CLERO-ExoCAM on ten relative isobars (lowest 0.925 of the surface pressure,
+               which stands for the surface wind; top 10 hPa) on the
+               temperature grid, weighted by area_weight. Substellar at lon 0.
+               14 of 16 cases each.
+
   HEXTOR and ExoColumn are 1-D and submit neither wind nor a two-dimensional
   surface temperature, so they cannot appear at all. HEXTOR resolves the
   tidally locked coordinate and so does have a day-night contrast, but it is
@@ -207,6 +222,9 @@ ACCEPTED = {
     'LFRic':       [ 1, 4, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
     'Generic PCM': [ 1, 4, 8, 9, 10, 14, 15 ],
     'PlaHab':      [ 1, 4, 16 ],
+    'UM':          [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ],
+    'CLERO-UM':     [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
+    'CLERO-ExoCAM': [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ],
 }
 
 # Published global mean surface temperatures, from fig_interpolation_temp.py,
@@ -228,6 +246,14 @@ TGLOB = {
                      8: 246.76730657647218, 9: 266.5987224285321,
                      10: 210.69131033681012, 14: 246.04296230476365,
                      15: 217.2519558970929 },
+    'UM':          { 1: 191.67, 4: 260.62, 8: 224.27, 9: 253.33, 10: 192.59, 11: 228.14,
+                     14: 232.28, 15: 201.97, 16: 286.49 },
+    'CLERO-UM':     { 1: 191.01, 2: 335.69, 4: 260.27, 5: 280.20, 6: 335.21, 7: 294.50,
+                      8: 224.97, 9: 253.38, 10: 189.58, 11: 227.76, 12: 295.57,
+                      14: 233.13, 15: 201.67, 16: 289.68 },
+    'CLERO-ExoCAM': { 1: 193.81, 2: 377.65, 4: 273.84, 5: 277.83, 6: 341.68, 7: 290.21,
+                      8: 244.13, 9: 248.05, 10: 193.94, 11: 231.75, 12: 334.23,
+                      14: 233.86, 15: 204.29, 16: 348.45 },
     'PlaHab':      { 1: 196.3, 4: 273.2, 5: 281.4, 7: 293.0, 8: 242.9, 9: 260.8,
                      10: 190.1, 11: 240.0, 12: 295.3, 13: 286.1, 14: 246.1,
                      15: 207.9, 16: 292.7 },
@@ -374,15 +400,48 @@ def read_plahab( case ):
                  olr=None, asr=None, surface_is_last=False )
 
 
+def read_um( case ):
+    with netCDF4.Dataset( f'{_d}/um/um_samosa_case{case:02d}.nc' ) as ds:
+        u, v = _get( ds, 'x_wind' ), _get( ds, 'y_wind' )
+        pt   = _get( ds, 'air_pressure' )
+        ts   = _get( ds, 'surface_temperature' )
+        lat, lon = _get( ds, 'latitude' ), _get( ds, 'longitude' )
+        olr  = _get( ds, 'toa_outgoing_longwave_flux' )
+        asr  = _get( ds, 'toa_incoming_shortwave_flux' ) - _get( ds, 'toa_outgoing_shortwave_flux' )
+    u = 0.5 * ( u + np.roll( u, -1, axis=-1 ) )     # edges 0, 2.5, ... -> centres 1.25, ...
+    v = 0.5 * ( v[ :, :-1 ] + v[ :, 1: ] )           # 91 latitude edges -> 90 centres
+    p = 0.5 * ( pt[ :-1 ] + pt[ 1: ] )               # theta levels -> rho levels
+    return dict( lat=lat, lon=lon, p=p, u=u, v=v, ts=ts, wts=None,
+                 t=None, q=None, z=None, olr=olr, asr=asr, surface_is_last=False, lon_sub=0.0 )
+
+
+def read_clero( cfg ):
+    def read( case ):
+        with netCDF4.Dataset( f'{_d}/clero/CLERO-{cfg}/samosa_CLERO-{cfg}_case{case:02d}.nc' ) as ds:
+            u, v = _get( ds, 'u' ), _get( ds, 'v' )
+            pl   = _get( ds, 'pressure' )
+            ts   = _get( ds, 'surface_temperature' )
+            lat, lon = _get( ds, 'lat' ), _get( ds, 'lon' )
+            olr, asr = _get( ds, 'olr' ), _get( ds, 'asr' )
+            w    = _get( ds, 'area_weight' )
+        p = np.broadcast_to( pl[ :, None, None ], u.shape )
+        return dict( lat=lat, lon=lon, p=p, u=u, v=v, ts=ts, wts=w,
+                     t=None, q=None, z=None, olr=olr, asr=asr, surface_is_last=False, lon_sub=0.0 )
+    return read
+
+
 READERS = { 'ExoCAM':      read_exocam,
             'ExoPlaSim':   read_plasim,
             'ROCKE-3D':    read_rocke3d,
             'LFRic':       read_lfric,
             'Generic PCM': read_pcm,
-            'PlaHab':      read_plahab }
+            'PlaHab':      read_plahab,
+            'UM':          read_um,
+            'CLERO-UM':     read_clero( 'UM' ),
+            'CLERO-ExoCAM': read_clero( 'ExoCAM' ) }
 
 
-def surface_contrasts( ts, lat, lon ):
+def surface_contrasts( ts, lat, lon, lon_sub=None ):
     """Day-night and equator-pole surface temperature contrasts.
 
     Which longitude is substellar is not assumed, because the archive is not
@@ -395,13 +454,16 @@ def surface_contrasts( ts, lat, lon ):
     substellar point on a grid convention, so the temperature maximum is used
     only to choose between the two conventions and is then snapped; the
     displacement is returned separately as the hot spot offset, positive
-    eastward.
+    eastward. A reader that knows its substellar longitude passes it as
+    lon_sub: on a nearly isothermal planet (CLERO-ExoCAM Cases 2 and 6) the
+    temperature maximum can sit on the night side and pick the wrong one.
     """
     cw   = np.cos( np.radians( lat ) )
     zonal_of_lon = area_mean( np.moveaxis( ts, 0, -1 ), cw )   # (lon,)
     lon_hot = lon[ int( np.nanargmax( zonal_of_lon ) ) ]
 
-    lon_sub = 0.0 if abs( ( ( lon_hot + 180.0 ) % 360.0 ) - 180.0 ) <= 90.0 else 180.0
+    if lon_sub is None:
+        lon_sub = 0.0 if abs( ( ( lon_hot + 180.0 ) % 360.0 ) - 180.0 ) <= 90.0 else 180.0
     hotspot = ( ( lon_hot - lon_sub + 180.0 ) % 360.0 ) - 180.0
 
     offset = np.abs( ( ( lon - lon_sub + 180.0 ) % 360.0 ) - 180.0 )
@@ -432,13 +494,15 @@ def diagnose( D ):
         weights = ts_cw if D[ 'wts' ] is None else D[ 'wts' ]
         tglob = float( area_mean( np.nanmean( D[ 'ts' ], axis=-1 ), weights ) )
 
-    t_day, t_night, t_eq, t_pole, hotspot = surface_contrasts( D[ 'ts' ], ts_lat, ts_lon )
+    t_day, t_night, t_eq, t_pole, hotspot = surface_contrasts( D[ 'ts' ], ts_lat, ts_lon, D.get( 'lon_sub' ) )
     ratio = ( t_day - t_night ) / ( t_eq - t_pole )
 
     # Night-side static energy flux convergence, from the steady-state balance
-    lon_sub = 0.0 if abs( ( ( ts_lon[ int( np.nanargmax(
-        area_mean( np.moveaxis( D[ 'ts' ], 0, -1 ), ts_cw ) ) ) ] + 180.0 )
-        % 360.0 ) - 180.0 ) <= 90.0 else 180.0
+    lon_sub = D.get( 'lon_sub' )
+    if lon_sub is None:
+        lon_sub = 0.0 if abs( ( ( ts_lon[ int( np.nanargmax(
+            area_mean( np.moveaxis( D[ 'ts' ], 0, -1 ), ts_cw ) ) ) ] + 180.0 )
+            % 360.0 ) - 180.0 ) <= 90.0 else 180.0
     night = np.abs( ( ( ts_lon - lon_sub + 180.0 ) % 360.0 ) - 180.0 ) > 90.0
     if D.get( 'olr' ) is None:                # PlaHab archives no flux maps
         conv = np.nan
@@ -534,7 +598,8 @@ if __name__ == '__main__':
 
     print( '\n=== paste into fig_regimes.py ===\n' )
     key = { 'ExoCAM': 'exocam', 'ExoPlaSim': 'plasim', 'ROCKE-3D': 'rocke3d',
-            'LFRic': 'lfric', 'Generic PCM': 'pcm', 'PlaHab': 'plahab' }
+            'LFRic': 'lfric', 'Generic PCM': 'pcm', 'PlaHab': 'plahab', 'UM': 'um',
+            'CLERO-UM': 'clero_um', 'CLERO-ExoCAM': 'clero_exocam' }
     fmt = lambda seq, f: '[ ' + ', '.join( f % x for x in seq ) + ' ]'
     for name, rows in results.items():
         k = key[ name ]

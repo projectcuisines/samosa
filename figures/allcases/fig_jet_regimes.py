@@ -60,6 +60,31 @@ pcm_umax  = np.array( [ 25.0, 30.0, 9.9, 30.8, 7.3, 22.8, 29.1 ] )
 pcm_tsmin = np.array( [ 170.0, 257.0, 218.3, 217.2, 187.0, 189.0, 170.2 ] )
 pcm_ratio = np.array( [ 0.520, 0.430, 0.492, 0.438, 0.355, 0.502, 0.548 ] )
 
+# UM
+um_case  = np.array( [ 1, 4, 8, 9, 10, 11, 14, 15, 16 ] )
+um_jet   = ['SJ', 'DJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ']
+um_jetlat= np.array( [ 1.0, 47.0, 59.0, 41.0, 63.0, 1.0, 53.0, 1.0, 41.0 ] )
+um_umax  = np.array( [ 20.8, 21.4, 6.0, 21.0, 1.6, 33.6, 16.1, 27.6, 21.2 ] )
+um_tsmin = np.array( [ 132.3, 221.1, 188.9, 202.0, 157.5, 182.6, 170.7, 140.3, 269.5 ] )
+um_ratio = np.array( [ 0.688, 0.512, 0.620, 0.599, 0.657, 0.805, 0.565, 0.686, 0.489 ] )
+
+# CLERO, an emulator: drawn, but kept out of the ovals and statistics
+# CLERO-UM
+clero_um_case  = np.array( [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ] )
+clero_um_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'DJ']
+clero_um_jetlat= np.array( [ 2.8, 52.6, 47.1, 2.8, 47.1, 41.5, 58.1, 2.8, 69.2, 2.8, 47.1, 47.1, 2.8, 47.1 ] )
+clero_um_umax  = np.array( [ 18.5, 18.9, 24.4, 23.7, 19.0, 15.5, 5.4, 23.4, 2.7, 37.5, 24.2, 17.6, 26.4, 20.8 ] )
+clero_um_tsmin = np.array( [ 133.7, 323.8, 221.1, 253.7, 324.1, 269.1, 194.3, 205.7, 155.6, 182.8, 270.3, 185.7, 144.0, 273.0 ] )
+clero_um_ratio = np.array( [ 0.729, 0.035, 0.544, 0.585, 0.169, 0.463, 0.623, 0.611, 0.700, 0.740, 0.428, 0.633, 0.741, 0.446 ] )
+
+# CLERO-ExoCAM
+clero_exocam_case  = np.array( [ 1, 2, 4, 5, 6, 7, 8, 9, 10, 11, 12, 14, 15, 16 ] )
+clero_exocam_jet   = ['SJ', 'DJ', 'DJ', 'SJ', 'DJ', 'DJ', 'DJ', 'SJ', 'DJ', 'SJ', 'DJ', 'DJ', 'SJ', 'DJ']
+clero_exocam_jetlat= np.array( [ 2.8, 58.1, 41.5, 2.8, 47.1, 47.1, 63.7, 2.8, 69.2, 2.8, 58.1, 41.5, 2.8, 58.1 ] )
+clero_exocam_umax  = np.array( [ 24.3, 15.4, 19.3, 31.7, 17.7, 19.1, 11.3, 25.3, 11.9, 35.3, 11.8, 22.7, 29.0, 18.5 ] )
+clero_exocam_tsmin = np.array( [ 137.5, 366.0, 237.0, 248.6, 335.3, 266.2, 211.3, 203.6, 160.3, 195.2, 324.6, 183.2, 149.5, 343.6 ] )
+clero_exocam_ratio = np.array( [ 0.632, -4.888, 0.512, 0.515, -0.119, 0.489, 0.483, 0.588, 0.599, 0.634, 0.348, 0.560, 0.633, 0.178 ] )
+
 # PlaHab
 plahab_case  = np.array( [ 1, 4, 16 ] )
 plahab_tsmin = np.array( [ 150.0, 247.9, 286.8 ] )
@@ -77,14 +102,21 @@ style  = { 'ExoPlaSim':   '#ff7f0e',
            'ExoCAM':      '#1f77b4',
            'ROCKE-3D':    '#2ca02c',
            'Generic PCM': '#d62728',
-           'LFRic':       '#9467bd' }
+           'LFRic':       '#9467bd',
+           'UM':          '#e377c2',
+           'CLERO-UM':     '#bcbd22',
+           'CLERO-ExoCAM': '#e7ba52' }
 marker = { 'ExoPlaSim':   'o',
            'ExoCAM':      's',
            'ROCKE-3D':    '^',
            'Generic PCM': 'D',
-           'LFRic':       'v' }
+           'LFRic':       'v',
+           'UM':          '>',
+           'CLERO-UM':     'h',
+           'CLERO-ExoCAM': 'p' }
 
-models = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic' ]
+models    = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM' ]
+emulators = [ 'CLERO-UM', 'CLERO-ExoCAM' ]
 
 data = {
     'ExoCAM':      dict( case=exocam_case,  jet=exocam_jet,  jetlat=exocam_jetlat,
@@ -97,6 +129,12 @@ data = {
                          umax=lfric_umax,   tsmin=lfric_tsmin,   ratio=lfric_ratio ),
     'Generic PCM': dict( case=pcm_case,     jet=pcm_jet,     jetlat=pcm_jetlat,
                          umax=pcm_umax,     tsmin=pcm_tsmin,     ratio=pcm_ratio ),
+    'UM':          dict( case=um_case,      jet=um_jet,      jetlat=um_jetlat,
+                         umax=um_umax,      tsmin=um_tsmin,      ratio=um_ratio ),
+    'CLERO-UM':     dict( case=clero_um_case, jet=clero_um_jet, jetlat=clero_um_jetlat,
+                          umax=clero_um_umax, tsmin=clero_um_tsmin, ratio=clero_um_ratio ),
+    'CLERO-ExoCAM': dict( case=clero_exocam_case, jet=clero_exocam_jet, jetlat=clero_exocam_jetlat,
+                          umax=clero_exocam_umax, tsmin=clero_exocam_tsmin, ratio=clero_exocam_ratio ),
 }
 
 T_FREEZE = 273.16
@@ -166,10 +204,16 @@ fig.get_layout_engine().set( wspace=0.08 )   # a little air between the panels
 
 
 def draw( ax, xkey, ykey ):
-    """Scatter every model, filled for a single jet and open for a double."""
-    for name in models:
+    """Scatter every model, filled for a single jet and open for a double.
+    CLERO-ExoCAM Cases 2 and 6 have a night side warmer than the day side, so
+    their contrast ratios (-4.89 and -0.12) are left off panel (b): they say
+    nothing about the day-night contrast the axis measures, and the first
+    would stretch it fifteenfold."""
+    for name in models + emulators:
         d = data[ name ]
         for x, y, j in zip( d[ xkey ], d[ ykey ], d[ 'jet' ] ):
+            if xkey == 'ratio' and x < 0.0:
+                continue
             single = ( j == 'SJ' )
             ax.scatter( x, y, s=45, marker=marker[ name ],
                         facecolor=style[ name ] if single else 'none',
@@ -214,12 +258,12 @@ for ax in axes:
 # One legend row above the panels, for the model colors and the jet symbols,
 # on the layout of Figure 15
 fig.legend( handles=[ Line2D( [], [], ls='', marker=marker[ m ], mfc=style[ m ], mec='k', ms=7, label=m )
-                      for m in models ] +
+                      for m in models + emulators ] +
                     [ Line2D( [], [], ls='', marker='o', mfc='0.55', mec='k', ms=7,
                               label='filled: single (equatorial) jet' ),
                       Line2D( [], [], ls='', marker='o', mfc='none', mec='0.4',
                               mew=1.2, ms=7, label='open: double (midlatitude) jet' ) ],
-            loc='outside upper center', ncol=7, fontsize=10,
+            loc='outside upper center', ncol=5, fontsize=10,
             frameon=False, columnspacing=1.2, handletextpad=0.3 )
 fig.savefig( 'fig_jet_regimes.png', bbox_inches='tight' )
 fig.savefig( 'fig_jet_regimes.eps', bbox_inches='tight' )
