@@ -131,7 +131,7 @@ CB_FS    = 10   # colorbar ticks; its label is set at TITLE_FS
 # aspect: grids that stop at cell centres (PlaHab, ExoCAM) would otherwise
 # shrink out of line, and the stretch is at most 3%.
 MAP_W, MAP_H     = 2.8, 1.4
-COL_GAP, ROW_GAP = 0.12, 0.40
+COL_GAP, ROW_GAP = 0.12, 0.32
 LEFT, TOP, BOT   = 1.2, 0.6, 0.35
 CB_GAP, CB_W     = 0.2, 0.16
 nrows, ncols     = len(panels), len(case_labels)

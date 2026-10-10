@@ -5,6 +5,9 @@ import netCDF4
 import numpy as np
 import matplotlib.pyplot as plt
 import cmocean
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'allcases'))
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams['axes.labelweight'] = 'bold'
@@ -106,13 +109,15 @@ Ts_pcm4,         _,       _ = read_nc(
     'surface_temperature', lat_var='latitude', lon_var='longitude')
 # Case 16 is not converged in the Generic PCM (see SAMOSA_summary.pdf) and is omitted
 
+# ---- UM: its own row, read by um_clero.um_map ------------------
+
 # ---- Figure --------------------------------------------------------
 contourmin, contourmax, numcontours = 175.0, 400.0, 21
 levels = np.linspace(contourmin, contourmax, numcontours)
 cm     = cmocean.cm.thermal
 
 # panels[row][col] = (lon, lat, data) or None for unavailable cases; row = model, col = case
-row_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'PlaHab']
+row_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM', 'PlaHab']
 case_labels = ['Case 1\n500 W/m², 0.70 bar',
                'Case 4\n1200 W/m², 2.34 bar',
                'Case 16\n1400 W/m², 10.00 bar']
@@ -128,6 +133,8 @@ panels = [
     [(lon_pcm,      lat_pcm,     Ts_pcm1),     (lon_pcm,      lat_pcm,     Ts_pcm4),     None                                     ],
     # LFRic
     [(lon_lfric_s,  lat_lfric,   Ts_lfric1),   (lon_lfric_s,  lat_lfric,   Ts_lfric4),   (lon_lfric_s,  lat_lfric,   Ts_lfric16)     ],
+    # UM
+    [uc.um_map(c, 'ts') for c in (1, 4, 16)],
     # PlaHab
     [(lon_plahab,   lat_plahab,  Ts_plahab1),  (lon_plahab,   lat_plahab,  Ts_plahab4),  (lon_plahab,   lat_plahab,  Ts_plahab16) ],
 ]
@@ -144,7 +151,7 @@ CB_FS    = 10   # colorbar ticks; its label is set at TITLE_FS
 # aspect: grids that stop at cell centres (PlaHab, ExoCAM) would otherwise
 # shrink out of line, and the stretch is at most 3%.
 MAP_W, MAP_H     = 2.8, 1.4
-COL_GAP, ROW_GAP = 0.12, 0.40
+COL_GAP, ROW_GAP = 0.12, 0.32
 LEFT, TOP, BOT   = 1.2, 0.6, 0.35
 CB_GAP, CB_W     = 0.2, 0.16
 nrows, ncols     = len(panels), len(case_labels)

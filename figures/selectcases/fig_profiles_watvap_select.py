@@ -11,6 +11,9 @@ import netCDF4
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'allcases'))
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams['axes.labelweight'] = 'bold'
@@ -31,6 +34,9 @@ MODEL_STYLES = {
     'PCM':       dict(color='#d62728', lw=1.6, ls='-'),
     'LFRic':     dict(color='#9467bd', lw=1.6, ls='-'),
     'ExoColumn': dict(color='#7f7f7f', lw=1.6, ls='--'),
+    'UM':        dict(color='#e377c2', lw=1.6, ls='-'),
+    'CLERO-UM':     dict(color='#bcbd22', lw=1.6, ls='-.'),
+    'CLERO-ExoCAM': dict(color='#e7ba52', lw=1.6, ls='-.'),
 }
 MODEL_LABELS = {
     'ExoCAM':    'ExoCAM',
@@ -39,6 +45,9 @@ MODEL_LABELS = {
     'PCM':       'Generic PCM',
     'LFRic':     'LFRic',
     'ExoColumn': 'ExoColumn',
+    'UM':        'UM',
+    'CLERO-UM':     'CLERO-UM',
+    'CLERO-ExoCAM': 'CLERO-ExoCAM',
 }
 
 
@@ -277,9 +286,21 @@ Q_exocol = [e[1] if e is not None else None for e in _exocol]
 P_exocol = [e[2] if e is not None else None for e in _exocol]
 
 
+# ── UM and CLERO ─────────────────────────────────────────────────────
+# Read by um_clero.py, substellar point at lon 0. CLERO, the emulator, is drawn
+# dash-dot as a class of its own; its top level is 10 hPa.
+
+_um      = [uc.um_profiles(c) for c in (1, 4, 16)]
+_clum    = [uc.clero_profiles('UM', c) for c in (1, 4, 16)]
+_clexo   = [uc.clero_profiles('ExoCAM', c) for c in (1, 4, 16)]
+T_um,    Q_um,    T_um_as,    Q_um_as,    P_um    = zip(*_um)
+T_clum,  Q_clum,  T_clum_as,  Q_clum_as,  P_clum  = zip(*_clum)
+T_clexo, Q_clexo, T_clexo_as, Q_clexo_as, P_clexo = zip(*_clexo)
+
+
 # ── Figure: Specific Humidity ─────────────────────────────────────────
 
-_all_P = [p for plist in [P_exocam, P_plasim, P_r3d, P_pcm, P_lfric, P_exocol]
+_all_P = [p for plist in [P_exocam, P_plasim, P_r3d, P_pcm, P_lfric, P_exocol, P_um, P_clum, P_clexo]
           for p in plist if p is not None]
 P_GLOBAL_LO = min(p.min() for p in _all_P) * 0.7
 P_GLOBAL_HI = max(p.max() for p in _all_P) * 1.05
@@ -317,7 +338,10 @@ for ci in range(NCASES):
             ('ROCKE-3D',  Q_r3d[ci],       P_r3d[ci]),
             ('PCM',       Q_pcm[ci],       P_pcm[ci]),
             ('LFRic',     Q_lfric[ci],     P_lfric[ci]),
+            ('UM',        Q_um[ci],        P_um[ci]),
             ('ExoColumn', Q_exocol[ci],    P_exocol[ci]),
+            ('CLERO-UM',     Q_clum[ci],    P_clum[ci]),
+            ('CLERO-ExoCAM', Q_clexo[ci],   P_clexo[ci]),
         ],
         'as': [
             ('ExoCAM',    Q_exocam_as[ci], P_exocam[ci]),
@@ -325,7 +349,10 @@ for ci in range(NCASES):
             ('ROCKE-3D',  Q_r3d_as[ci],    P_r3d[ci]),
             ('PCM',       Q_pcm_as[ci],    P_pcm[ci]),
             ('LFRic',     Q_lfric_as[ci],  P_lfric[ci]),
+            ('UM',        Q_um_as[ci],     P_um[ci]),
             ('ExoColumn', Q_exocol[ci],    P_exocol[ci]),
+            ('CLERO-UM',     Q_clum_as[ci],  P_clum[ci]),
+            ('CLERO-ExoCAM', Q_clexo_as[ci], P_clexo[ci]),
         ],
     }
     for ri, (row_title, key) in enumerate(ROWS):
@@ -355,7 +382,7 @@ for ci in range(NCASES):
 # One model legend above the panels, in the order the models are drawn
 order = [n for n in MODEL_STYLES if n in legend_handles]
 fig.legend([legend_handles[n] for n in order], [MODEL_LABELS[n] for n in order],
-           loc='outside upper center', ncols=len(order), fontsize=FS_LEGEND,
+           loc='outside upper center', ncols=5, fontsize=FS_LEGEND,
            frameon=False, handlelength=2.0, columnspacing=1.6)
 
 fig.savefig('fig_profiles_watvap_select.png', bbox_inches='tight', dpi=150)

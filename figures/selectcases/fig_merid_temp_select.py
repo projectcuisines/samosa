@@ -32,6 +32,9 @@ import warnings
 warnings.filterwarnings('ignore', category=DeprecationWarning)
 
 import netCDF4
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'allcases'))
+import um_clero as uc
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -58,6 +61,9 @@ MODEL_STYLES = {
     'LFRic':     dict(color='#9467bd', lw=1.6, ls='-'),
     'PlaHab':    dict(color='#8c564b', lw=1.6, ls='--'),
     'HEXTOR':    dict(color='#17becf', lw=1.6, ls='--'),
+    'UM':        dict(color='#e377c2', lw=1.6, ls='-'),
+    'CLERO-UM':     dict(color='#bcbd22', lw=1.6, ls='-.'),
+    'CLERO-ExoCAM': dict(color='#e7ba52', lw=1.6, ls='-.'),
 }
 MODEL_LABELS = {
     'ExoCAM':    'ExoCAM',
@@ -67,6 +73,9 @@ MODEL_LABELS = {
     'LFRic':     'LFRic',
     'PlaHab':    'PlaHab',
     'HEXTOR':    'HEXTOR',
+    'UM':        'UM',
+    'CLERO-UM':     'CLERO-UM',
+    'CLERO-ExoCAM': 'CLERO-ExoCAM',
 }
 
 
@@ -195,6 +204,17 @@ _hextor_lon = np.linspace(-180.0, 180.0, 361)
 hextor = [read_hextor(1, _hextor_lon), read_hextor(4, _hextor_lon), read_hextor(16, _hextor_lon)]
 
 
+# -- UM and CLERO ----------------------------------------------------
+# Read by um_clero.py with the substellar point at lon 0. CLERO, the emulator,
+# is dash-dot as in the profile figures.
+def _centred(lon_lat_ts):
+    lon, lat, ts = lon_lat_ts
+    return centre_on_substellar(ts, lat, lon, lon_ss=0.)
+
+um    = [_centred(uc.um_map(c, 'ts')) for c in (1, 4, 16)]
+clero = {cfg: [_centred(uc.clero_map(cfg, c, 'ts')) for c in (1, 4, 16)] for cfg in ('UM', 'ExoCAM')}
+
+
 # -- Figure ----------------------------------------------------------
 case_labels = ['Case 1\n500 W/m², 0.70 bar',
                'Case 4\n1200 W/m², 2.34 bar',
@@ -213,7 +233,10 @@ for ci, ax in enumerate(axes):
         ('PCM',       pcm[ci]),
         ('LFRic',     lfric[ci]),
         ('PlaHab',    plahab[ci]),
+        ('UM',        um[ci]),
         ('HEXTOR',    hextor[ci]),
+        ('CLERO-UM',     clero['UM'][ci]),
+        ('CLERO-ExoCAM', clero['ExoCAM'][ci]),
     ]
 
     # The freezing point, drawn under the model curves. It is dotted so that it
@@ -244,8 +267,9 @@ from matplotlib.lines import Line2D
 # Case 16 carries six curves rather than seven, the Generic PCM having no
 # converged solution there.
 model_handles = [Line2D([0], [0], label=MODEL_LABELS[m], **MODEL_STYLES[m])
-                 for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'PlaHab', 'HEXTOR')]
-fig.legend(handles=model_handles, loc='outside upper center', ncols=7,
+                 for m in ('ExoCAM', 'ExoPlaSim', 'ROCKE-3D', 'PCM', 'LFRic', 'UM', 'PlaHab', 'HEXTOR',
+                           'CLERO-UM', 'CLERO-ExoCAM')]
+fig.legend(handles=model_handles, loc='outside upper center', ncols=5,
            fontsize=FS_LEGEND, frameon=False,
            handlelength=2.0, handletextpad=0.6, columnspacing=1.8)
 

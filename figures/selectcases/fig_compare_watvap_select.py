@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.colors as colors
 import cmocean
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'allcases'))
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams['axes.labelweight'] = 'bold'
@@ -102,7 +105,7 @@ norm   = colors.LogNorm(vmin=contourmin, vmax=contourmax)
 cm     = cmocean.cm.rain
 
 # panels[row][col] = (lon, lat, data) or None for unavailable cases; row = model, col = case
-row_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic']
+row_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM']
 case_labels = ['Case 1\n500 W/m², 0.70 bar',
                'Case 4\n1200 W/m², 2.34 bar',
                'Case 16\n1400 W/m², 10.00 bar']
@@ -118,6 +121,8 @@ panels = [
     [(lon_pcm,      lat_pcm,     wv_pcm1),     (lon_pcm,      lat_pcm,     wv_pcm4),     None                                     ],
     # LFRic
     [(lon_lfric_s,  lat_lfric,   wv_lfric1),   (lon_lfric_s,  lat_lfric,   wv_lfric4),   (lon_lfric_s,  lat_lfric,   wv_lfric16)     ],
+    # UM: no column is submitted, so um_map integrates the specific humidity
+    [uc.um_map(c, 'wv') for c in (1, 4, 16)],
 ]
 
 TITLE_FS = 12   # case headers and model labels
@@ -132,7 +137,7 @@ CB_FS    = 10   # colorbar ticks; its label is set at TITLE_FS
 # aspect: grids that stop at cell centres (PlaHab, ExoCAM) would otherwise
 # shrink out of line, and the stretch is at most 3%.
 MAP_W, MAP_H     = 2.8, 1.4
-COL_GAP, ROW_GAP = 0.12, 0.40
+COL_GAP, ROW_GAP = 0.12, 0.32
 LEFT, TOP, BOT   = 1.2, 0.6, 0.35
 CB_GAP, CB_W     = 0.2, 0.16
 nrows, ncols     = len(panels), len(case_labels)

@@ -5,6 +5,9 @@ import netCDF4
 import numpy as np
 import matplotlib.pyplot as plt
 import cmocean
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'allcases'))
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams['axes.labelweight'] = 'bold'
@@ -134,6 +137,12 @@ def read_pcm(case_n):
     return inc - asr, inc, lat, lon
 
 
+def read_um(case_n):
+    """TOA outgoing and incoming shortwave, both submitted."""
+    lon, lat, (refl, inc) = uc.um_map(case_n, 'sw')
+    return refl, inc, lat, lon
+
+
 def model_row(reader, cases=(1, 4, 16), ssp=0.0):
     row = []
     for c in (1, 4, 16):
@@ -154,7 +163,7 @@ night  = '#e6e6e6'           # unlit cells, where albedo is undefined
 # PlaHab submitted maps of surface temperature only, and HEXTOR and ExoColumn
 # have no horizontal dimension, so the rows are the five 3-D models, as for
 # cloud fraction
-row_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic']
+row_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic', 'UM']
 case_labels = ['Case 1\n500 W/m², 0.70 bar',
                'Case 4\n1200 W/m², 2.34 bar',
                'Case 16\n1400 W/m², 10.00 bar']
@@ -167,6 +176,7 @@ panels = [
     model_row(read_rocke3d),
     model_row(read_pcm, cases=(1, 4)),   # Case 16 did not converge
     model_row(read_lfric),
+    model_row(read_um),
 ]
 
 TITLE_FS = 12   # case headers and model labels
@@ -181,7 +191,7 @@ CB_FS    = 10   # colorbar ticks; its label is set at TITLE_FS
 # aspect: grids that stop at cell centres (PlaHab, ExoCAM) would otherwise
 # shrink out of line, and the stretch is at most 3%.
 MAP_W, MAP_H     = 2.8, 1.4
-COL_GAP, ROW_GAP = 0.12, 0.40
+COL_GAP, ROW_GAP = 0.12, 0.32
 LEFT, TOP, BOT   = 1.2, 0.6, 0.35
 CB_GAP, CB_W     = 0.2, 0.16
 nrows, ncols     = len(panels), len(case_labels)

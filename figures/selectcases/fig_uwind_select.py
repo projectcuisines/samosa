@@ -1,6 +1,6 @@
 #
 # Vertical cross sections of zonal-mean zonal wind: Selected Cases
-# Layout: 3 rows (Cases 1, 4, 16) x 5 columns (models)
+# Layout: 3 rows (Cases 1, 4, 16) x 8 columns (models)
 # Black contour at U = 0
 #
 import warnings
@@ -11,6 +11,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import cmocean
+import os, sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'allcases'))
+import um_clero as uc
 
 # Axis labels in bold, and set a little clear of the tick labels
 plt.rcParams['axes.labelweight'] = 'bold'
@@ -122,12 +125,18 @@ panels = [
     r3d_data,      # ROCKE-3D
     pcm_data,      # Generic PCM
     lfric_data,    # LFRic
+    [uc.um_uwind(c) for c in (1, 4, 16)],                    # UM
+    [uc.clero_uwind('UM', c) for c in (1, 4, 16)],           # CLERO-UM
+    [uc.clero_uwind('ExoCAM', c) for c in (1, 4, 16)],       # CLERO-ExoCAM
 ]
 
-col_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic PCM', 'LFRic']
-case_labels = ['Case 1\n500 W/m²\n0.70 bar',
-               'Case 4\n1200 W/m²\n2.34 bar',
-               'Case 16\n1400 W/m²\n10.00 bar']
+# Eight columns leave each panel too narrow for the longer names on one line
+col_titles  = ['ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'Generic\nPCM', 'LFRic', 'UM', 'CLERO-\nUM', 'CLERO-\nExoCAM']
+# Each row's case goes into its pressure label, which a separate label beside
+# it would collide with at eight columns
+case_labels = ['Case 1\n500 W/m², 0.70 bar',
+               'Case 4\n1200 W/m², 2.34 bar',
+               'Case 16\n1400 W/m², 10.00 bar']
 
 # ── Per-row pressure limits ──────────────────────────────────────────
 row_Pmax, row_Pmin = [], []
@@ -148,13 +157,11 @@ NA_FS    = 11
 CB_FS    = 11
 
 def lat_fmt(x, _):
-    if x == 0:
-        return '0°'
-    return f'{int(abs(x))}°{"S" if x < 0 else "N"}'
+    return f'{int(x)}'.replace('-', '\u2212')
 
 fig = plt.figure(layout='constrained', figsize=(11.3, 6.2))
 fig.get_layout_engine().set(w_pad=2/72, h_pad=2/72, wspace=0.04, hspace=0.08)
-ax_array = fig.subplots(3, 5, squeeze=False)
+ax_array = fig.subplots(3, len(panels), squeeze=False)
 
 im = None
 for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
@@ -186,11 +193,10 @@ for col, (col_panels, title) in enumerate(zip(panels, col_titles)):
 
         if row == 0:
             ax.set_title(title, fontsize=TITLE_FS)
-        if col == 0 and panel is not None:
-            ax.set_ylabel('Pressure (hPa)', fontsize=LABEL_FS)
         if col == 0:
-            ax.text(-0.58, 0.5, case_labels[row], transform=ax.transAxes,
-                    ha='right', va='center', fontsize=LABEL_FS, linespacing=1.5)
+            ax.set_ylabel(f'{case_labels[row]}\nPressure (hPa)', fontsize=LABEL_FS, linespacing=1.3)
+
+fig.supxlabel('Latitude (°)', fontsize=LABEL_FS + 1, fontweight='bold')
 
 cb = fig.colorbar(im, ax=ax_array, extend='both',
                   ticks=np.arange(-80, 81, 20),

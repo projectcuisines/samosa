@@ -72,3 +72,100 @@ def samples( var ):
     return { 'UM':           ( um_flux,    um_pres,    g[ f'um_{var}' ] ),
              'CLERO-UM':     ( clero_flux, clero_pres, g[ f'clero_um_{var}' ] ),
              'CLERO-ExoCAM': ( clero_flux, clero_pres, g[ f'clero_exocam_{var}' ] ) }
+
+
+# ── Fields for the select-case maps and profiles ────────────────────────────
+# Every reader returns its fields with the substellar point at longitude 0 and
+# longitudes in [-180, 180).
+ROOT = '/models/data/samosa'
+G    = 9.80665
+
+def _roll_to_180( data, lon ):
+    idx = np.searchsorted( lon, 180.0 )
+    return ( np.concatenate( [ data[ ..., idx: ], data[ ..., :idx ] ], axis=-1 ),
+             np.concatenate( [ lon[ idx: ] - 360.0, lon[ :idx ] ] ) )
+
+def um_map( case, kind ):
+    """( lon, lat, field ) from um_samosa_caseNN.nc. kind is 'ts' (K), 'wv'
+    (kg/m2, the trapezoidal integral of specific humidity in pressure over the
+    39 native levels, which reproduces Qmass of global_UM.dat to 4 figures), or
+    'sw' (( reflected, incident ) at the top of the atmosphere, W/m2)."""
+    import netCDF4
+    with netCDF4.Dataset( f'{ROOT}/um/um_samosa_case{case:02d}.nc' ) as d:
+        lat, lon = np.array( d[ 'latitude' ][ : ] ), np.array( d[ 'longitude' ][ : ] )
+        if kind == 'ts':
+            f = np.array( d[ 'surface_temperature' ][ : ], float )
+        elif kind == 'wv':
+            q = np.array( d[ 'specific_humidity' ][ : ], float )
+            p = np.array( d[ 'air_pressure' ][ : ], float )
+            f = np.sum( 0.5*( q[ 1: ] + q[ :-1 ] )*( p[ :-1 ] - p[ 1: ] ), axis=0 ) / G
+        elif kind == 'sw':
+            f = np.stack( [ np.array( d[ 'toa_outgoing_shortwave_flux' ][ : ], float ),
+                            np.array( d[ 'toa_incoming_shortwave_flux' ][ : ], float ) ] )
+    f, lon = _roll_to_180( f, lon )
+    return lon, lat, f
+
+def clero_map( cfg, case, kind ):
+    """( lon, lat, field ) from CLERO-<cfg>; kind 'ts' or 'wv'. CLERO's grid is
+    already centred on the substellar point."""
+    import netCDF4
+    var = { 'ts': 'surface_temperature', 'wv': 'water_vapor_path' }[ kind ]
+    with netCDF4.Dataset( f'{ROOT}/clero/CLERO-{cfg}/samosa_CLERO-{cfg}_case{case:02d}.nc' ) as d:
+        return np.array( d[ 'lon' ][ : ] ), np.array( d[ 'lat' ][ : ] ), np.array( d[ var ][ : ], float )
+
+def _hemi_mean( data, lat, lon, day ):
+    """Area-weighted mean of a (lev, lat, lon) field over the substellar (day)
+    or anti-stellar hemisphere, the substellar point at lon 0; returns (lev,)."""
+    cd = np.cos( np.radians( lon ) )
+    w  = np.cos( np.radians( lat ) )[ :, None ] * ( ( cd > 0 ) if day else ( cd < 0 ) )[ None, : ]
+    return ( data * w ).sum( axis=( 1, 2 ) ) / w.sum()
+
+def um_profiles( case ):
+    """( T_ss, Q_ss, T_as, Q_as, P_hPa ), surface upward. Temperature is on the
+    38 theta levels; humidity and pressure carry the surface as level 0 as well,
+    which is dropped so all three share the 38 levels."""
+    import netCDF4
+    with netCDF4.Dataset( f'{ROOT}/um/um_samosa_case{case:02d}.nc' ) as d:
+        lat, lon = np.array( d[ 'latitude' ][ : ] ), np.array( d[ 'longitude' ][ : ] )
+        T = np.array( d[ 'air_temperature' ][ : ], float )
+        q = np.array( d[ 'specific_humidity' ][ : ], float )[ 1: ]
+        p = np.array( d[ 'air_pressure' ][ : ], float )[ 1: ]
+    T, lon_s = _roll_to_180( T, lon )
+    q, _     = _roll_to_180( q, lon )
+    p, _     = _roll_to_180( p, lon )
+    return ( _hemi_mean( T, lat, lon_s, True ),  _hemi_mean( q, lat, lon_s, True ),
+             _hemi_mean( T, lat, lon_s, False ), _hemi_mean( q, lat, lon_s, False ),
+             _hemi_mean( p, lat, lon_s, True ) / 100.0 )
+
+def clero_profiles( cfg, case ):
+    """As um_profiles, for CLERO-<cfg>: ten relative isobars, 0.925 of the
+    surface pressure up to 10 hPa."""
+    import netCDF4
+    with netCDF4.Dataset( f'{ROOT}/clero/CLERO-{cfg}/samosa_CLERO-{cfg}_case{case:02d}.nc' ) as d:
+        lat, lon = np.array( d[ 'lat' ][ : ] ), np.array( d[ 'lon' ][ : ] )
+        T = np.array( d[ 'temperature' ][ : ], float )
+        q = np.array( d[ 'specific_humidity' ][ : ], float )
+        p = np.array( d[ 'pressure' ][ : ], float ) / 100.0
+    return ( _hemi_mean( T, lat, lon, True ),  _hemi_mean( q, lat, lon, True ),
+             _hemi_mean( T, lat, lon, False ), _hemi_mean( q, lat, lon, False ), p )
+
+def um_uwind( case ):
+    """( U_bar (lev, lat), P_hPa (lev,), lat ): zonal-mean zonal wind. x_wind is
+    on the 38 rho levels, between the theta levels on which air_pressure is
+    given (level 0 the surface), so each rho level takes the mean pressure of
+    the theta levels either side, as LFRic's half levels do in fig_uwind_select.py."""
+    import netCDF4
+    with netCDF4.Dataset( f'{ROOT}/um/um_samosa_case{case:02d}.nc' ) as d:
+        u   = np.array( d[ 'x_wind' ][ : ], float )
+        p   = np.array( d[ 'air_pressure' ][ : ], float )
+        lat = np.array( d[ 'latitude' ][ : ] )
+    p_rho = 0.5*( p[ :-1 ] + p[ 1: ] )
+    w     = np.cos( np.radians( lat ) ); w = w / w.sum()
+    return u.mean( axis=-1 ), ( p_rho.mean( axis=-1 ) * w ).sum( axis=-1 ) / 100.0, lat
+
+def clero_uwind( cfg, case ):
+    """As um_uwind, for CLERO-<cfg> on its ten relative isobars."""
+    import netCDF4
+    with netCDF4.Dataset( f'{ROOT}/clero/CLERO-{cfg}/samosa_CLERO-{cfg}_case{case:02d}.nc' ) as d:
+        return ( np.array( d[ 'u' ][ : ], float ).mean( axis=-1 ),
+                 np.array( d[ 'pressure' ][ : ], float ) / 100.0, np.array( d[ 'lat' ][ : ] ) )
