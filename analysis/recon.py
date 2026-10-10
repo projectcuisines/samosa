@@ -69,12 +69,29 @@ def rd_pcm(c):
         ts=d['surface_temperature'][:].data
     return dict(lat=lat,lon=lon,p=P,u=u,v=v,T=T,ts=ts,top='last')
 
+def rd_um(c):
+    # Arakawa C grid: u on longitude edges, v on latitude edges, both on the 38
+    # rho levels; air_pressure on the 39 theta levels (0 the surface) and
+    # temperature on theta levels 1-38. Winds go to cell centres; each rho level
+    # takes the mean pressure of the theta levels either side, and the mean
+    # temperature of the theta levels either side (the lowest, its one above).
+    with netCDF4.Dataset(f'/models/data/samosa/um/um_samosa_case{c:02d}.nc') as d:
+        u=np.array(d['x_wind'][:],float); v=np.array(d['y_wind'][:],float)
+        pt=np.array(d['air_pressure'][:],float); Tt=np.array(d['air_temperature'][:],float)
+        lat=np.array(d['latitude'][:]); lon=np.array(d['longitude'][:])
+        ts=np.array(d['surface_temperature'][:],float)
+    u=0.5*(u+np.roll(u,-1,axis=-1)); v=0.5*(v[:,:-1]+v[:,1:])
+    p=0.5*(pt[:-1]+pt[1:])
+    T=0.5*(np.concatenate([Tt[:1],Tt[:-1]])+Tt)
+    return dict(lat=lat,lon=lon,p=p,u=u,v=v,T=T,ts=ts,top='last')
+
 MODELS = {
  'ExoCAM':      (rd_exocam, [1,4,7,8,9,10,11,12,14,15,16]),
  'ExoPlaSim':   (rd_plasim, list(range(1,17))),
  'ROCKE-3D':    (rd_rocke,  [1,2,4,5,6,7,8,9,10,11,12,13,14,15,16]),
  'LFRic':       (rd_lfric,  [1,4,7,8,9,10,11,12,14,15,16]),
  'Generic PCM': (rd_pcm,    list(range(1,17))),
+ 'UM':          (rd_um,     [1,4,8,9,10,11,14,15,16]),
 }
 
 def diagnose(D):

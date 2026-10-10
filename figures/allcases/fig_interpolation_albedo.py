@@ -261,7 +261,10 @@ def sigmoid( y ):
 # genuinely flat but resolved field. variogram_model_parameters[0] is the
 # structure term for both families in use here -- the slope for linear, the
 # partial sill for spherical -- so the same test reads either.
-structure_eps = 1.0e-8
+# The fitted term of a pure nugget lands at the optimizer's floor rather than at
+# zero: 1.9e-8 for the UM's seven common cases and 1.9e-9 for CLERO-UM's, against
+# 0.015 for the smallest fit that resolves anything. The threshold sits between.
+structure_eps = 1.0e-6
 
 # Albedo is bounded, so it is kriged on the logit and mapped back through the
 # inverse logit; the fitted structure term is returned for the stippling test
@@ -328,7 +331,8 @@ def flag_degenerate( ax, structure, xv, yv, n ):
         return
     ax.contourf( yv*fluxscale, xv, np.ones_like( xv ), levels=[0.5, 1.5],
                  hatches=['....'], colors='none', alpha=0 )
-    ax.text( 0.5, 0.06, f'these {n} cases resolve no spatial structure', transform=ax.transAxes,
+    # On two lines: at 3x4 a panel is too narrow to hold it on one
+    ax.text( 0.5, 0.06, f'these {n} cases resolve\nno spatial structure', transform=ax.transAxes,
              ha='center', va='bottom', fontsize=9, style='italic', color='0.15',
              bbox=dict( facecolor='white', edgecolor='none', alpha=0.75, pad=2.0 ) )
 

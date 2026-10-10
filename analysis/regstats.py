@@ -11,7 +11,8 @@ else:
     text = buf.getvalue()
 rows = []
 for line in text.splitlines():
-    m = re.match(r'^(ExoCAM|ExoPlaSim|ROCKE-3D|LFRic|Generic PCM)\s+(\d+)\s+(.*)$', line)
+    # The UM is a wind model since 2026-10-09; CLERO is kept out of the statistics
+    m = re.match(r'^(ExoCAM|ExoPlaSim|ROCKE-3D|LFRic|Generic PCM|UM)\s+(\d+)\s+(.*)$', line)
     if not m: continue
     f = m.group(3).split()
     rows.append(dict(model=m.group(1), case=int(m.group(2)), urms=float(f[4]), lamr=float(f[5]), lr=float(f[6]),
@@ -26,8 +27,9 @@ for tag, R in (('BEFORE', [r for r in rows if (r['model'], r['case']) not in NEW
     rat = {c: max(r['urms'] for r in bc[c]) / min(r['urms'] for r in bc[c]) for c in two}
     rat3 = {c: rat[c] for c in multi}
     print(' Urms max/min: median(>=2) %.2f median(>=3) %.2f max %.2f at %s' % (np.median(list(rat.values())), np.median(list(rat3.values())), max(rat.values()), max(rat, key=rat.get)))
-    shared = [c for c in sorted(bc) if len(bc[c]) == 5]
-    print(' all-five cases', shared)
+    nmod = len({r['model'] for r in R})
+    shared = [c for c in sorted(bc) if len(bc[c]) == nmod]
+    print(f' all-{nmod} cases', shared)
     for c in shared:
         w = max(bc[c], key=lambda r: r['urms']); k = min(bc[c], key=lambda r: r['urms'])
         print(f'   c{c}: windiest {w["model"]} {w["urms"]}, calmest {k["model"]} {k["urms"]}')

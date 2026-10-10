@@ -45,7 +45,7 @@ for c in (8,10,11): print(f'   CF case {c}:', {m: round(x,1) for m,x in bcC[c].i
 bcA = by_case(t['A'])
 s, rA = summ(bcA, 3, label='Alb >=3'); print(s); print('   ', {c: round(x,1) for c,x in rA.items()})
 bcA6 = by_case(t['A'], [m for m in t['A'] if m not in ONE_D])
-s, rA6 = summ(bcA6, 3, label='Alb 6 resolved >=3'); print(s)
+s, rA6 = summ(bcA6, 3, label='Alb resolved >=3'); print(s)
 bright = {}; dark = {}
 for c in sorted(bcA):
     if len(bcA[c]) < 2: continue
@@ -57,6 +57,6 @@ for c in sorted(bcA6):
     if len(bcA6[c]) < 2: continue
     b = max(bcA6[c], key=bcA6[c].get); k = min(bcA6[c], key=bcA6[c].get)
     bright[b] = bright.get(b,0)+1; dark[k] = dark.get(k,0)+1
-print('   6-resolved brightest', bright, 'darkest', dark)
+print('   resolved brightest', bright, 'darkest', dark)
 print('   HEXTOR darkest at', sum(1 for c in t['A']['HEXTOR'] if min(bcA[c], key=bcA[c].get)=='HEXTOR'), 'of', len(t['A']['HEXTOR']))
 print('   Case 4 albedo range %.1f pp -> %.0f W/m2' % (rng(bcA[4]), rng(bcA[4])/100*1200/4))

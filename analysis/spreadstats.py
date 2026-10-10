@@ -7,7 +7,7 @@ with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.St
 F = g['flux']*g['fluxscale']; P = g['pn2']
 FF, PP = np.meshgrid(F, P, indexing='ij')          # grid is (flux, pn2)
 spread, VARS = g['spread'], g['VARS']
-ts, wv, cf = VARS
+ts, wv, cf, al = VARS
 std_ts, std_wv, std_cf = (g['blocks'][0]['std'][k] for k in ('ts', 'wv', 'cf'))
 assert std_ts.shape == FF.shape, (std_ts.shape, FF.shape)
 def loc(a, f=np.nanargmax):
@@ -21,14 +21,16 @@ print('WV median %.4f max %s' % (np.median(std_wv), loc(std_wv)))
 # Subsets re-call spread() on the subset, so weighted_std's variance floor is the
 # subset's own, which is how the manuscript's six-model numbers were defined.
 TSM = ts['models']; names = list(TSM)
-six   = spread(ts, {n: TSM[n] for n in names[:6]})
-sevn  = spread(ts, {n: TSM[n] for n in names[:7]})
+# The resolved models are the first six plus the UM, which the table lists last
+resolved = names[:6] + ['UM']
+six   = spread(ts, {n: TSM[n] for n in resolved})
+sevn  = spread(ts, {n: TSM[n] for n in resolved + ['HEXTOR']})
 eight = std_ts
 band = (FF >= 400) & (FF <= 1200)      # the band both one-dimensional models sampled
-for nm, a in (('six', six), ('+HEXTOR', sevn), ('+ExoColumn', eight)):
+for nm, a in (('resolved', six), ('+HEXTOR', sevn), ('+ExoColumn', eight)):
     print(f'   T {nm:11s} median {np.median(a):.4f}  in-band {np.median(a[band]):.4f}  out {np.median(a[~band]):.4f}')
 noHC16 = dict(TSM); p, f, v = TSM['HEXTOR']; keep = ~(np.isclose(f*g['fluxscale'], 1400) & np.isclose(p, 10.0))
 noHC16['HEXTOR'] = (p[keep], f[keep], v[keep])
-print('   T all eight without HEXTOR Case 16: median %.4f' % np.median(spread(ts, noHC16)))
+print('   T all without HEXTOR Case 16: median %.4f' % np.median(spread(ts, noHC16)))
 wv5 = spread(wv, {n: m for n, m in wv['models'].items() if n != 'ExoColumn'})
 print('   WV without ExoColumn median %.4f, with %.4f' % (np.median(wv5), np.median(std_wv)))

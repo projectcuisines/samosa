@@ -23,7 +23,8 @@ from _paths import FIG_ALL, ARCHIVE
 from tables import table
 
 HEXTOR   = '/models/hextor'
-RESOLVED = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic' ]
+# The UM joined the resolved models on 2026-10-09; CLERO, an emulator, does not count
+RESOLVED = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'UM' ]
 BASE     = ( '--sequence all16 --init warm --transport constant --d0-ref 2.46 --moistdiff --rhmoist 0.8 '
              '--table ./radiation/radiation_N2_CO2_3000K_p_rh0.8.h5 --workers 4' )
 CONFIGS  = [ ( 'submitted',                    '--cloudir -45.09' ),
@@ -43,7 +44,7 @@ T = table( FIG_ALL, 'fig_interpolation_temp.py', 'runawaytemp' )
 med = { c: np.median( [ T[ m ][ c ] for m in RESOLVED if c in T[ m ] ] ) for c in range( 1, 17 ) }
 cases = sorted( T[ 'HEXTOR' ] )             # the nine HEXTOR submitted as stable
 
-print( 'HEXTOR minus the median of the six resolved models (K), at its stable Cases 1-16' )
+print( f'HEXTOR minus the median of the {len(RESOLVED)} resolved models (K), at its stable Cases 1-16' )
 print( f"{'':32s}" + ''.join( f'  C{c:<5d}' for c in cases ) )
 for label, args in CONFIGS:
     res = run( args )

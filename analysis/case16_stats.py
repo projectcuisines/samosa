@@ -18,7 +18,10 @@ def load( path ):
     with contextlib.redirect_stdout( io.StringIO() ):
         return runpy.run_path( path )
 
-RESOLVED = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic' ]
+# The UM joined the resolved models on 2026-10-09. CLERO, the emulator of
+# ExoCAM and the UM, is kept out of every ensemble statistic and so out of both
+# lists. Labels print the counts, so 'all' is nine and 'resolved' seven.
+RESOLVED = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'UM' ]
 ONE_D    = [ 'HEXTOR', 'ExoColumn' ]
 
 # ── A. Sample-point temperature ranges ────────────────────────────────────────
@@ -41,18 +44,18 @@ def ranges( T ):
     return { c: max( v.values() ) - min( v.values() ) for c, v in T.items() if len( v ) >= 3 }
 r8, r6 = ranges( T8 ), ranges( T6 )
 print( '=== A. sample-point Tglob range, cases with >=3 models ===' )
-print( f'  all eight: {min(r8.values()):.1f}-{max(r8.values()):.1f} K, median {np.median(list(r8.values())):.1f} K over {len(r8)} cases' )
-print( f'  six resolved: median {np.median(list(r6.values())):.1f} K over {len(r6)} cases' )
-print( '  widest (all eight):', ', '.join( f'C{c} {r:.1f}' for c, r in sorted( r8.items(), key=lambda x: -x[1] )[ :6 ] ) )
-print( '  six-model range at those:', ', '.join( f'C{c} {r6.get(c, float("nan")):.1f}' for c, _ in sorted( r8.items(), key=lambda x: -x[1] )[ :6 ] ) )
+print( f'  all {len(RESOLVED+ONE_D)}: {min(r8.values()):.1f}-{max(r8.values()):.1f} K, median {np.median(list(r8.values())):.1f} K over {len(r8)} cases' )
+print( f'  {len(RESOLVED)} resolved: median {np.median(list(r6.values())):.1f} K over {len(r6)} cases' )
+print( '  widest (all):', ', '.join( f'C{c} {r:.1f}' for c, r in sorted( r8.items(), key=lambda x: -x[1] )[ :6 ] ) )
+print( '  resolved-only range at those:', ', '.join( f'C{c} {r6.get(c, float("nan")):.1f}' for c, _ in sorted( r8.items(), key=lambda x: -x[1] )[ :6 ] ) )
 allv = [ ( t, n, c ) for c, v in T8.items() for n, t in v.items() ]
 print( '  coldest', min( allv ), ' warmest', max( allv ) )
 print( f'  Case 16 models: ' + ', '.join( f'{n} {t:.1f}' for n, t in sorted( T8[16].items(), key=lambda x: x[1] ) ) )
 print( '  HEXTOR minus resolved median:', ', '.join(
     f'C{c} {T8[c]["HEXTOR"] - np.median([t for n, t in T8[c].items() if n in RESOLVED]):+.1f}'
     for c in sorted( T8 ) if 'HEXTOR' in T8[ c ] ) )
-n5 = [ c for c, v in T8.items() if len( v ) >= 5 ]; n8 = [ c for c, v in T8.items() if len( v ) == 8 ]
-print( f'  cases with >=5 models: {n5}; with all 8: {n8}' )
+n5 = [ c for c, v in T8.items() if len( v ) >= 5 ]; n8 = [ c for c, v in T8.items() if len( v ) == len( RESOLVED + ONE_D ) ]
+print( f'  cases with >=5 models: {n5}; with all {len(RESOLVED + ONE_D)}: {n8}' )
 
 # ── C. Albedo ranges ──────────────────────────────────────────────────────────
 al = load( 'fig_interpolation_albedo.py' )
@@ -64,6 +67,8 @@ def alb_models():
         reg[ n ] = ( flux1[ m ], pres1[ m ], v[ m ] )
     for n, k in ( ( 'Generic PCM', 'pcm' ), ( 'LFRic', 'lfric' ), ( 'HEXTOR', 'hextor' ), ( 'ExoColumn', 'exocolumn' ) ):
         reg[ n ] = ( al[ k + '_flux1' ], al[ k + '_pres1' ], al[ k ] )
+    f, p, a = al[ 'MODELS' ][ 'UM' ]
+    reg[ 'UM' ] = ( f, p, a )
     return reg
 AR = alb_models()
 def alb_case( models ):
@@ -80,8 +85,8 @@ def alb_case( models ):
 A8, A6 = alb_case( RESOLVED + ONE_D ), alb_case( RESOLVED )
 ra8, ra6 = ranges( A8 ), ranges( A6 )
 print( '\n=== C. albedo range, cases with >=3 models ===' )
-print( f'  all eight: {min(ra8.values()):.1f}-{max(ra8.values()):.1f} points, median {np.median(list(ra8.values())):.1f}' )
-print( f'  six resolved: {min(ra6.values()):.1f}-{max(ra6.values()):.1f} points, median {np.median(list(ra6.values())):.1f}' )
+print( f'  all {len(RESOLVED+ONE_D)}: {min(ra8.values()):.1f}-{max(ra8.values()):.1f} points, median {np.median(list(ra8.values())):.1f}' )
+print( f'  {len(RESOLVED)} resolved: {min(ra6.values()):.1f}-{max(ra6.values()):.1f} points, median {np.median(list(ra6.values())):.1f}' )
 dark = [ c for c, v in A8.items() if 'HEXTOR' in v and min( v, key=v.get ) == 'HEXTOR' ]
 print( f'  HEXTOR darkest at {len(dark)} of {sum("HEXTOR" in v for v in A8.values())} cases: {dark}' )
 print( '  HEXTOR albedo:', { c: v[ 'HEXTOR' ] for c, v in A8.items() if 'HEXTOR' in v } )
@@ -93,9 +98,9 @@ sp = load( 'fig_spread.py' )
 ws, krige = sp[ 'weighted_std' ], sp[ 'krige' ]
 _kr = [ krige( *sp[ 'TS_MODELS' ][ n ], sp[ 'ANISO_TS' ][ n ] ) for n in sp[ 'TS_MODELS' ] ]
 z, var = [ np.asarray( k[ 0 ] ) for k in _kr ], [ np.asarray( k[ 1 ] ) for k in _kr ]
-assert list( sp[ 'TS_MODELS' ] ) == [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ]
+assert list( sp[ 'TS_MODELS' ] ) == [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn', 'UM' ]
 F = sp[ 'flux' ] * 100; P = sp[ 'pn2' ]
-order = [ 'ExoPlaSim', 'ExoCAM', 'ROCKE-3D', 'PlaHab', 'Generic PCM', 'LFRic', 'HEXTOR', 'ExoColumn' ]
+order = list( sp[ 'TS_MODELS' ] )
 def sd( names, zz=None ):
     zz = zz or z
     idx = [ order.index( n ) for n in names ]
@@ -108,16 +113,16 @@ hx_f = sp[ 'hextor_flux1' ].max() * 100
 band = ( F <= min( hx_f, sp[ 'exocolumn_flux1' ].max() * 100 ) )[ :, None ] & np.ones( ( 1, len( P ) ), bool )
 print( '\n=== D. temperature spread (Figure spread) ===' )
 i, j = np.unravel_index( np.argmax( S8 ), S8.shape )
-print( f'  all eight: median {np.median(S8):.1f}, min {S8.min():.1f}, max {S8.max():.1f} at {F[i]:.0f} W/m2, {P[j]} bar' )
+print( f'  all {len(order)}: median {np.median(S8):.1f}, min {S8.min():.1f}, max {S8.max():.1f} at {F[i]:.0f} W/m2, {P[j]} bar' )
 def at( S, f, p ): return S[ np.argmin( abs( F - f ) ), np.argmin( abs( P - p ) ) ]
 print( f'  at Case 7 (1600, 0.55): {at(S8,1600,0.55):.1f}; at Case 16 (1400, 10): {at(S8,1400,10.0):.1f}; corner (1900, 10): {at(S8,1900,10.0):.1f}' )
 # local maxima on the grid
 loc = [ ( S8[a, b], F[a], P[b] ) for a in range( len( F ) ) for b in range( len( P ) )
         if S8[a, b] == S8[ max(a-1,0):a+2, max(b-1,0):b+2 ].max() ]
 print( '  local maxima:', ', '.join( f'{s:.1f} at ({f:.0f}, {p})' for s, f, p in sorted( loc, reverse=True )[ :4 ] ) )
-print( f'  whole-plane medians: six {np.median(S6):.1f}, +HEXTOR {np.median(S7):.1f}, +both {np.median(S8):.1f}' )
-print( f'  band <= {band.any(axis=1).nonzero()[0].max()*100+400:.0f} W/m2: six {np.median(S6[band]):.1f} -> eight {np.median(S8[band]):.1f}; '
-       f'outside: six {np.median(S6[~band]):.1f} -> eight {np.median(S8[~band]):.1f}' )
+print( f'  whole-plane medians: {len(RESOLVED)} resolved {np.median(S6):.1f}, +HEXTOR {np.median(S7):.1f}, +both {np.median(S8):.1f}' )
+print( f'  band <= {band.any(axis=1).nonzero()[0].max()*100+400:.0f} W/m2: resolved {np.median(S6[band]):.1f} -> all {np.median(S8[band]):.1f}; '
+       f'outside: resolved {np.median(S6[~band]):.1f} -> all {np.median(S8[~band]):.1f}' )
 # LFRic Case 7 and Cases 8/10/11 withheld
 lf = sp[ 'lfric_flux1' ] * 100; lp = sp[ 'lfric_pres1' ]; lt = sp[ 'ts_lfric' ]
 def lfric_without( drop ):
@@ -130,7 +135,7 @@ S_no7 = lfric_without( [ ( 1600, 0.55 ) ] )
 zz7 = list( z ); _k = ~( np.isclose( lf, 1600 ) & np.isclose( lp, 0.55 ) )
 zz7[ order.index( 'LFRic' ) ] = krige( lp[_k], lf[_k] / 100, lt[_k], sp[ 'ANISO_TS' ][ 'LFRic' ] )[ 0 ]
 S6_no7 = sd( RESOLVED, zz7 )
-print( f'  LFRic Case 7 on six-model medians: in-band {np.median(S6[band])-np.median(S6_no7[band]):+.2f}, out {np.median(S6[~band])-np.median(S6_no7[~band]):+.2f}' )
+print( f'  LFRic Case 7 on resolved-model medians: in-band {np.median(S6[band])-np.median(S6_no7[band]):+.2f}, out {np.median(S6[~band])-np.median(S6_no7[~band]):+.2f}' )
 S_no81011 = lfric_without( [ ( 800, 6.16 ), ( 400, 4.83 ), ( 900, 0.10 ) ] )
 for lab, S in ( ( 'Case 7', S_no7 ), ( 'Cases 8/10/11', S_no81011 ) ):
     print( f'  LFRic {lab} moves: whole {np.median(S8)-np.median(S):+.2f}, in-band {np.median(S8[band])-np.median(S[band]):+.2f}, '
@@ -180,7 +185,7 @@ _G[ 'partial_models' ] = [ n for n in _saved[ 1 ] if n in RESOLVED ]
 six = sm[ 'consensus' ]( { n: sm[ 'ts_in' ][ n ] for n in RESOLVED }, sm[ 'pn2f' ], sm[ 'fluxf' ], fade=True )
 _G[ 'mean_models' ], _G[ 'partial_models' ] = _saved
 C6 = six[ 'contested_all' ]
-print( f'  six resolved contested: {100*area(C6):.1f}%' )
+print( f'  {len(RESOLVED)} resolved contested: {100*area(C6):.1f}%' )
 lo6, hi6 = edges( C6 )
 d = lo6 - lo
 k = np.nanargmax( d )
